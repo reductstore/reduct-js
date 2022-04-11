@@ -1,0 +1,25 @@
+{
+  "name": "reduct-js",
+  "version": "0.1.0",
+  "description": "Reduct Storage Client SDK for Javascript/NodeJS/Typescript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reduct-storage/reduct-js.git"
+  },
+  "keywords": [
+    "reductstorage",
+    "sdk",
+    "http-api",
+    "http-client"
+  ],
+  "author": "Alexey Timin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/reduct-storage/reduct-js/issues"
+  },
+  "homepage": "https://github.com/reduct-storage/reduct-js#readme"
+}
