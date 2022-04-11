@@ -9,7 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    needs: cpplint
     steps:
       - uses: actions/checkout@v2
       - name: Set up Docker Buildx
