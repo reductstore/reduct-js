@@ -1,29 +1,41 @@
 /**
  * Represents information about a bucket
  */
-export interface BucketInfo {
+export class BucketInfo {
     /**
      * Name of the bucket
      */
-    name: string
+    readonly name: string = "";
 
     /**
      * Number of entries in the bucket
      */
-    entry_count: BigInt
+    readonly entryCount: BigInt = 0n;
 
     /**
      * Size of stored data in the bucket in bytes
      */
-    size: BigInt
+    readonly size: BigInt = 0n;
 
     /**
      * Unix timestamp of the oldest record in microseconds
      */
-    oldest_record: BigInt
+    readonly oldestRecord: BigInt = 0n;
 
     /**
      * Unix timestamp of the latest record in microseconds
      */
-    latest_record: BigInt
+    readonly latestRecord: BigInt = 0n;
+
+
+    static parse(bucket: any): BucketInfo {
+        return {
+            name: bucket.name,
+            entryCount: BigInt(bucket.entry_count),
+            size: BigInt(bucket.size),
+            oldestRecord: BigInt(bucket.oldest_record),
+            latestRecord: BigInt(bucket.latest_record),
+        };
+    }
 }
+

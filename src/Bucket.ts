@@ -1,6 +1,7 @@
 // @ts-ignore
 import {AxiosInstance, AxiosResponse} from "axios";
-import {BucketSettings, QuotaType} from "./BucketSettings";
+import {BucketSettings} from "./BucketSettings";
+import {BucketInfo} from "./BucketInfo";
 
 /**
  * Represents a bucket in Reduct Storage
@@ -29,11 +30,19 @@ export class Bucket {
     async getSettings(): Promise<BucketSettings> {
         return this.httpClient.get(`/b/${this.name}`).then((response: AxiosResponse) => {
             const {settings} = response.data;
-            return Promise.resolve({
-                maxBlockSize: BigInt(settings.max_block_size),
-                quotaType: QuotaType[settings.quota_type],
-                quotaSize: BigInt(settings.quota_size)
-            });
+            return Promise.resolve(BucketSettings.parse(settings));
+        });
+    }
+
+    /**
+     * Get information about a bucket
+     * @async
+     * @return {Promise<BucketInfo>}
+     */
+    async getInfo(): Promise<BucketInfo> {
+        return this.httpClient.get(`/b/${this.name}`).then((response: AxiosResponse) => {
+            const {info} = response.data;
+            return Promise.resolve(BucketInfo.parse(info));
         });
     }
 
@@ -45,6 +54,4 @@ export class Bucket {
     async remove(): Promise<void> {
         return this.httpClient.delete(`/b/${this.name}`).then(() => Promise.resolve());
     }
-
-
 }

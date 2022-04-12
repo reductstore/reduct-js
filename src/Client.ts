@@ -39,16 +39,7 @@ export class Client {
     async getInfo(): Promise<ServerInfo> {
         return this.httpClient.get("/info").then((resp: AxiosResponse) => {
             const {data} = resp;
-            const info: ServerInfo = {
-                version: data.version,
-                bucketCount: BigInt(data.bucket_count),
-                uptime: BigInt(data.uptime),
-                usage: BigInt(data.usage),
-                oldestRecord: BigInt(data.oldest_record),
-                latestRecord: BigInt(data.latest_record),
-            };
-
-            return Promise.resolve(info);
+            return Promise.resolve(ServerInfo.parse(data));
         });
     }
 
@@ -61,13 +52,7 @@ export class Client {
     async getBucketList(): Promise<BucketInfo[]> {
         return this.httpClient.get("/list").then((resp: AxiosResponse) => {
             return resp.data.buckets.map((bucket: any) => {
-                return {
-                    name: bucket.name,
-                    entryCount: BigInt(bucket.entry_count),
-                    size: BigInt(bucket.size),
-                    oldestRecord: BigInt(bucket.oldest_record),
-                    latestRecord: BigInt(bucket.latest_record),
-                };
+                return BucketInfo.parse(bucket);
             });
         });
     }

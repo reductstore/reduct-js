@@ -1,34 +1,45 @@
 /**
  * Represents information about storage
  */
-export interface ServerInfo {
+export class ServerInfo {
     /**
      * Version storage server
      */
-    version: string
+    readonly version: string = "";
 
     /**
      * Number of buckets
      */
-    bucketCount: BigInt
+    readonly bucketCount: BigInt = 0n;
 
     /**
      * Stored data in bytes
      */
-    usage: BigInt
+    readonly usage: BigInt = 0n;
 
     /**
      * Server uptime in seconds
      */
-    uptime: BigInt
+    readonly uptime: BigInt = 0n;
 
     /**
      * Unix timestamp of the oldest record in microseconds
      */
-    oldestRecord: BigInt
+    readonly oldestRecord: BigInt = 0n;
 
     /**
      * Unix timestamp of the latest record in microseconds
      */
-    latestRecord: BigInt
+    readonly latestRecord: BigInt = 0n;
+
+    static parse(data: any): ServerInfo {
+        return {
+            version: data.version,
+            bucketCount: BigInt(data.bucket_count),
+            uptime: BigInt(data.uptime),
+            usage: BigInt(data.usage),
+            oldestRecord: BigInt(data.oldest_record),
+            latestRecord: BigInt(data.latest_record),
+        };
+    }
 }

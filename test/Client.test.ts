@@ -2,6 +2,7 @@ import {Client} from "../src/Client";
 import {ServerInfo} from "../src/ServerInfo";
 import {Bucket} from "../src/Bucket";
 import {QuotaType} from "../src/BucketSettings";
+import {cleanStorage} from "./Helpers";
 
 
 test("Client should raise network error", () => {
@@ -15,18 +16,7 @@ describe("Client", () => {
     const client = new Client("http://127.0.0.1:8383");
 
     beforeEach((done) => {
-        client.getBucketList()
-            .then(buckets => {
-                return Promise.all(buckets.map(info => {
-                    return client.getBucket(info.name).then((bucket: Bucket) => {
-                            return bucket.remove();
-                        }
-                    );
-                }));
-            })
-            .then(() => {
-                done();
-            });
+        cleanStorage(client).then(() => done());
     });
 
     it("should get information about the server", async () => {
