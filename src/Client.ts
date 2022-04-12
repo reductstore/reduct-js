@@ -2,17 +2,20 @@
  * Represents HTTP Client for Reduct Storage API
  * @class
  */
-import {ServerInfo} from './ServerInfo';
+import {ServerInfo} from "./ServerInfo";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import axios, {AxiosInstance, AxiosResponse, AxiosError} from 'axios';
-import {APIError} from './APIError';
+import axios, {AxiosInstance, AxiosResponse, AxiosError} from "axios";
+import {APIError} from "./APIError";
+import {BucketInfo} from "./BucketInfo";
+import {BucketSettings} from "./BucketSettings";
+import {Bucket} from "./Bucket";
 
 export class Client {
     private httpClient: AxiosInstance;
 
     /**
-     * Create a client
+     * HTTP Client for Reduct Storage
      * @param url URL to the storage
      */
     constructor(url: string) {
@@ -20,6 +23,11 @@ export class Client {
             baseURL: url,
             timeout: 1000
         });
+
+        this.httpClient.interceptors.response.use(
+            (response: AxiosResponse) => response,
+            (error: AxiosError) => Promise.reject(APIError.from(error))
+        );
     }
 
     /**
@@ -29,20 +37,59 @@ export class Client {
      * @return {Promise<ServerInfo>} The data about the server
      */
     async getInfo(): Promise<ServerInfo> {
-        return this.httpClient.get('/info').then((resp: AxiosResponse) => {
+        return this.httpClient.get("/info").then((resp: AxiosResponse) => {
             const {data} = resp;
             const info: ServerInfo = {
                 version: data.version,
-                bucket_count: BigInt(data.bucket_count),
+                bucketCount: BigInt(data.bucket_count),
                 uptime: BigInt(data.uptime),
                 usage: BigInt(data.usage),
-                oldest_record: BigInt(data.oldest_record),
-                latest_record: BigInt(data.latest_record),
+                oldestRecord: BigInt(data.oldest_record),
+                latestRecord: BigInt(data.latest_record),
             };
 
             return Promise.resolve(info);
-        }).catch((error: AxiosError) => {
-            return Promise.reject(APIError.from(error));
         });
+    }
+
+    /**
+     * Get list of buckets
+     * @async
+     * @return {BucketInfo[]}
+     * @see BucketInfo
+     */
+    async getBucketList(): Promise<BucketInfo[]> {
+        return this.httpClient.get("/list").then((response: AxiosResponse) => {
+            return response.data.buckets.map((bucket: any) => {
+                return {
+                    name: bucket.name,
+                    entryCount: BigInt(bucket.entry_count),
+                    size: BigInt(bucket.size),
+                    oldestRecord: BigInt(bucket.oldest_record),
+                    latestRecord: BigInt(bucket.latest_record),
+                };
+            });
+        });
+    }
+
+    /**
+     * Create a new bucket
+     * @param name Name of the bucket
+     * @param settings Optional settings
+     * @return Promise<Bucket>
+     */
+    async createBucket(name: string, settings?: BucketSettings): Promise<Bucket> {
+        return this.httpClient.post(`/b/${name}`, settings)
+            .then(() => Promise.resolve(new Bucket(name, this.httpClient)));
+    }
+
+    /**
+     * Get a bucket by name
+     * @param name Name of the bucket
+     * @return Promise<Bucket>
+     */
+    async getBucket(name: string): Promise<Bucket> {
+        return this.httpClient.head(`/b/${name}`)
+            .then(() => Promise.resolve(new Bucket(name, this.httpClient)));
     }
 }

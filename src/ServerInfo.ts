@@ -10,7 +10,7 @@ export interface ServerInfo {
     /**
      * Number of buckets
      */
-    bucket_count: BigInt
+    bucketCount: BigInt
 
     /**
      * Stored data in bytes
@@ -25,10 +25,10 @@ export interface ServerInfo {
     /**
      * Unix timestamp of the oldest record in microseconds
      */
-    oldest_record: BigInt
+    oldestRecord: BigInt
 
     /**
      * Unix timestamp of the latest record in microseconds
      */
-    latest_record: BigInt
+    latestRecord: BigInt
 }
