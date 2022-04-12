@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import {AxiosError} from 'axios';
+import {AxiosError} from "axios";
 
 /**
  * Represents HTTP Error
@@ -22,7 +22,7 @@ export class APIError {
         if (resp !== undefined) {
             apiError.status = resp.status;
             if (resp.data !== undefined) {
-                const {detail} = error.response.data;
+                const {detail} = resp.data;
                 if (detail !== undefined) {
                     apiError.message += ": " + detail;
                 }
