@@ -24,7 +24,7 @@ export class APIError {
             if (resp.data !== undefined) {
                 const {detail} = error.response.data;
                 if (detail !== undefined) {
-                    apiError.message += ': ' + detail;
+                    apiError.message += ": " + detail;
                 }
             }
         }

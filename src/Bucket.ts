@@ -1,15 +1,17 @@
 // @ts-ignore
 import {AxiosInstance} from "axios";
+import {BucketSettings} from "./BucketSettings";
 
 /**
  * Represents a bucket in Reduct Storage
  */
 export class Bucket {
-    private name: string;
+    readonly name: string;
     private httpClient: AxiosInstance;
 
     /**
-     * Creats a bucket. Use Client.creatBucket or Client.getBucket instead it
+     * Create a bucket. Use Client.creatBucket or Client.getBucket instead it
+     * @constructor
      * @param name
      * @param httpClient
      * @see {Client}
@@ -19,6 +21,12 @@ export class Bucket {
         this.httpClient = httpClient;
     }
 
+    // async getSettings(): Promise<BucketSettings> {
+    //     return this.httpClient.get(`/b/${this.name}`).then(response => {
+    //         response.data.
+    //     })
+    // }
+
     /**
      * Remove bucket
      * @async
@@ -27,4 +35,6 @@ export class Bucket {
     async remove(): Promise<void> {
         return this.httpClient.delete(`/b/${this.name}`).then(() => Promise.resolve());
     }
+
+
 }

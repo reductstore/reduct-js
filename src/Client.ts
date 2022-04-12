@@ -59,8 +59,8 @@ export class Client {
      * @see BucketInfo
      */
     async getBucketList(): Promise<BucketInfo[]> {
-        return this.httpClient.get("/list").then((response: AxiosResponse) => {
-            return response.data.buckets.map((bucket: any) => {
+        return this.httpClient.get("/list").then((resp: AxiosResponse) => {
+            return resp.data.buckets.map((bucket: any) => {
                 return {
                     name: bucket.name,
                     entryCount: BigInt(bucket.entry_count),
@@ -89,7 +89,7 @@ export class Client {
      * @return Promise<Bucket>
      */
     async getBucket(name: string): Promise<Bucket> {
-        return this.httpClient.head(`/b/${name}`)
+        return this.httpClient.get(`/b/${name}`)
             .then(() => Promise.resolve(new Bucket(name, this.httpClient)));
     }
 }

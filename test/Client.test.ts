@@ -14,18 +14,29 @@ test("Client should raise network error", () => {
 describe("Client", () => {
     const client = new Client("http://127.0.0.1:8383");
 
-    beforeAll(async () => {
-        const buckets: BucketInfo[] = await client.getBucketList();
-        buckets.forEach(info => {
-            client.getBucket(info.name).then((bucket: Bucket) => bucket.remove());
-        });
+    beforeEach((done) => {
+        client.getBucketList()
+            .then(buckets => {
+                return Promise.all(buckets.map(info => {
+                    return client.getBucket(info.name).then((bucket: Bucket) => {
+                            return bucket.remove();
+                        }
+                    );
+                }));
+            })
+            .then(() => {
+                done();
+            });
     });
 
     it("should get information about the server", async () => {
-        const info: ServerInfo = await client.getInfo();
+        await client.createBucket("bucket_1");
+        await client.createBucket("bucket_2");
 
+        const info: ServerInfo = await client.getInfo();
         expect(info.version).toMatch(/0\.[0-9]+\.[0-9]+/);
-        expect(info.bucketCount).toBeGreaterThanOrEqual(0);
+
+        expect(info.bucketCount).toEqual(2n);
         expect(info.usage).toBeGreaterThanOrEqual(0);
         expect(info.uptime).toBeGreaterThanOrEqual(0);
         expect(info.oldestRecord).toBeGreaterThanOrEqual(0);
@@ -41,5 +52,39 @@ describe("Client", () => {
         expect(buckets.length).toBeGreaterThanOrEqual(2);
         expect(buckets.map((bucket) => bucket.name)).toContain("bucket_1");
         expect(buckets.map((bucket) => bucket.name)).toContain("bucket_2");
+    });
+
+    it("should get bucket", async () => {
+        await client.createBucket("bucket_1");
+
+        const bucket: Bucket = await client.getBucket("bucket_1");
+        expect(bucket.name).toEqual("bucket_1");
+    });
+
+    it("should get bucket with error", async () => {
+        await expect(client.getBucket("NOTEXIST")).rejects.toEqual({
+            status: 404,
+            message: "Request failed with status code 404: Bucket 'NOTEXIST' is not found"
+        });
+    });
+
+    it("should create a bucket with error", async () => {
+        await client.createBucket("bucket");
+        await expect(client.createBucket("bucket")).rejects.toEqual({
+            status: 409,
+            message: "Request failed with status code 409: Bucket 'bucket' already exists",
+        });
+    });
+
+    it("should remove a bucket", async () => {
+        const bucket = await client.createBucket("bucket");
+        await bucket.remove();
+        await expect(client.getBucket("bucket")).rejects.toMatchObject({status: 404});
+    });
+
+    it("should remove a bucket with error", async () => {
+        const bucket = await client.createBucket("bucket");
+        await bucket.remove();
+        await expect(bucket.remove()).rejects.toMatchObject({status: 404});
     });
 });
