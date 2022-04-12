@@ -1,7 +1,7 @@
 import {Client} from "../src/Client";
 import {ServerInfo} from "../src/ServerInfo";
-import {BucketInfo} from "../src/BucketInfo";
 import {Bucket} from "../src/Bucket";
+import {QuotaType} from "../src/BucketSettings";
 
 
 test("Client should raise network error", () => {
@@ -65,6 +65,24 @@ describe("Client", () => {
         await expect(client.getBucket("NOTEXIST")).rejects.toEqual({
             status: 404,
             message: "Request failed with status code 404: Bucket 'NOTEXIST' is not found"
+        });
+    });
+
+    it("should create a bucket if default settings", async () => {
+        const bucket = await client.createBucket("bucket");
+        await expect(bucket.getSettings()).resolves.toEqual({
+            maxBlockSize: 67108864n,
+            quotaSize: 0n,
+            quotaType: QuotaType.NONE
+        });
+    });
+
+    it("should create a bucket if custom settings", async () => {
+        const bucket = await client.createBucket("bucket", {quotaType: QuotaType.FIFO, quotaSize: 1024n});
+        await expect(bucket.getSettings()).resolves.toEqual({
+            maxBlockSize: 67108864n,
+            quotaSize: 1024n,
+            quotaType: QuotaType.FIFO
         });
     });
 
