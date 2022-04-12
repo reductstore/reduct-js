@@ -1,17 +1,17 @@
-import {Client} from "../src/Client";
-import {ServerInfo} from "../src/ServerInfo";
+import {Client} from '../src/Client';
+import {ServerInfo} from '../src/ServerInfo';
 
 
-test("Client should raise network error", () => {
-    const client = new Client("http://127.0.0.2:80");
+test('Client should raise network error', () => {
+    const client = new Client('http://127.0.0.2:80');
     expect(client.getInfo()).rejects.toEqual({
-        message: "connect ECONNREFUSED 127.0.0.2:80"
+        message: 'connect ECONNREFUSED 127.0.0.2:80'
     });
-})
+});
 
-describe("Client", () => {
-    const client = new Client("http://127.0.0.1:8383");
-    it("should get information about the server", async () => {
+describe('Client', () => {
+    const client = new Client('http://127.0.0.1:8383');
+    it('should get information about the server', async () => {
         const info: ServerInfo = await client.getInfo();
 
         expect(info.version).toMatch(/0\.[0-9]+\.[0-9]+/);
@@ -21,4 +21,4 @@ describe("Client", () => {
         expect(info.oldest_record).toBeGreaterThanOrEqual(0);
         expect(info.latest_record).toBeGreaterThanOrEqual(0);
     });
-})
+});

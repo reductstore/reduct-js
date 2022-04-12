@@ -6,8 +6,8 @@ import {AxiosError} from 'axios';
  * Represents HTTP Error
  */
 export class APIError {
-    public status?: number
-    public message?: string
+    public status?: number;
+    public message?: string;
 
     /**
      * Create an error from AxiosError
@@ -24,7 +24,7 @@ export class APIError {
             if (resp.data !== undefined) {
                 const {detail} = error.response.data;
                 if (detail !== undefined) {
-                    apiError.message += ": " + detail;
+                    apiError.message += ': ' + detail;
                 }
             }
         }
