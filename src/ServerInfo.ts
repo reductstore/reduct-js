@@ -1,3 +1,5 @@
+type Original = { version: string; bucket_count: string; uptime: string; usage: string; oldest_record: string; latest_record: string; }
+
 /**
  * Represents information about storage
  */
@@ -32,7 +34,7 @@ export class ServerInfo {
      */
     readonly latestRecord: BigInt = 0n;
 
-    static parse(data: any): ServerInfo {
+    static parse(data: Original): ServerInfo {
         return {
             version: data.version,
             bucketCount: BigInt(data.bucket_count),

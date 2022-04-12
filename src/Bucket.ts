@@ -35,6 +35,16 @@ export class Bucket {
     }
 
     /**
+     * Set bucket settings
+     * @async
+     * @param settings {BucketSettings} new settings (you can set a part of settings)
+     */
+    async setSettings(settings: BucketSettings): Promise<void> {
+        return this.httpClient.put(`/b/${this.name}`, BucketSettings.serialize(settings))
+            .then(() => Promise.resolve());
+    }
+
+    /**
      * Get information about a bucket
      * @async
      * @return {Promise<BucketInfo>}

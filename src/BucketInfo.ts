@@ -1,3 +1,5 @@
+type Original = { name: string; entry_count: string; size: string; oldest_record: string; latest_record: string; }
+
 /**
  * Represents information about a bucket
  */
@@ -28,7 +30,7 @@ export class BucketInfo {
     readonly latestRecord: BigInt = 0n;
 
 
-    static parse(bucket: any): BucketInfo {
+    static parse(bucket: Original): BucketInfo {
         return {
             name: bucket.name,
             entryCount: BigInt(bucket.entry_count),

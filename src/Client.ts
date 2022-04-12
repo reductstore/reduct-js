@@ -64,11 +64,8 @@ export class Client {
      * @return Promise<Bucket>
      */
     async createBucket(name: string, settings?: BucketSettings): Promise<Bucket> {
-        return this.httpClient.post(`/b/${name}`, {
-            max_block_size: settings?.maxBlockSize !== undefined ? settings.maxBlockSize.toString() : undefined,
-            quota_type: settings?.quotaType !== undefined ? settings.quotaType.toString() : undefined,
-            quota_size: settings?.quotaSize !== undefined ? settings.quotaSize.toString() : undefined,
-        }).then(() => Promise.resolve(new Bucket(name, this.httpClient)));
+        return this.httpClient.post(`/b/${name}`, settings ? BucketSettings.serialize(settings) : undefined)
+            .then(() => Promise.resolve(new Bucket(name, this.httpClient)));
     }
 
     /**

@@ -5,7 +5,7 @@
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --runInBand",
     "tsc": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
     "lint": "eslint . --ext .ts",
     "pretest": "npm run tsc",
