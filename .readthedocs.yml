@@ -8,8 +8,7 @@ version: 2
 python:
   version: "3.8"
   install:
-    - method: pip
-      requirements: docs/requirements.txt
+    - requirements: docs/requirements.txt
 
 # Build documentation with MkDocs
 mkdocs:
