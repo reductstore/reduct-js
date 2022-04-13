@@ -9,7 +9,7 @@ Asynchronous HTTP client for [Reduct Storage](https://reduct-storage.dev) writte
 
 ## Example
 
-```ecmascript 6
+```js
 const {Client} = require("reduct-js")
 
 const main = async () => {
