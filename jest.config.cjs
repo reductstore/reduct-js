@@ -2,6 +2,8 @@
  * For a detailed explanation regarding each configuration property and type check, visit:
  * https://jestjs.io/docs/configuration
  */
+const {defaults} = require('jest-config');
+
 module.exports = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
@@ -70,14 +72,7 @@ module.exports = {
   // ],
 
   // An array of file extensions your modules use
-  // moduleFileExtensions: [
-  //   "js",
-  //   "jsx",
-  //   "ts",
-  //   "tsx",
-  //   "json",
-  //   "node"
-  // ],
+  moduleFileExtensions: [...defaults.moduleFileExtensions, 'ts', 'tsx'],
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   // moduleNameMapper: {},
@@ -137,7 +132,7 @@ module.exports = {
   // snapshotSerializers: [],
 
   // The test environment that will be used for testing
-  testEnvironment: 'jsdom',
+  testEnvironment: 'node',
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
@@ -171,14 +166,11 @@ module.exports = {
   // Setting this value to "fake" allows the use of fake timers for functions such as "setTimeout"
   // timers: "real",
 
-  // A map from regular expressions to paths to transformers
-  // transform: undefined,
-
-  // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
-  // transformIgnorePatterns: [
-  //   "/node_modules/",
-  //   "\\.pnp\\.[^\\/]+$"
-  // ],
+  transform: {
+    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.(js)$': 'babel-jest',
+  },
+  transformIgnorePatterns: [],
 
   // An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
   // unmockedModulePathPatterns: undefined,
