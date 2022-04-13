@@ -68,4 +68,4 @@ plugins:
 extra:
   analytics:
     provider: google
-    property:
+    property: G-DQDXNJMQYL
