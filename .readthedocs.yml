@@ -5,16 +5,19 @@
 # Required
 version: 2
 
-python:
-  version: "3.8"
-  install:
-    - requirements: docs/requirements.txt
+#python:
+#  version: "3.8"
+#  install:
+#    - requirements: docs/requirements.txt
 
 build:
   os: ubuntu-22.04
   tools:
     nodejs: "16"
+    python: "3.8"
   jobs:
+    pre_install:
+      - pip install docs/requirements.txt
     pre_build:
       - npm install
       - npm run tsc
