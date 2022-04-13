@@ -1,5 +1,5 @@
 // @ts-ignore
-import {AxiosInstance, AxiosResponse} from "axios";
+import {AxiosInstance} from "axios";
 import {BucketSettings} from "./BucketSettings";
 import {BucketInfo} from "./BucketInfo";
 import {EntryInfo} from "./EntryInfo";
