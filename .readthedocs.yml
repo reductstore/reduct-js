@@ -16,11 +16,11 @@ build:
     nodejs: "16"
     python: "3.8"
   jobs:
-    pre_install:
+    post_install:
       - pip install -U pip
       - pip install -r docs/requirements.txt
+      - npm install -g
     pre_build:
-      - npm install
       - npm run tsc
       - jsdoc2md lib/cjs/Client.js > docs/Client.md
       - jsdoc2md lib/cjs/Bucket.js > docs/Bucket.md
