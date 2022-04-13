@@ -17,13 +17,12 @@ build:
     python: "3.8"
   jobs:
     post_install:
-      - pip install -U pip
       - pip install -r docs/requirements.txt
-      - npm install -g
+      - npm install
     pre_build:
       - npm run tsc
-      - jsdoc2md lib/cjs/Client.js > docs/Client.md
-      - jsdoc2md lib/cjs/Bucket.js > docs/Bucket.md
+      - npm exec jsdoc2md lib/cjs/Client.js > docs/Client.md
+      - npm exec jsdoc2md lib/cjs/Bucket.js > docs/Bucket.md
 
 # Build documentation with MkDocs
 mkdocs:
