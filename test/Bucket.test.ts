@@ -1,11 +1,11 @@
 import {Client} from "../src/Client";
 import {Bucket} from "../src/Bucket";
-import {cleanStorage} from "./Helpers";
+import {cleanStorage, makeClient} from "./Helpers";
 import {BucketInfo} from "../src/BucketInfo";
 import {QuotaType} from "../src/BucketSettings";
 
 describe("Bucket", () => {
-    const client = new Client("http://127.0.0.1:8383");
+    const client: Client = makeClient();
 
     beforeEach((done) => {
         cleanStorage(client).then(() =>

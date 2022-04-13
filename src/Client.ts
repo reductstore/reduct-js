@@ -10,6 +10,11 @@ import {APIError} from "./APIError";
 import {BucketInfo} from "./BucketInfo";
 import {BucketSettings} from "./BucketSettings";
 import {Bucket} from "./Bucket";
+import {hash, codec} from "sjcl";
+
+export type ClientOptions = {
+    apiToken?: string
+}
 
 export class Client {
     private httpClient: AxiosInstance;
@@ -17,16 +22,40 @@ export class Client {
     /**
      * HTTP Client for Reduct Storage
      * @param url URL to the storage
+     * @param options
      */
-    constructor(url: string) {
+    constructor(url: string, options: ClientOptions = {}) {
         this.httpClient = axios.create({
             baseURL: url,
-            timeout: 1000
+            timeout: 1000,
         });
+
+        this.httpClient.defaults.headers = {};
 
         this.httpClient.interceptors.response.use(
             (response: AxiosResponse) => response,
-            (error: AxiosError) => Promise.reject(APIError.from(error))
+            async (error: AxiosError) => {
+                if (error.response && error.response.status == 401 && options.apiToken) {
+                    const {config} = error;
+                    const hashedToken = hash.sha256.hash(options.apiToken);
+                    config.headers["Authorization"] = `Bearer ${codec.hex.fromBits(hashedToken).toUpperCase()}`;
+                    try {
+                        // Use axios instead the instance not to cycle with 401 error
+                        const resp: AxiosResponse = await axios.post("/auth/refresh", null, config);
+                        const {access_token} = resp.data;
+
+                        config.headers["Authorization"] = `Bearer ${access_token}`;
+                        this.httpClient.defaults.headers["Authorization"] = `Bearer ${access_token}`;
+                        // Repiet request after token updated
+                        return this.httpClient.request(error.config);
+                    } catch (error: AxiosError) {
+                        delete this.httpClient.defaults.headers["Authorization"];
+                        throw APIError.from(error);
+                    }
+                }
+
+                throw APIError.from(error);
+            }
         );
     }
 

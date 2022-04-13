@@ -103,7 +103,7 @@ export class Bucket {
      * @param stop {BigInt} stop point of the time period
      */
     async list(entry: string, start: BigInt, stop: BigInt): Promise<{ size: BigInt, timestamp: BigInt }> {
-        const {data} = await this.httpClient.get(`/b/${this.name}/${entry}/list?start=${start}&stop=${stop}`)
+        const {data} = await this.httpClient.get(`/b/${this.name}/${entry}/list?start=${start}&stop=${stop}`);
         return data.records.map((rec: any) => {
             return {
                 size: BigInt(rec.size),
