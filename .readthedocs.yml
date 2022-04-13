@@ -1,0 +1,34 @@
+# .readthedocs.yml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+# Required
+version: 2
+
+#python:
+#  version: "3.8"
+#  install:
+#    - requirements: docs/requirements.txt
+
+build:
+  os: ubuntu-22.04
+  tools:
+    nodejs: "16"
+    python: "3.8"
+  jobs:
+    post_install:
+      - pip install -r docs/requirements.txt
+      - npm install
+    pre_build:
+      - npm run tsc
+      - npm exec jsdoc2md lib/cjs/Client.js > docs/api/client.md
+      - npm exec jsdoc2md lib/cjs/Bucket.js > docs/api/bucket.md
+      - rm node_modules -rf # not to waste time
+
+# Build documentation with MkDocs
+mkdocs:
+  configuration: mkdocs.yml
+  fail_on_warning: false
+
+# Optionally build your docs in additional formats such as PDF and ePub
+formats: all

@@ -43,6 +43,8 @@
     "eslint": "^8.13.0",
     "jest": "^27.5.1",
     "jest-config": "^27.5.1",
+    "jsdoc": "^3.6.10",
+    "jsdoc-to-markdown": "^7.1.1",
     "ts-jest": "^27.1.4",
     "typescript": "^4.6.3"
   },
