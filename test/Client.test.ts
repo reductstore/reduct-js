@@ -22,8 +22,8 @@ describe("Client", () => {
     it("should get information about the server", async () => {
         await client.createBucket("bucket_1");
         const bucket = await client.createBucket("bucket_2");
-        await bucket.write("entry", "somedata", new Date(1000));
-        await bucket.write("entry", "somedata", new Date(2000));
+        await bucket.write("entry", "somedata", 1000_000n);
+        await bucket.write("entry", "somedata", 2000_000n);
 
         const info: ServerInfo = await client.getInfo();
         expect(info.version).toMatch(/0\.[0-9]+\.[0-9]+/);

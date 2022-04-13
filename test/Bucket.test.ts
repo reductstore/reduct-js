@@ -11,9 +11,9 @@ describe("Bucket", () => {
         cleanStorage(client).then(() =>
             client.createBucket("bucket").then((bucket: Bucket) =>
                 Promise.all([
-                    bucket.write("entry-1", "somedata1", new Date(1000)),
-                    bucket.write("entry-2", "somedata2", new Date(2000)),
-                    bucket.write("entry-2", "somedata3", new Date(3000))
+                    bucket.write("entry-1", "somedata1", 1000_000n),
+                    bucket.write("entry-2", "somedata2", 2000_000n),
+                    bucket.write("entry-2", "somedata3", 3000_000n)
                 ])
             )).then(() => done());
 
@@ -73,11 +73,20 @@ describe("Bucket", () => {
 
     it("should read a record by timestamp", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        await (expect(bucket.read("entry-2", new Date(2000)))).resolves.toEqual("somedata2");
+        await (expect(bucket.read("entry-2", 2000_000n))).resolves.toEqual("somedata2");
     });
 
     it("should read a record with error if timestamp is wrong", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        await (expect(bucket.read("entry-2", new Date(100000)))).rejects.toMatchObject({status: 404});
+        await (expect(bucket.read("entry-2", 10000_000n))).rejects.toMatchObject({status: 404});
     });
+
+    it("should list record in a entry", async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        await (expect(bucket.list("entry-2", 0n, 4000_000n))).resolves.toEqual([
+            {size: 9n, timestamp: 2000_000n},
+            {size: 9n, timestamp: 3000_000n}
+        ]);
+    });
+
 });

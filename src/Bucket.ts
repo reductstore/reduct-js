@@ -82,23 +82,42 @@ export class Bucket {
      * Write a record into an entry
      * @param entry name of the entry
      * @param data {string} data as sting
-     * @param ts {Date} timestamp for the record. It is current time if undefined.
+     * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
      */
-    async write(entry: string, data: string, ts?: Date): Promise<void> {
-        ts ||= new Date();
-        return this.httpClient.post(`/b/${this.name}/${entry}?ts=${ts.getTime() * 1000}`, data).then(() => Promise.resolve());
+    async write(entry: string, data: string, ts?: BigInt): Promise<void> {
+        ts ||= BigInt(Date.now() * 1000);
+        return this.httpClient.post(`/b/${this.name}/${entry}?ts=${ts}`, data).then(() => Promise.resolve());
     }
 
     /**
      * Read a record from an entry
      * @param entry name of the entry
-     * @param ts {Date} timestamp of record. Get the latest onr, if undefined
+     * @param ts {BigInt} timestamp of record in microseconds. Get the latest onr, if undefined
      */
-    async read(entry: string, ts?: Date): Promise<string> {
+    async read(entry: string, ts?: BigInt): Promise<string> {
         let url = `/b/${this.name}/${entry}`;
         if (ts !== undefined) {
-            url += `?ts=${ts.getTime() * 1000}`;
+            url += `?ts=${ts}`;
         }
         return this.httpClient.get(url).then((resp: AxiosResponse) => Promise.resolve(resp.data));
+    }
+
+    /**
+     * List records for a time period
+     * @param entry {string} name of the entry
+     * @param start {BigInt} start point of the time period
+     * @param stop {BigInt} stop point of the time period
+     */
+    async list(entry: string, start: BigInt, stop: BigInt): Promise<{ size: BigInt, timestamp: BigInt }> {
+        return this.httpClient.get(`/b/${this.name}/${entry}/list?start=${start}&stop=${stop}`)
+            .then((resp: AxiosResponse) => {
+                const records = resp.data.records.map((rec: any) => {
+                    return {
+                        size: BigInt(rec.size),
+                        timestamp: BigInt(rec.ts)
+                    };
+                });
+                return Promise.resolve(records);
+            });
     }
 }
