@@ -1,20 +1,9 @@
-# Reduct Storage Client SDK for JavaScript
+const {Client} = require('../lib/cjs/index.js');
 
-Asynchronous HTTP client for [Reduct Storage](https://reduct-storage.dev) written in TypeScript.
-
-## Features
-
-* Promise based
-* Support Reduct Storage API v0.4
-
-## Example
-
-```ecmascript 6
-const {Client} = require("reduct-js")
 
 const main = async () => {
   const client = new Client("http://127.0.0.1:8383");
-  
+
   client.createBucket("bucket").then(async (bucket) => {
     const timestamp = Date.now() * 1000;
     await bucket.write("entry-1", "Hello, World!", timestamp);
@@ -25,5 +14,3 @@ const main = async () => {
 main()
   .then(() => console.log("done"))
   .catch((err) => console.error("oups: ", err));
-
-```
