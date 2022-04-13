@@ -8,6 +8,12 @@ Asynchronous HTTP client for [Reduct Storage](https://reduct-storage.dev) writte
 * Support Reduct Storage API v0.4
 * Token authentication
 
+## Getting Started
+
+```
+npm i reduct-js
+```
+
 ## Example
 
 ```js
