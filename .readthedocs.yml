@@ -21,8 +21,9 @@ build:
       - npm install
     pre_build:
       - npm run tsc
-      - npm exec jsdoc2md lib/cjs/Client.js > docs/Client.md
-      - npm exec jsdoc2md lib/cjs/Bucket.js > docs/Bucket.md
+      - npm exec jsdoc2md lib/cjs/Client.js > docs/api/client.md
+      - npm exec jsdoc2md lib/cjs/Bucket.js > docs/api/bucket.md
+      - rm node_modules -rf # not to waste time
 
 # Build documentation with MkDocs
 mkdocs:
