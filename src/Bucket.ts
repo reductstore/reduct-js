@@ -1,5 +1,5 @@
 // @ts-ignore
-import {AxiosInstance, AxiosResponse} from "axios";
+import {AxiosInstance} from "axios";
 import {BucketSettings} from "./BucketSettings";
 import {BucketInfo} from "./BucketInfo";
 import {EntryInfo} from "./EntryInfo";
@@ -29,10 +29,8 @@ export class Bucket {
      * @return {Promise<BucketSettings>}
      */
     async getSettings(): Promise<BucketSettings> {
-        return this.httpClient.get(`/b/${this.name}`).then((response: AxiosResponse) => {
-            const {settings} = response.data;
-            return Promise.resolve(BucketSettings.parse(settings));
-        });
+        const {data} = await this.httpClient.get(`/b/${this.name}`);
+        return Promise.resolve(BucketSettings.parse(data.settings));
     }
 
     /**
@@ -41,8 +39,7 @@ export class Bucket {
      * @param settings {BucketSettings} new settings (you can set a part of settings)
      */
     async setSettings(settings: BucketSettings): Promise<void> {
-        return this.httpClient.put(`/b/${this.name}`, BucketSettings.serialize(settings))
-            .then(() => Promise.resolve());
+        await this.httpClient.put(`/b/${this.name}`, BucketSettings.serialize(settings));
     }
 
     /**
@@ -51,10 +48,8 @@ export class Bucket {
      * @return {Promise<BucketInfo>}
      */
     async getInfo(): Promise<BucketInfo> {
-        return this.httpClient.get(`/b/${this.name}`).then((response: AxiosResponse) => {
-            const {info} = response.data;
-            return Promise.resolve(BucketInfo.parse(info));
-        });
+        const {data} = await this.httpClient.get(`/b/${this.name}`);
+        return BucketInfo.parse(data.info);
     }
 
     /**
@@ -63,10 +58,8 @@ export class Bucket {
      * @return {Promise<EntryInfo>}
      */
     async getEntryList(): Promise<EntryInfo[]> {
-        return this.httpClient.get(`/b/${this.name}`).then((response: AxiosResponse) => {
-            const {entries} = response.data;
-            return Promise.resolve(entries.map((entry: any) => EntryInfo.parse(entry)));
-        });
+        const {data} = await this.httpClient.get(`/b/${this.name}`);
+        return Promise.resolve(data.entries.map((entry: any) => EntryInfo.parse(entry)));
     }
 
     /**
@@ -75,7 +68,7 @@ export class Bucket {
      * @return {Promise<void>}
      */
     async remove(): Promise<void> {
-        return this.httpClient.delete(`/b/${this.name}`).then(() => Promise.resolve());
+        await this.httpClient.delete(`/b/${this.name}`);
     }
 
     /**
@@ -86,7 +79,7 @@ export class Bucket {
      */
     async write(entry: string, data: string, ts?: BigInt): Promise<void> {
         ts ||= BigInt(Date.now() * 1000);
-        return this.httpClient.post(`/b/${this.name}/${entry}?ts=${ts}`, data).then(() => Promise.resolve());
+        await this.httpClient.post(`/b/${this.name}/${entry}?ts=${ts}`, data);
     }
 
     /**
@@ -99,7 +92,8 @@ export class Bucket {
         if (ts !== undefined) {
             url += `?ts=${ts}`;
         }
-        return this.httpClient.get(url).then((resp: AxiosResponse) => Promise.resolve(resp.data));
+        const {data} = await this.httpClient.get(url);
+        return data;
     }
 
     /**
@@ -109,15 +103,12 @@ export class Bucket {
      * @param stop {BigInt} stop point of the time period
      */
     async list(entry: string, start: BigInt, stop: BigInt): Promise<{ size: BigInt, timestamp: BigInt }> {
-        return this.httpClient.get(`/b/${this.name}/${entry}/list?start=${start}&stop=${stop}`)
-            .then((resp: AxiosResponse) => {
-                const records = resp.data.records.map((rec: any) => {
-                    return {
-                        size: BigInt(rec.size),
-                        timestamp: BigInt(rec.ts)
-                    };
-                });
-                return Promise.resolve(records);
-            });
+        const {data} = await this.httpClient.get(`/b/${this.name}/${entry}/list?start=${start}&stop=${stop}`);
+        return data.records.map((rec: any) => {
+            return {
+                size: BigInt(rec.size),
+                timestamp: BigInt(rec.ts)
+            };
+        });
     }
 }

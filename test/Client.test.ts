@@ -2,18 +2,19 @@ import {Client} from "../src/Client";
 import {ServerInfo} from "../src/ServerInfo";
 import {Bucket} from "../src/Bucket";
 import {QuotaType} from "../src/BucketSettings";
-import {cleanStorage} from "./Helpers";
+import {cleanStorage, makeClient} from "./Helpers";
 
 
-test("Client should raise network error", () => {
-    const client = new Client("http://127.0.0.2:80");
-    expect(client.getInfo()).rejects.toEqual({
+test("Client should raise network error", async () => {
+    const client: Client = new Client("http://127.0.0.2:80");
+
+    await expect(client.getInfo()).rejects.toEqual({
         message: "connect ECONNREFUSED 127.0.0.2:80"
     });
 });
 
 describe("Client", () => {
-    const client = new Client("http://127.0.0.1:8383");
+    const client: Client = makeClient();
 
     beforeEach((done) => {
         cleanStorage(client).then(() => done());

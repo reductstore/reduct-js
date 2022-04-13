@@ -10,6 +10,11 @@ import {APIError} from "./APIError";
 import {BucketInfo} from "./BucketInfo";
 import {BucketSettings} from "./BucketSettings";
 import {Bucket} from "./Bucket";
+import {hash, codec} from "sjcl";
+
+export type ClientOptions = {
+    apiToken?: string
+}
 
 export class Client {
     private httpClient: AxiosInstance;
@@ -17,16 +22,40 @@ export class Client {
     /**
      * HTTP Client for Reduct Storage
      * @param url URL to the storage
+     * @param options
      */
-    constructor(url: string) {
+    constructor(url: string, options: ClientOptions = {}) {
         this.httpClient = axios.create({
             baseURL: url,
-            timeout: 1000
+            timeout: 1000,
         });
 
         this.httpClient.interceptors.response.use(
             (response: AxiosResponse) => response,
-            (error: AxiosError) => Promise.reject(APIError.from(error))
+            async (error: AxiosError) => {
+                if (error.config && error.response && error.response.status == 401 && options.apiToken) {
+                    const {config} = error;
+                    const hashedToken = hash.sha256.hash(options.apiToken);
+
+                    config.headers ||= {};
+                    config.headers["Authorization"] = `Bearer ${codec.hex.fromBits(hashedToken)}`;
+                    try {
+                        // Use axios instead the instance not to cycle with 401 error
+                        const resp: AxiosResponse = await axios.post("/auth/refresh", null, config);
+                        const {access_token} = resp.data;
+
+                        config.headers["Authorization"] = `Bearer ${access_token}`;
+                        this.httpClient.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+                        // Repiet request after token updated
+                        return this.httpClient.request(error.config);
+                    } catch (error) {
+                        //@ts-ignore
+                        throw APIError.from(error);
+                    }
+                }
+
+                throw APIError.from(error);
+            }
         );
     }
 
@@ -37,10 +66,8 @@ export class Client {
      * @return {Promise<ServerInfo>} The data about the server
      */
     async getInfo(): Promise<ServerInfo> {
-        return this.httpClient.get("/info").then((resp: AxiosResponse) => {
-            const {data} = resp;
-            return Promise.resolve(ServerInfo.parse(data));
-        });
+        const {data} = await this.httpClient.get("/info");
+        return ServerInfo.parse(data);
     }
 
     /**
@@ -50,9 +77,8 @@ export class Client {
      * @see BucketInfo
      */
     async getBucketList(): Promise<BucketInfo[]> {
-        return this.httpClient.get("/list").then((resp: AxiosResponse) => {
-            return resp.data.buckets.map((bucket: any) => BucketInfo.parse(bucket));
-        });
+        const {data} = await this.httpClient.get("/list");
+        return data.buckets.map((bucket: any) => BucketInfo.parse(bucket));
     }
 
     /**
@@ -62,8 +88,8 @@ export class Client {
      * @return Promise<Bucket>
      */
     async createBucket(name: string, settings?: BucketSettings): Promise<Bucket> {
-        return this.httpClient.post(`/b/${name}`, settings ? BucketSettings.serialize(settings) : undefined)
-            .then(() => Promise.resolve(new Bucket(name, this.httpClient)));
+        await this.httpClient.post(`/b/${name}`, settings ? BucketSettings.serialize(settings) : undefined);
+        return new Bucket(name, this.httpClient);
     }
 
     /**
@@ -72,7 +98,7 @@ export class Client {
      * @return Promise<Bucket>
      */
     async getBucket(name: string): Promise<Bucket> {
-        return this.httpClient.get(`/b/${name}`)
-            .then(() => Promise.resolve(new Bucket(name, this.httpClient)));
+        await this.httpClient.get(`/b/${name}`);
+        return new Bucket(name, this.httpClient);
     }
 }

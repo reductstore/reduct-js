@@ -1,5 +1,6 @@
 import {Bucket} from "../src/Bucket";
 import {Client} from "../src/Client";
+import * as process from "process";
 
 /**
  * Remove all buckets
@@ -15,4 +16,10 @@ export const cleanStorage = async (client: Client): Promise<void> => {
                 );
             }));
         }).then(() => Promise.resolve());
+};
+
+export const makeClient = (): Client => {
+    return new Client("http://127.0.0.1:8383", {
+        apiToken: process.env.RS_API_TOKEN
+    });
 };

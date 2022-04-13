@@ -6,6 +6,7 @@ Asynchronous HTTP client for [Reduct Storage](https://reduct-storage.dev) writte
 
 * Promise based
 * Support Reduct Storage API v0.4
+* Token authentication
 
 ## Example
 

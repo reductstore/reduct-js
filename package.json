@@ -36,6 +36,7 @@
     "@babel/preset-typescript": "^7.16.7",
     "@types/axios": "^0.14.0",
     "@types/jest": "^27.4.1",
+    "@types/sjcl": "^1.0.30",
     "@typescript-eslint/eslint-plugin": "^5.19.0",
     "@typescript-eslint/parser": "^5.19.0",
     "babel-jest": "^27.5.1",
@@ -46,6 +47,7 @@
     "typescript": "^4.6.3"
   },
   "dependencies": {
-    "axios": "^0.26.1"
+    "axios": "^0.26.1",
+    "sjcl": "^1.0.8"
   }
 }
