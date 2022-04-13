@@ -2,6 +2,7 @@
 import {AxiosInstance, AxiosResponse} from "axios";
 import {BucketSettings} from "./BucketSettings";
 import {BucketInfo} from "./BucketInfo";
+import {EntryInfo} from "./EntryInfo";
 
 /**
  * Represents a bucket in Reduct Storage
@@ -57,11 +58,34 @@ export class Bucket {
     }
 
     /**
+     * Get entry list
+     * @async
+     * @return {Promise<EntryInfo>}
+     */
+    async getEntryList(): Promise<EntryInfo[]> {
+        return this.httpClient.get(`/b/${this.name}`).then((response: AxiosResponse) => {
+            const {entries} = response.data;
+            return Promise.resolve(entries.map((entry: any) => EntryInfo.parse(entry)));
+        });
+    }
+
+    /**
      * Remove bucket
      * @async
      * @return {Promise<void>}
      */
     async remove(): Promise<void> {
         return this.httpClient.delete(`/b/${this.name}`).then(() => Promise.resolve());
+    }
+
+    /**
+     * Write a record into an entry
+     * @param entry name of the entry
+     * @param data {string} data as sting
+     * @param ts {Date} timestamp for the record. It is current time if undefined.
+     */
+    async write(entry: string, data: string, ts?: Date): Promise<void> {
+        ts ||= new Date();
+        return this.httpClient.post(`/b/${this.name}/${entry}?ts=${ts.getTime() * 1000}`, data).then(() => Promise.resolve());
     }
 }

@@ -21,16 +21,18 @@ describe("Client", () => {
 
     it("should get information about the server", async () => {
         await client.createBucket("bucket_1");
-        await client.createBucket("bucket_2");
+        const bucket = await client.createBucket("bucket_2");
+        await bucket.write("entry", "somedata", new Date(1000));
+        await bucket.write("entry", "somedata", new Date(2000));
 
         const info: ServerInfo = await client.getInfo();
         expect(info.version).toMatch(/0\.[0-9]+\.[0-9]+/);
 
         expect(info.bucketCount).toEqual(2n);
-        expect(info.usage).toBeGreaterThanOrEqual(0);
+        expect(info.usage).toEqual(16n);
         expect(info.uptime).toBeGreaterThanOrEqual(0);
-        expect(info.oldestRecord).toBeGreaterThanOrEqual(0);
-        expect(info.latestRecord).toBeGreaterThanOrEqual(0);
+        expect(info.oldestRecord).toEqual(1000_000n);
+        expect(info.latestRecord).toEqual(2000_000n);
     });
 
     it("should get list of buckets", async () => {

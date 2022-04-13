@@ -1,5 +1,3 @@
-type Original = { quota_size?: string; max_block_size?: string; quota_type?: string };
-
 export enum QuotaType {
     NONE,
     FIFO
@@ -34,3 +32,5 @@ export class BucketSettings {
 
 
 }
+
+type Original = { quota_size?: string; max_block_size?: string; quota_type?: string };

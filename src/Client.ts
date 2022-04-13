@@ -51,9 +51,7 @@ export class Client {
      */
     async getBucketList(): Promise<BucketInfo[]> {
         return this.httpClient.get("/list").then((resp: AxiosResponse) => {
-            return resp.data.buckets.map((bucket: any) => {
-                return BucketInfo.parse(bucket);
-            });
+            return resp.data.buckets.map((bucket: any) => BucketInfo.parse(bucket));
         });
     }
 

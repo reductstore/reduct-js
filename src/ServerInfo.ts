@@ -1,5 +1,3 @@
-type Original = { version: string; bucket_count: string; uptime: string; usage: string; oldest_record: string; latest_record: string; }
-
 /**
  * Represents information about storage
  */
@@ -45,3 +43,5 @@ export class ServerInfo {
         };
     }
 }
+
+type Original = { version: string; bucket_count: string; uptime: string; usage: string; oldest_record: string; latest_record: string; }

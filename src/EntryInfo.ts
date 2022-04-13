@@ -1,16 +1,21 @@
 /**
- * Represents information about a bucket
+ * Information about entry
  */
-export class BucketInfo {
+export class EntryInfo {
     /**
-     * Name of the bucket
+     * Name of the entry
      */
     readonly name: string = "";
 
     /**
-     * Number of entries in the bucket
+     * Number of blocks
      */
-    readonly entryCount: BigInt = 0n;
+    readonly blockCount: BigInt = 0n;
+
+    /**
+     * Number of records
+     */
+    readonly recordCount: BigInt = 0n;
 
     /**
      * Size of stored data in the bucket in bytes
@@ -27,11 +32,11 @@ export class BucketInfo {
      */
     readonly latestRecord: BigInt = 0n;
 
-
-    static parse(bucket: Original): BucketInfo {
+    static parse(bucket: Original): EntryInfo {
         return {
             name: bucket.name,
-            entryCount: BigInt(bucket.entry_count),
+            blockCount: BigInt(bucket.block_count),
+            recordCount: BigInt(bucket.record_count),
             size: BigInt(bucket.size),
             oldestRecord: BigInt(bucket.oldest_record),
             latestRecord: BigInt(bucket.latest_record),
@@ -39,4 +44,6 @@ export class BucketInfo {
     }
 }
 
-type Original = { name: string; entry_count: string; size: string; oldest_record: string; latest_record: string; }
+type Original = {
+    name: string; block_count: string; record_count: string; size: string; oldest_record: string; latest_record: string;
+};
