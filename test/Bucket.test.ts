@@ -11,9 +11,9 @@ describe("Bucket", () => {
         cleanStorage(client).then(() =>
             client.createBucket("bucket").then((bucket: Bucket) =>
                 Promise.all([
-                    bucket.write("entry-1", "somedata", new Date(1000)),
-                    bucket.write("entry-2", "somedata", new Date(2000)),
-                    bucket.write("entry-2", "somedata", new Date(3000))
+                    bucket.write("entry-1", "somedata1", new Date(1000)),
+                    bucket.write("entry-2", "somedata2", new Date(2000)),
+                    bucket.write("entry-2", "somedata3", new Date(3000))
                 ])
             )).then(() => done());
 
@@ -24,7 +24,7 @@ describe("Bucket", () => {
         const info: BucketInfo = await bucket.getInfo();
 
         expect(info.name).toEqual("bucket");
-        expect(info.size).toEqual(24n);
+        expect(info.size).toEqual(27n);
         expect(info.entryCount).toEqual(2n);
         expect(info.oldestRecord).toEqual(1000_000n);
         expect(info.latestRecord).toEqual(3000_000n);
@@ -55,14 +55,29 @@ describe("Bucket", () => {
             name: "entry-1",
             oldestRecord: 1000000n,
             recordCount: 1n,
-            size: 8n
+            size: 9n
         }, {
             blockCount: 1n,
             latestRecord: 3000000n,
             name: "entry-2",
             oldestRecord: 2000000n,
             recordCount: 2n,
-            size: 16n
+            size: 18n
         }]);
+    });
+
+    it("should read latest record", async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        await (expect(bucket.read("entry-2"))).resolves.toEqual("somedata3");
+    });
+
+    it("should read a record by timestamp", async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        await (expect(bucket.read("entry-2", new Date(2000)))).resolves.toEqual("somedata2");
+    });
+
+    it("should read a record with error if timestamp is wrong", async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        await (expect(bucket.read("entry-2", new Date(100000)))).rejects.toMatchObject({status: 404});
     });
 });

@@ -88,4 +88,17 @@ export class Bucket {
         ts ||= new Date();
         return this.httpClient.post(`/b/${this.name}/${entry}?ts=${ts.getTime() * 1000}`, data).then(() => Promise.resolve());
     }
+
+    /**
+     * Read a record from an entry
+     * @param entry name of the entry
+     * @param ts {Date} timestamp of record. Get the latest onr, if undefined
+     */
+    async read(entry: string, ts?: Date): Promise<string> {
+        let url = `/b/${this.name}/${entry}`;
+        if (ts !== undefined) {
+            url += `?ts=${ts.getTime() * 1000}`;
+        }
+        return this.httpClient.get(url).then((resp: AxiosResponse) => Promise.resolve(resp.data));
+    }
 }
