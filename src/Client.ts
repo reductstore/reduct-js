@@ -61,7 +61,6 @@ export class Client {
 
     /**
      * Get server information
-     * @see ServerInfo
      * @async
      * @return {Promise<ServerInfo>} The data about the server
      */
