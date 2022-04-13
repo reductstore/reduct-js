@@ -10,6 +10,17 @@ python:
   install:
     - requirements: docs/requirements.txt
 
+build:
+  os: ubuntu-22.04
+  tools:
+    nodejs: 16
+  jobs:
+    pre_build:
+      - npm install
+      - npm run tsc
+      - jsdoc2md lib/cjs/Client.js > docs/Client.md
+      - jsdoc2md lib/cjs/Bucket.js > docs/Bucket.md
+
 # Build documentation with MkDocs
 mkdocs:
   configuration: mkdocs.yml

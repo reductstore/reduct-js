@@ -2,6 +2,10 @@ site_name: Reduct Client SDK for Java Script
 docs_dir: .
 nav:
   - Home: README.md
+  - API Reference:
+      - Client: docs/api/client.md
+      - Bucket: docs/api/bucket.md
+  - Reduct Storage: https://reduct-storage.dev
 
 repo_name: reduct-storage/reduct-js
 repo_url: https://github.com/reduct-storage/reduct-js
