@@ -13,7 +13,7 @@ python:
 build:
   os: ubuntu-22.04
   tools:
-    nodejs: 16
+    nodejs: "16"
   jobs:
     pre_build:
       - npm install
