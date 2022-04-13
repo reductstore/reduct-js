@@ -30,26 +30,26 @@ export class Client {
             timeout: 1000,
         });
 
-        this.httpClient.defaults.headers = {};
-
         this.httpClient.interceptors.response.use(
             (response: AxiosResponse) => response,
             async (error: AxiosError) => {
-                if (error.response && error.response.status == 401 && options.apiToken) {
+                if (error.config && error.response && error.response.status == 401 && options.apiToken) {
                     const {config} = error;
                     const hashedToken = hash.sha256.hash(options.apiToken);
-                    config.headers["Authorization"] = `Bearer ${codec.hex.fromBits(hashedToken).toUpperCase()}`;
+
+                    config.headers ||= {};
+                    config.headers["Authorization"] = `Bearer ${codec.hex.fromBits(hashedToken)}`;
                     try {
                         // Use axios instead the instance not to cycle with 401 error
                         const resp: AxiosResponse = await axios.post("/auth/refresh", null, config);
                         const {access_token} = resp.data;
 
                         config.headers["Authorization"] = `Bearer ${access_token}`;
-                        this.httpClient.defaults.headers["Authorization"] = `Bearer ${access_token}`;
+                        this.httpClient.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
                         // Repiet request after token updated
                         return this.httpClient.request(error.config);
-                    } catch (error: AxiosError) {
-                        delete this.httpClient.defaults.headers["Authorization"];
+                    } catch (error) {
+                        //@ts-ignore
                         throw APIError.from(error);
                     }
                 }
