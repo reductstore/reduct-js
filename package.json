@@ -9,7 +9,7 @@
     "tsc": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
     "lint": "eslint . --ext .ts",
     "pretest": "npm run tsc",
-    "prepublishOnly": "npm run tsc",
+    "prepublishOnly": "npm run tsc"
   },
   "files": [
     "lib/"
