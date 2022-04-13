@@ -37,10 +37,8 @@ export class Client {
      * @return {Promise<ServerInfo>} The data about the server
      */
     async getInfo(): Promise<ServerInfo> {
-        return this.httpClient.get("/info").then((resp: AxiosResponse) => {
-            const {data} = resp;
-            return Promise.resolve(ServerInfo.parse(data));
-        });
+        const {data} = await this.httpClient.get("/info");
+        return ServerInfo.parse(data);
     }
 
     /**
@@ -50,9 +48,8 @@ export class Client {
      * @see BucketInfo
      */
     async getBucketList(): Promise<BucketInfo[]> {
-        return this.httpClient.get("/list").then((resp: AxiosResponse) => {
-            return resp.data.buckets.map((bucket: any) => BucketInfo.parse(bucket));
-        });
+        const {data} = await this.httpClient.get("/list");
+        return data.buckets.map((bucket: any) => BucketInfo.parse(bucket));
     }
 
     /**
@@ -62,8 +59,8 @@ export class Client {
      * @return Promise<Bucket>
      */
     async createBucket(name: string, settings?: BucketSettings): Promise<Bucket> {
-        return this.httpClient.post(`/b/${name}`, settings ? BucketSettings.serialize(settings) : undefined)
-            .then(() => Promise.resolve(new Bucket(name, this.httpClient)));
+        await this.httpClient.post(`/b/${name}`, settings ? BucketSettings.serialize(settings) : undefined);
+        return new Bucket(name, this.httpClient);
     }
 
     /**
@@ -72,7 +69,7 @@ export class Client {
      * @return Promise<Bucket>
      */
     async getBucket(name: string): Promise<Bucket> {
-        return this.httpClient.get(`/b/${name}`)
-            .then(() => Promise.resolve(new Bucket(name, this.httpClient)));
+        await this.httpClient.get(`/b/${name}`);
+        return new Bucket(name, this.httpClient);
     }
 }
