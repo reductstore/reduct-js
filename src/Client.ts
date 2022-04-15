@@ -62,7 +62,7 @@ export class Client {
     /**
      * Get server information
      * @async
-     * @return {Promise<ServerInfo>} The data about the server
+     * @return {Promise<ServerInfo>} the data about the server
      */
     async getInfo(): Promise<ServerInfo> {
         const {data} = await this.httpClient.get("/info");
@@ -82,9 +82,9 @@ export class Client {
 
     /**
      * Create a new bucket
-     * @param name Name of the bucket
-     * @param settings Optional settings
-     * @return Promise<Bucket>
+     * @param name name of the bucket
+     * @param settings optional settings
+     * @return {Promise<Bucket>}
      */
     async createBucket(name: string, settings?: BucketSettings): Promise<Bucket> {
         await this.httpClient.post(`/b/${name}`, settings ? BucketSettings.serialize(settings) : undefined);
@@ -93,11 +93,29 @@ export class Client {
 
     /**
      * Get a bucket by name
-     * @param name Name of the bucket
-     * @return Promise<Bucket>
+     * @param name name of the bucket
+     * @return {Promise<Bucket>}
      */
     async getBucket(name: string): Promise<Bucket> {
         await this.httpClient.get(`/b/${name}`);
         return new Bucket(name, this.httpClient);
+    }
+
+    /**
+     * Try to create a bucket and get it if it already exists
+     * @param name name of the bucket
+     * @param settings optional settings
+     * @return {Promise<Bucket>}
+     */
+    async getOrCreateBucket(name: string, settings?: BucketSettings): Promise<Bucket> {
+        try {
+            return await this.createBucket(name, settings);
+        } catch (error) {
+            if (error instanceof APIError && error.status === 409) {
+                return await this.getBucket(name);
+            }
+
+            throw error; // pass exception forward
+        }
     }
 }
