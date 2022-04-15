@@ -111,7 +111,6 @@ export class Client {
         try {
             return await this.createBucket(name, settings);
         } catch (error) {
-            console.log(typeof(error))
             if (error instanceof APIError && error.status === 409) {
                 return await this.getBucket(name);
             }
