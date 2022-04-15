@@ -10,11 +10,14 @@ Asynchronous HTTP client for [Reduct Storage](https://reduct-storage.dev) writte
 
 ## Getting Started
 
+Read [here](https://docs.reduct-storage.dev/#start-with-docker), how to run Reduct Storage. 
+Then install the package:
+
 ```
 npm i reduct-js
 ```
 
-## Example
+And run this example:
 
 ```js
 const {Client} = require("reduct-js")
