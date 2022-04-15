@@ -14,9 +14,8 @@ export class APIError {
      * @param error {AxiosError}
      */
     static from(error: AxiosError): APIError {
-        const apiError: APIError = {
-            message: error.message,
-        };
+        const apiError = new APIError();
+        apiError.message = error.message;
 
         const resp = error.response;
         if (resp !== undefined) {
