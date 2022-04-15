@@ -8,6 +8,10 @@ Asynchronous HTTP client for [Reduct Storage](https://reduct-storage.dev) writte
 * Support Reduct Storage API v0.4
 * Token authentication
 
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/reduct-storage/reduct-js)
+![npm](https://img.shields.io/npm/dw/reduct-js)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/reduct-storage/reduct-js/ci)
+
 ## Getting Started
 
 Read [here](https://docs.reduct-storage.dev/#start-with-docker), how to run Reduct Storage. 
