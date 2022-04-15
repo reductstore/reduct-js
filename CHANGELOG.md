@@ -1,4 +1,8 @@
-## Release 0.2.0 (in progress)
+## Release 0.2.0 (2022-04-16)
+
+**Features**:
+
+* Add Client.getOrCreateBucket, [PR-10](https://github.com/reduct-storage/reduct-js/pull/10)
 
 **Bugs**:
 
