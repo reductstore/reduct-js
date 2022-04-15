@@ -98,4 +98,10 @@ describe("Client", () => {
         await bucket.remove();
         await expect(bucket.remove()).rejects.toMatchObject({status: 404});
     });
+
+    it("should try to create a bucket and get when it exists", async () => {
+        await client.getOrCreateBucket("bucket");
+        const bucket = await client.getOrCreateBucket("bucket");
+        expect(bucket.name).toBe("bucket");
+    });
 });
