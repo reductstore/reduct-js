@@ -10,12 +10,12 @@ export class EntryInfo {
     /**
      * Number of blocks
      */
-    readonly blockCount: BigInt = 0n;
+    readonly blockCount: bigint = 0n;
 
     /**
      * Number of records
      */
-    readonly recordCount: BigInt = 0n;
+    readonly recordCount: bigint = 0n;
 
     /**
      * Size of stored data in the bucket in bytes
@@ -25,12 +25,12 @@ export class EntryInfo {
     /**
      * Unix timestamp of the oldest record in microseconds
      */
-    readonly oldestRecord: BigInt = 0n;
+    readonly oldestRecord: bigint = 0n;
 
     /**
      * Unix timestamp of the latest record in microseconds
      */
-    readonly latestRecord: BigInt = 0n;
+    readonly latestRecord: bigint = 0n;
 
     static parse(bucket: Original): EntryInfo {
         return {

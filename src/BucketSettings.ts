@@ -7,9 +7,9 @@ export enum QuotaType {
  *  Represents bucket settings
  */
 export class BucketSettings {
-    readonly maxBlockSize?: BigInt;
+    readonly maxBlockSize?: bigint;
     readonly quotaType?: QuotaType;
-    readonly quotaSize?: BigInt;
+    readonly quotaSize?: bigint;
 
     static parse(data: Original): BucketSettings {
         const {max_block_size, quota_type, quota_size} = data;

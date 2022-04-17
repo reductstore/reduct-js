@@ -10,27 +10,27 @@ export class ServerInfo {
     /**
      * Number of buckets
      */
-    readonly bucketCount: BigInt = 0n;
+    readonly bucketCount: bigint = 0n;
 
     /**
      * Stored data in bytes
      */
-    readonly usage: BigInt = 0n;
+    readonly usage: bigint = 0n;
 
     /**
      * Server uptime in seconds
      */
-    readonly uptime: BigInt = 0n;
+    readonly uptime: bigint = 0n;
 
     /**
      * Unix timestamp of the oldest record in microseconds
      */
-    readonly oldestRecord: BigInt = 0n;
+    readonly oldestRecord: bigint = 0n;
 
     /**
      * Unix timestamp of the latest record in microseconds
      */
-    readonly latestRecord: BigInt = 0n;
+    readonly latestRecord: bigint = 0n;
 
     static parse(data: Original): ServerInfo {
         return {
