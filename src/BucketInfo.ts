@@ -10,22 +10,22 @@ export class BucketInfo {
     /**
      * Number of entries in the bucket
      */
-    readonly entryCount: BigInt = 0n;
+    readonly entryCount: bigint = 0n;
 
     /**
      * Size of stored data in the bucket in bytes
      */
-    readonly size: BigInt = 0n;
+    readonly size: bigint = 0n;
 
     /**
      * Unix timestamp of the oldest record in microseconds
      */
-    readonly oldestRecord: BigInt = 0n;
+    readonly oldestRecord: bigint = 0n;
 
     /**
      * Unix timestamp of the latest record in microseconds
      */
-    readonly latestRecord: BigInt = 0n;
+    readonly latestRecord: bigint = 0n;
 
 
     static parse(bucket: Original): BucketInfo {
