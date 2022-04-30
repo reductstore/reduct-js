@@ -3,6 +3,7 @@ import {Bucket} from "../src/Bucket";
 import {cleanStorage, makeClient} from "./Helpers";
 import {BucketInfo} from "../src/BucketInfo";
 import {QuotaType} from "../src/BucketSettings";
+import crypto from "crypto";
 
 describe("Bucket", () => {
     const client: Client = makeClient();
@@ -87,6 +88,17 @@ describe("Bucket", () => {
             {size: 9n, timestamp: 2000_000n},
             {size: 9n, timestamp: 3000_000n}
         ]);
+    });
+
+    it("should write and read a big blob", async () => {
+        const bigBlob = crypto.randomBytes(2 ** 20).toString("hex");
+
+        const bucket: Bucket = await client.getBucket("bucket");
+        await bucket.write("big-blob", bigBlob);
+        const actual: string = await bucket.read("big-blob");
+
+        expect(actual.length).toEqual(bigBlob.length);
+        expect(actual).toEqual(bigBlob);
     });
 
 });
