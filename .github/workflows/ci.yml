@@ -19,7 +19,6 @@ jobs:
           context: .
           tags: ${{github.repository}}:latest
           outputs: type=docker,dest=/tmp/image.tar
-          build-args: BUILD_TYPE=Debug
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
