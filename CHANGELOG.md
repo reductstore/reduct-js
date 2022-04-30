@@ -4,6 +4,10 @@
 
 * Use `bigint` instead of `BigInt`, [PR-13](https://github.com/reduct-storage/reduct-js/pull/13)
 
+**Bugs**:
+
+* Fix reading big records [PR-16](https://github.com/reduct-storage/reduct-js/pull/16)
+
 ## Release 0.2.0 (2022-04-16)
 
 **Features**:
