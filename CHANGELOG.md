@@ -3,6 +3,7 @@
 **Features**:
 
 * Use `bigint` instead of `BigInt`, [PR-13](https://github.com/reduct-storage/reduct-js/pull/13)
+* Use Buffer read and write records, [PR-18](https://github.com/reduct-storage/reduct-js/pull/18) 
 
 **Bugs**:
 
