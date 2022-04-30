@@ -4,6 +4,7 @@ import {cleanStorage, makeClient} from "./Helpers";
 import {BucketInfo} from "../src/BucketInfo";
 import {QuotaType} from "../src/BucketSettings";
 import crypto from "crypto";
+import {Buffer} from "buffer";
 
 describe("Bucket", () => {
     const client: Client = makeClient();
@@ -69,12 +70,12 @@ describe("Bucket", () => {
 
     it("should read latest record", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        await (expect(bucket.read("entry-2"))).resolves.toEqual("somedata3");
+        await (expect(bucket.read("entry-2"))).resolves.toEqual(Buffer.from("somedata3", "ascii"));
     });
 
     it("should read a record by timestamp", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        await (expect(bucket.read("entry-2", 2000_000n))).resolves.toEqual("somedata2");
+        await (expect(bucket.read("entry-2", 2000_000n))).resolves.toEqual(Buffer.from("somedata2", "ascii"));
     });
 
     it("should read a record with error if timestamp is wrong", async () => {
@@ -91,11 +92,11 @@ describe("Bucket", () => {
     });
 
     it("should write and read a big blob", async () => {
-        const bigBlob = crypto.randomBytes(2 ** 20).toString("hex");
+        const bigBlob = crypto.randomBytes(2 ** 20);
 
         const bucket: Bucket = await client.getBucket("bucket");
         await bucket.write("big-blob", bigBlob);
-        const actual: string = await bucket.read("big-blob");
+        const actual: Buffer = await bucket.read("big-blob");
 
         expect(actual.length).toEqual(bigBlob.length);
         expect(actual).toEqual(bigBlob);
