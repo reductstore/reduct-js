@@ -92,7 +92,7 @@ describe("Bucket", () => {
     });
 
     it("should write and read a big blob", async () => {
-        const bigBlob = crypto.randomBytes(2 ** 20);
+        const bigBlob = crypto.randomBytes(2 ** 16);
 
         const bucket: Bucket = await client.getBucket("bucket");
         await bucket.write("big-blob", bigBlob);
