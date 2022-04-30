@@ -7,6 +7,7 @@
 **Bugs**:
 
 * Fix reading big records [PR-16](https://github.com/reduct-storage/reduct-js/pull/16)
+* Fix signature Bucket.list [PR-17](https://github.com/reduct-storage/reduct-js/pull/17)
 
 ## Release 0.2.0 (2022-04-16)
 
