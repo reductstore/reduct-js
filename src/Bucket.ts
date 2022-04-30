@@ -92,8 +92,13 @@ export class Bucket {
         if (ts !== undefined) {
             url += `?ts=${ts}`;
         }
-        const {data} = await this.httpClient.get(url);
-        return data;
+        const {data} = await this.httpClient.get(url, {responseType: "stream"});
+        const chunks: string[] = [];
+        return new Promise((resolve, reject) => {
+            data.on("data", (chunk: string) =>  chunks.push(chunk))
+            data.on("error", (err: Error) => reject(err));
+            data.on("end", () => resolve(chunks.join("")));
+        });
     }
 
     /**
