@@ -3,7 +3,7 @@ const {Client} = require("../lib/cjs/index.js");
 const main = async () => {
   const client = new Client("http://127.0.0.1:8383");
 
-  const bucket = await client.createBucket("bucket");
+  const bucket = await client.getOrCreateBucket("bucket");
   
   const timestamp = Date.now() * 1000;
   await bucket.write("entry-1", "Hello, World!", timestamp);

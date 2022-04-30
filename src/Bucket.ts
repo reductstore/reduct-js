@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-ignore`
 import {AxiosInstance} from "axios";
 import {BucketSettings} from "./BucketSettings";
 import {BucketInfo} from "./BucketInfo";
@@ -74,10 +74,10 @@ export class Bucket {
     /**
      * Write a record into an entry
      * @param entry name of the entry
-     * @param data {string} data as sting
+     * @param data {string | Buffer} data as sting
      * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
      */
-    async write(entry: string, data: string, ts?: bigint): Promise<void> {
+    async write(entry: string, data: string | Buffer, ts?: bigint): Promise<void> {
         ts ||= BigInt(Date.now() * 1000);
         await this.httpClient.post(`/b/${this.name}/${entry}?ts=${ts}`, data);
     }
@@ -87,17 +87,17 @@ export class Bucket {
      * @param entry name of the entry
      * @param ts {BigInt} timestamp of record in microseconds. Get the latest onr, if undefined
      */
-    async read(entry: string, ts?: bigint): Promise<string> {
+    async read(entry: string, ts?: bigint): Promise<Buffer> {
         let url = `/b/${this.name}/${entry}`;
         if (ts !== undefined) {
             url += `?ts=${ts}`;
         }
         const {data} = await this.httpClient.get(url, {responseType: "stream"});
-        const chunks: string[] = [];
+        const chunks: Buffer[] = [];
         return new Promise((resolve, reject) => {
-            data.on("data", (chunk: string) => chunks.push(chunk));
+            data.on("data", (chunk: Buffer) => chunks.push(chunk));
             data.on("error", (err: Error) => reject(err));
-            data.on("end", () => resolve(chunks.join("")));
+            data.on("end", () => resolve(Buffer.concat(chunks)));
         });
     }
 
