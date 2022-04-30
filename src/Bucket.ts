@@ -77,7 +77,7 @@ export class Bucket {
      * @param data {string} data as sting
      * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
      */
-    async write(entry: string, data: string, ts?: BigInt): Promise<void> {
+    async write(entry: string, data: string, ts?: bigint): Promise<void> {
         ts ||= BigInt(Date.now() * 1000);
         await this.httpClient.post(`/b/${this.name}/${entry}?ts=${ts}`, data);
     }
@@ -87,7 +87,7 @@ export class Bucket {
      * @param entry name of the entry
      * @param ts {BigInt} timestamp of record in microseconds. Get the latest onr, if undefined
      */
-    async read(entry: string, ts?: BigInt): Promise<string> {
+    async read(entry: string, ts?: bigint): Promise<string> {
         let url = `/b/${this.name}/${entry}`;
         if (ts !== undefined) {
             url += `?ts=${ts}`;
@@ -95,7 +95,7 @@ export class Bucket {
         const {data} = await this.httpClient.get(url, {responseType: "stream"});
         const chunks: string[] = [];
         return new Promise((resolve, reject) => {
-            data.on("data", (chunk: string) =>  chunks.push(chunk));
+            data.on("data", (chunk: string) => chunks.push(chunk));
             data.on("error", (err: Error) => reject(err));
             data.on("end", () => resolve(chunks.join("")));
         });
@@ -107,7 +107,7 @@ export class Bucket {
      * @param start {BigInt} start point of the time period
      * @param stop {BigInt} stop point of the time period
      */
-    async list(entry: string, start: BigInt, stop: BigInt): Promise<{ size: BigInt, timestamp: BigInt }> {
+    async list(entry: string, start: bigint, stop: bigint): Promise<{ size: bigint, timestamp: bigint }[]> {
         const {data} = await this.httpClient.get(`/b/${this.name}/${entry}/list?start=${start}&stop=${stop}`);
         return data.records.map((rec: any) => {
             return {
