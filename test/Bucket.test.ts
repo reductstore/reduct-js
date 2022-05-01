@@ -5,6 +5,7 @@ import {BucketInfo} from "../src/BucketInfo";
 import {QuotaType} from "../src/BucketSettings";
 import crypto from "crypto";
 import {Buffer} from "buffer";
+import md5 from "md5";
 
 describe("Bucket", () => {
     const client: Client = makeClient();
@@ -92,14 +93,14 @@ describe("Bucket", () => {
     });
 
     it("should write and read a big blob", async () => {
-        const bigBlob = crypto.randomBytes(2 ** 16);
+        const bigBlob = crypto.randomBytes(2 ** 20);
 
         const bucket: Bucket = await client.getBucket("bucket");
         await bucket.write("big-blob", bigBlob);
         const actual: Buffer = await bucket.read("big-blob");
 
         expect(actual.length).toEqual(bigBlob.length);
-        expect(actual).toEqual(bigBlob);
+        expect(md5(actual)).toEqual(md5(bigBlob));
     });
 
 });
