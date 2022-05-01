@@ -27,7 +27,7 @@ And run this example:
 const {Client} = require("reduct-js")
 
 const main = async () => {
-  const client = new Client("http://127.0.0.1:8383");
+  const client = new Client("https://play.reduct-storage.dev");
 
   const bucket = await client.getOrCreateBucket("bucket");
 
