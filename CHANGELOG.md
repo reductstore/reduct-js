@@ -1,9 +1,15 @@
+## Release 0.4.0 (in progress)
+
+**Features**
+
+* Update to Reduct HTTP API v0.5, [PR-21](https://github.com/reduct-storage/reduct-js/pull/21)
+
 ## Release 0.3.0 (2022-04-30)
 
 **Features**:
 
 * Use `bigint` instead of `BigInt`, [PR-13](https://github.com/reduct-storage/reduct-js/pull/13)
-* Use Buffer read and write records, [PR-18](https://github.com/reduct-storage/reduct-js/pull/18) 
+* Use Buffer read and write records, [PR-18](https://github.com/reduct-storage/reduct-js/pull/18)
 
 **Bugs**:
 
