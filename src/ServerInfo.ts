@@ -1,3 +1,10 @@
+import {BucketSettings} from "./BucketSettings";
+
+
+export class ServerDefaults {
+    readonly bucket: BucketSettings = {};
+}
+
 /**
  * Represents information about storage
  */
@@ -32,6 +39,11 @@ export class ServerInfo {
      */
     readonly latestRecord: bigint = 0n;
 
+    /**
+     * Default settings
+     */
+    readonly defaults: ServerDefaults = {bucket: {}};
+
     static parse(data: Original): ServerInfo {
         return {
             version: data.version,
@@ -40,8 +52,22 @@ export class ServerInfo {
             usage: BigInt(data.usage),
             oldestRecord: BigInt(data.oldest_record),
             latestRecord: BigInt(data.latest_record),
+            defaults: {
+                bucket: BucketSettings.parse(data.defaults.bucket)
+            }
         };
     }
 }
 
-type Original = { version: string; bucket_count: string; uptime: string; usage: string; oldest_record: string; latest_record: string; }
+type Original = {
+    version: string;
+    bucket_count: string;
+    uptime: string;
+    usage: string;
+    oldest_record: string;
+    latest_record: string;
+    defaults: {
+        bucket: { quota_size: string; max_block_size: string; quota_type: string };
+
+    }
+}

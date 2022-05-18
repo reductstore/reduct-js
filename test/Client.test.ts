@@ -34,6 +34,12 @@ describe("Client", () => {
         expect(info.uptime).toBeGreaterThanOrEqual(0);
         expect(info.oldestRecord).toEqual(1000_000n);
         expect(info.latestRecord).toEqual(2000_000n);
+
+        expect(info.defaults.bucket).toEqual({
+            maxBlockSize: 67108864n,
+            quotaSize: 0n,
+            quotaType: QuotaType.NONE,
+        });
     });
 
     it("should get list of buckets", async () => {
