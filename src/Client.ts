@@ -17,7 +17,7 @@ export type ClientOptions = {
 }
 
 export class Client {
-    private httpClient: AxiosInstance;
+    private readonly httpClient: AxiosInstance;
 
     /**
      * HTTP Client for Reduct Storage

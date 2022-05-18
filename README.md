@@ -9,7 +9,7 @@ Asynchronous HTTP client for [Reduct Storage](https://reduct-storage.dev) writte
 ## Features
 
 * Promise based
-* Support Reduct Storage API v0.4
+* Support Reduct Storage API v0.5
 * Token authentication
 
 ## Getting Started
