@@ -3,6 +3,7 @@
 **Features**
 
 * Update to Reduct HTTP API v0.5, [PR-21](https://github.com/reduct-storage/reduct-js/pull/21)
+* Add timeout to ClientOptions, [PR-22](https://github.com/reduct-storage/reduct-js/pull/22)
 
 ## Release 0.3.0 (2022-04-30)
 
