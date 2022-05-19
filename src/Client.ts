@@ -12,8 +12,12 @@ import {BucketSettings} from "./BucketSettings";
 import {Bucket} from "./Bucket";
 import {hash, codec} from "sjcl";
 
+/**
+ * Options
+ */
 export type ClientOptions = {
-    apiToken?: string
+    apiToken?: string;   // API token for authentication
+    timeout?: number;    // communication timeout
 }
 
 export class Client {
@@ -27,7 +31,7 @@ export class Client {
     constructor(url: string, options: ClientOptions = {}) {
         this.httpClient = axios.create({
             baseURL: url,
-            timeout: 1000,
+            timeout: options.timeout,
         });
 
         this.httpClient.interceptors.response.use(
