@@ -13,6 +13,14 @@ test("Client should raise network error", async () => {
     });
 });
 
+test("Client should rais timeout error", async () => {
+    const client: Client = new Client("http://somedomain.xxx", {timeout: 10});
+
+    await expect(client.getInfo()).rejects.toEqual({
+        message: "timeout of 10ms exceeded",
+    });
+});
+
 describe("Client", () => {
     const client: Client = makeClient();
 
