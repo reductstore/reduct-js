@@ -20,7 +20,7 @@ export class EntryInfo {
     /**
      * Size of stored data in the bucket in bytes
      */
-    readonly size: BigInt = 0n;
+    readonly size: bigint = 0n;
 
     /**
      * Unix timestamp of the oldest record in microseconds
