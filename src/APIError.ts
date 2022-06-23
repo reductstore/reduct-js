@@ -21,6 +21,7 @@ export class APIError {
         if (resp !== undefined) {
             apiError.status = resp.status;
             if (resp.data !== undefined) {
+                // @ts-ignore
                 const {detail} = resp.data;
                 if (detail !== undefined) {
                     apiError.message += ": " + detail;

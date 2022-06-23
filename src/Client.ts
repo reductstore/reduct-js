@@ -38,23 +38,34 @@ export class Client {
             (response: AxiosResponse) => response,
             async (error: AxiosError) => {
                 if (error.config && error.response && error.response.status == 401 && options.apiToken) {
-                    const {config} = error;
                     const hashedToken = hash.sha256.hash(options.apiToken);
 
-                    config.headers ||= {};
-                    config.headers["Authorization"] = `Bearer ${codec.hex.fromBits(hashedToken)}`;
                     try {
                         // Use axios instead the instance not to cycle with 401 error
-                        const resp: AxiosResponse = await axios.post("/auth/refresh", null, config);
-                        const {access_token} = resp.data;
+                        const resp: AxiosResponse = await axios.post("/auth/refresh", {}, {
+                            baseURL: url,
+                            timeout: options.timeout,
+                            headers: {
+                                "Authorization": `Bearer ${codec.hex.fromBits(hashedToken)}`
+                            }
+                        });
 
-                        config.headers["Authorization"] = `Bearer ${access_token}`;
+                        const {access_token} = resp.data;
+                        if (access_token === undefined) {
+                            throw {message: "No access token in response"};
+                        }
+
+                        error.config.headers ||= {};
+                        error.config.headers["Authorization"] = `Bearer ${access_token}`;
                         this.httpClient.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
                         // Repiet request after token updated
                         return this.httpClient.request(error.config);
                     } catch (error) {
-                        //@ts-ignore
-                        throw APIError.from(error);
+                        if (error instanceof AxiosError) {
+                            throw APIError.from(error);
+                        }
+
+                        throw error;
                     }
                 }
 
