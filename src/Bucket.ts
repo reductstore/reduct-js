@@ -74,7 +74,7 @@ export class Bucket {
     /**
      * Write a record into an entry
      * @param entry name of the entry
-     * @param data {string | Buffer} data as sting
+     * @param data {string | Buffer} data as string
      * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
      */
     async write(entry: string, data: string | Buffer, ts?: bigint): Promise<void> {
