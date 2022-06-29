@@ -44,8 +44,8 @@ describe("Bucket", () => {
         await bucket.setSettings({maxBlockSize: 0n});
         await expect(bucket.getSettings()).resolves.toEqual({
             maxBlockSize: 0n,
-            // quotaSize: 0n,  TODO: Bug in storage
-            // quotaType: QuotaType.NONE
+            quotaSize: 0n,
+            quotaType: QuotaType.NONE
         });
     });
 
