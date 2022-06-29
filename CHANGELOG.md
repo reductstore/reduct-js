@@ -1,3 +1,9 @@
+## Release 0.5.0 (in progress)
+
+**Docs**:
+
+* Minor Typo Fixes, [PR-26](https://github.com/reduct-storage/reduct-js/pull/26)
+
 ### Release 0.4.1 (2022-06-24)
 
 **Bugs**:
