@@ -74,7 +74,7 @@ export class Bucket {
     /**
      * Write a record into an entry
      * @param entry name of the entry
-     * @param data {string | Buffer} data as sting
+     * @param data {string | Buffer} data as string
      * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
      */
     async write(entry: string, data: string | Buffer, ts?: bigint): Promise<void> {
@@ -85,7 +85,7 @@ export class Bucket {
     /**
      * Read a record from an entry
      * @param entry name of the entry
-     * @param ts {BigInt} timestamp of record in microseconds. Get the latest onr, if undefined
+     * @param ts {BigInt} timestamp of record in microseconds. Get the latest one, if undefined
      */
     async read(entry: string, ts?: bigint): Promise<Buffer> {
         let url = `/b/${this.name}/${entry}`;
