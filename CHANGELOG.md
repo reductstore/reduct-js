@@ -2,7 +2,7 @@
 
 **Features**:
 
-* [#27] Support HTTP API v0.6.0, [PR-29](https://github.com/reduct-storage/reduct-js/pull/29)
+* Support HTTP API v0.6.0, [PR-29](https://github.com/reduct-storage/reduct-js/pull/29)
 
 **Docs**:
 
