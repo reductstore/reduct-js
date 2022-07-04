@@ -35,7 +35,7 @@ describe("Client", () => {
         await bucket.write("entry", "somedata", 2000_000n);
 
         const info: ServerInfo = await client.getInfo();
-        expect(info.version).toMatch(/0\.[0-9]+\.[0-9]+/);
+        expect(info.version >= "0.6.0").toBeTruthy();
 
         expect(info.bucketCount).toEqual(2n);
         expect(info.usage).toEqual(16n);
@@ -45,6 +45,7 @@ describe("Client", () => {
 
         expect(info.defaults.bucket).toEqual({
             maxBlockSize: 67108864n,
+            maxBlockRecords: 1024n,
             quotaSize: 0n,
             quotaType: QuotaType.NONE,
         });
@@ -79,6 +80,7 @@ describe("Client", () => {
         const bucket = await client.createBucket("bucket");
         await expect(bucket.getSettings()).resolves.toEqual({
             maxBlockSize: 67108864n,
+            maxBlockRecords: 1024n,
             quotaSize: 0n,
             quotaType: QuotaType.NONE
         });
@@ -88,6 +90,7 @@ describe("Client", () => {
         const bucket = await client.createBucket("bucket", {quotaType: QuotaType.FIFO, quotaSize: 1024n});
         await expect(bucket.getSettings()).resolves.toEqual({
             maxBlockSize: 67108864n,
+            maxBlockRecords: 1024n,
             quotaSize: 1024n,
             quotaType: QuotaType.FIFO
         });

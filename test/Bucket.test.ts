@@ -37,6 +37,7 @@ describe("Bucket", () => {
         const bucket: Bucket = await client.getBucket("bucket");
         await expect(bucket.getSettings()).resolves.toEqual({
             maxBlockSize: 67108864n,
+            maxBlockRecords: 1024n,
             quotaSize: 0n,
             quotaType: QuotaType.NONE
         });
@@ -44,6 +45,7 @@ describe("Bucket", () => {
         await bucket.setSettings({maxBlockSize: 0n});
         await expect(bucket.getSettings()).resolves.toEqual({
             maxBlockSize: 0n,
+            maxBlockRecords: 1024n,
             quotaSize: 0n,
             quotaType: QuotaType.NONE
         });

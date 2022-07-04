@@ -1,5 +1,9 @@
 ## Release 0.5.0 (in progress)
 
+**Features**:
+
+* Support HTTP API v0.6.0, [PR-29](https://github.com/reduct-storage/reduct-js/pull/29)
+
 **Docs**:
 
 * Minor Typo Fixes, [PR-26](https://github.com/reduct-storage/reduct-js/pull/26)
