@@ -94,7 +94,7 @@ export class Bucket {
     async writeStream(entry: string, stream: Stream, content_length: bigint | number, ts?: bigint): Promise<void> {
         ts ||= BigInt(Date.now() * 1000);
         await this.httpClient.post(`/b/${this.name}/${entry}?ts=${ts}`, stream,
-            {headers: {"content-length": content_length}});
+            {headers: {"content-length": content_length.toString()}});
     }
 
     /**

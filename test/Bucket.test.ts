@@ -101,7 +101,6 @@ describe("Bucket", () => {
         const bucket: Bucket = await client.getBucket("bucket");
         await bucket.writeStream("big-blob", Stream.Readable.from(bigBlob), bigBlob.length);
 
-
         const readStream: Stream = await bucket.readStream("big-blob");
 
         const actual: Buffer = await new Promise((resolve, reject) => {
