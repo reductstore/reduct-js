@@ -4,7 +4,6 @@ import {BucketSettings} from "./BucketSettings";
 import {BucketInfo} from "./BucketInfo";
 import {EntryInfo} from "./EntryInfo";
 import * as Stream from "stream";
-import * as stream from "stream";
 
 /**
  * Represents a bucket in Reduct Storage
