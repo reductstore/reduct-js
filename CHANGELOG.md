@@ -3,6 +3,7 @@
 **Features**:
 
 * Support Reduct Storage API v0.6, [PR-29](https://github.com/reduct-storage/reduct-js/pull/29)
+* Add data streaming, [PR-30](https://github.com/reduct-storage/reduct-js/pull/30)
 
 **Docs**:
 
