@@ -12,19 +12,18 @@ repos:
     hooks:
     - id: tsc
       types_or: [ javascript, jsx, ts, tsx ]
-
       name: tsc
       entry: npm
       language: node
+      pass_filenames: false
       args:
         - run
         - tsc
 
 -   repo: local
     hooks:
-    - id: tsc
+    - id: eslint
       types_or: [ javascript, jsx, ts, tsx ]
-
       name: eslint
       entry: npm
       language: node

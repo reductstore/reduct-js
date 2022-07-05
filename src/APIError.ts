@@ -19,7 +19,7 @@ export class APIError {
     /**
      * Original error from HTTP client with the full information
      */
-    public original: AxiosError;
+    public original?: AxiosError;
 
     /**
      * Create an error from AxiosError
