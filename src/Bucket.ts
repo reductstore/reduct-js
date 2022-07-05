@@ -3,6 +3,8 @@ import {AxiosInstance} from "axios";
 import {BucketSettings} from "./BucketSettings";
 import {BucketInfo} from "./BucketInfo";
 import {EntryInfo} from "./EntryInfo";
+import * as Stream from "stream";
+import * as stream from "stream";
 
 /**
  * Represents a bucket in Reduct Storage
@@ -78,8 +80,21 @@ export class Bucket {
      * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
      */
     async write(entry: string, data: string | Buffer, ts?: bigint): Promise<void> {
+        const stream = Stream.Readable.from(data);
+        await this.writeStream(entry, stream, data.length, ts);
+    }
+
+    /**
+     * Write a record from a stream
+     * @param entry name of the entry
+     * @param stream stream to write
+     * @param content_length content length in size. The storage engine should know it in advance
+     * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
+     */
+    async writeStream(entry: string, stream: Stream, content_length: bigint | number, ts?: bigint): Promise<void> {
         ts ||= BigInt(Date.now() * 1000);
-        await this.httpClient.post(`/b/${this.name}/${entry}?ts=${ts}`, data);
+        await this.httpClient.post(`/b/${this.name}/${entry}?ts=${ts}`, stream,
+            {headers: {"content-length": content_length}});
     }
 
     /**
@@ -88,17 +103,27 @@ export class Bucket {
      * @param ts {BigInt} timestamp of record in microseconds. Get the latest one, if undefined
      */
     async read(entry: string, ts?: bigint): Promise<Buffer> {
+        const stream = await this.readStream(entry, ts);
+        const chunks: Buffer[] = [];
+        return new Promise((resolve, reject) => {
+            stream.on("data", (chunk: Buffer) => chunks.push(chunk));
+            stream.on("error", (err: Error) => reject(err));
+            stream.on("end", () => resolve(Buffer.concat(chunks)));
+        });
+    }
+
+    /**
+     * Read a record from an entry as a stream
+     * @param entry name of the entry
+     * @param ts {BigInt} timestamp of record in microseconds. Get the latest one, if undefined
+     */
+    async readStream(entry: string, ts?: bigint): Promise<Stream> {
         let url = `/b/${this.name}/${entry}`;
         if (ts !== undefined) {
             url += `?ts=${ts}`;
         }
         const {data} = await this.httpClient.get(url, {responseType: "stream"});
-        const chunks: Buffer[] = [];
-        return new Promise((resolve, reject) => {
-            data.on("data", (chunk: Buffer) => chunks.push(chunk));
-            data.on("error", (err: Error) => reject(err));
-            data.on("end", () => resolve(Buffer.concat(chunks)));
-        });
+        return data;
     }
 
     /**
