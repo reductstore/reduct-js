@@ -1,4 +1,4 @@
-## Release 0.5.0 (in progress)
+## Release 0.5.0 (2002-07-05)
 
 **Features**:
 
