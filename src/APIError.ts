@@ -6,8 +6,20 @@ import {AxiosError} from "axios";
  * Represents HTTP Error
  */
 export class APIError {
+    /**
+     * HTTP status of error. If it is empty, it means communication problem
+     */
     public status?: number;
+
+    /**
+     * Parsed message from the storage engine
+     */
     public message?: string;
+
+    /**
+     * Original error from HTTP client with the full information
+     */
+    public original?: AxiosError;
 
     /**
      * Create an error from AxiosError
@@ -15,6 +27,7 @@ export class APIError {
      */
     static from(error: AxiosError): APIError {
         const apiError = new APIError();
+        apiError.original = error;
         apiError.message = error.message;
 
         const resp = error.response;

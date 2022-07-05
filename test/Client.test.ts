@@ -8,16 +8,28 @@ import {cleanStorage, makeClient} from "./Helpers";
 test("Client should raise network error", async () => {
     const client: Client = new Client("http://127.0.0.2:80");
 
-    await expect(client.getInfo()).rejects.toEqual({
+    await expect(client.getInfo()).rejects.toMatchObject({
         message: "connect ECONNREFUSED 127.0.0.2:80"
     });
 });
 
-test("Client should rais timeout error", async () => {
+test("Client should raise timeout error", async () => {
     const client: Client = new Client("http://somedomain.xxx", {timeout: 10});
 
-    await expect(client.getInfo()).rejects.toEqual({
+    await expect(client.getInfo()).rejects.toMatchObject({
         message: "timeout of 10ms exceeded",
+    });
+});
+
+test("Client should raise an error with original error from http client", async () => {
+    const client: Client = new Client("http://somedomain.xxx", {timeout: 10});
+
+    await expect(client.getInfo()).rejects.toMatchObject({
+        original: {
+            message: "timeout of 10ms exceeded",
+            code: "ECONNABORTED",
+            name: "AxiosError",
+        }
     });
 });
 
@@ -70,7 +82,7 @@ describe("Client", () => {
     });
 
     it("should get bucket with error", async () => {
-        await expect(client.getBucket("NOTEXIST")).rejects.toEqual({
+        await expect(client.getBucket("NOTEXIST")).rejects.toMatchObject({
             status: 404,
             message: "Request failed with status code 404: Bucket 'NOTEXIST' is not found"
         });
@@ -98,7 +110,7 @@ describe("Client", () => {
 
     it("should create a bucket with error", async () => {
         await client.createBucket("bucket");
-        await expect(client.createBucket("bucket")).rejects.toEqual({
+        await expect(client.createBucket("bucket")).rejects.toMatchObject({
             status: 409,
             message: "Request failed with status code 409: Bucket 'bucket' already exists",
         });
