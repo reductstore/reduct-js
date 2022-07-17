@@ -1,50 +1,75 @@
-## Release 0.5.0 (2002-07-05)
+# Changelog
 
-**Features**:
+All notable changes to this project will be documented in this file.
 
-* Support Reduct Storage API v0.6, [PR-29](https://github.com/reduct-storage/reduct-js/pull/29)
-* Add data streaming, [PR-30](https://github.com/reduct-storage/reduct-js/pull/30)
-* Add original exception to APIError, [PR-31](https://github.com/reduct-storage/reduct-js/pull/31)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-**Docs**:
+## [Unreleased]
 
-* Minor Typo Fixes, [PR-26](https://github.com/reduct-storage/reduct-js/pull/26)
+### Fixed:
 
-### Release 0.4.1 (2022-06-24)
+- BucketSetting serialisation, [PR-35](https://github.com/reduct-storage/reduct-js/pull/35)
 
-**Bugs**:
+## [0.5.0] - 2002-07-05
 
-* Fix updating refresh token, [PR-24](https://github.com/reduct-storage/reduct-js/pull/24)
+### Added:
 
-## Release 0.4.0 (2022-05-19)
+- Reduct Storage API v0.6, [PR-29](https://github.com/reduct-storage/reduct-js/pull/29)
+- Data streaming, [PR-30](https://github.com/reduct-storage/reduct-js/pull/30)
+- Original exception to APIError, [PR-31](https://github.com/reduct-storage/reduct-js/pull/31)
 
-**Features**:
+### Fixed:
 
-* Update to Reduct HTTP API v0.5, [PR-21](https://github.com/reduct-storage/reduct-js/pull/21)
-* Add timeout to ClientOptions, [PR-22](https://github.com/reduct-storage/reduct-js/pull/22)
+- Minor Typo, [PR-26](https://github.com/reduct-storage/reduct-js/pull/26)
 
-## Release 0.3.0 (2022-04-30)
+### [0.4.1] - 2022-06-24
 
-**Features**:
+### Fixed:
 
-* Use `bigint` instead of `BigInt`, [PR-13](https://github.com/reduct-storage/reduct-js/pull/13)
-* Use Buffer read and write records, [PR-18](https://github.com/reduct-storage/reduct-js/pull/18)
+- Updating refresh token, [PR-24](https://github.com/reduct-storage/reduct-js/pull/24)
 
-**Bugs**:
+## [0.4.0] - 2022-05-19
 
-* Fix reading big records [PR-16](https://github.com/reduct-storage/reduct-js/pull/16)
-* Fix signature Bucket.list [PR-17](https://github.com/reduct-storage/reduct-js/pull/17)
+### Added:
 
-## Release 0.2.0 (2022-04-16)
+- Support Reduct HTTP API v0.5, [PR-21](https://github.com/reduct-storage/reduct-js/pull/21)
+- Timeout to ClientOptions, [PR-22](https://github.com/reduct-storage/reduct-js/pull/22)
 
-**Features**:
+## [0.3.0] - 2022-04-30
 
-* Add Client.getOrCreateBucket, [PR-10](https://github.com/reduct-storage/reduct-js/pull/10)
+### Added:
 
-**Bugs**:
+- Use Buffer read and write records, [PR-18](https://github.com/reduct-storage/reduct-js/pull/18)
 
-* Add QuotaType to index, [PR-9](https://github.com/reduct-storage/reduct-js/pull/9)
+### Changed:
 
-## Release 0.1.0 (2022-04-14)
+- `bigint` instead of `BigInt`, [PR-13](https://github.com/reduct-storage/reduct-js/pull/13)
 
-* Initial release
+### Fixed:
+
+- Reading big records [PR-16](https://github.com/reduct-storage/reduct-js/pull/16)
+- Signature of Bucket.list [PR-17](https://github.com/reduct-storage/reduct-js/pull/17)
+
+## [0.2.0] - 2022-04-16
+
+### Added:
+
+- `Client.getOrCreateBucket` method, [PR-10](https://github.com/reduct-storage/reduct-js/pull/10)
+
+### Fixed:
+
+* QuotaType in index.js, [PR-9](https://github.com/reduct-storage/reduct-js/pull/9)
+
+##  [0.1.0]  - 2022-04-14
+
+- Initial release
+
+
+[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/reduct-storage/reduct-js/compare/v0.4.1...v0.5.0
+[0.4.1]: https://github.com/reduct-storage/reduct-js/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/reduct-storage/reduct-js/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/reduct-storage/reduct-js/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/reduct-storage/reduct-js/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/reduct-storage/reduct-js/compare/tag/v0.1.0
