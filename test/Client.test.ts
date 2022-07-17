@@ -99,10 +99,14 @@ describe("Client", () => {
     });
 
     it("should create a bucket if custom settings", async () => {
-        const bucket = await client.createBucket("bucket", {quotaType: QuotaType.FIFO, quotaSize: 1024n});
+        const bucket = await client.createBucket("bucket", {
+            quotaType: QuotaType.FIFO,
+            quotaSize: 1024n,
+            maxBlockRecords: 1029n
+        });
         await expect(bucket.getSettings()).resolves.toEqual({
             maxBlockSize: 67108864n,
-            maxBlockRecords: 1024n,
+            maxBlockRecords: 1029n,
             quotaSize: 1024n,
             quotaType: QuotaType.FIFO
         });

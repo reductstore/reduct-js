@@ -41,9 +41,10 @@ export class BucketSettings {
     }
 
     static serialize(settings: BucketSettings): Original {
-        const {maxBlockSize, quotaType, quotaSize} = settings;
+        const {maxBlockSize, maxBlockRecords, quotaType, quotaSize} = settings;
         return {
             max_block_size: maxBlockSize !== undefined ? maxBlockSize.toString() : undefined,
+            max_block_records: maxBlockRecords !== undefined ? maxBlockRecords.toString() : undefined,
             quota_type: quotaType !== undefined ? quotaType.toString() : undefined,
             quota_size: quotaSize !== undefined ? quotaSize.toString() : undefined,
         };
