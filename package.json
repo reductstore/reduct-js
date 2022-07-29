@@ -52,7 +52,6 @@
     "typescript": "^4.6.3"
   },
   "dependencies": {
-    "axios": "^0.27.2",
-    "sjcl": "^1.0.8"
+    "axios": "^0.27.2"
   }
 }
