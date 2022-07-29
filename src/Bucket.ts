@@ -4,6 +4,7 @@ import {BucketSettings} from "./BucketSettings";
 import {BucketInfo} from "./BucketInfo";
 import {EntryInfo} from "./EntryInfo";
 import * as Stream from "stream";
+import {Record} from "./Record";
 
 /**
  * Represents a bucket in Reduct Storage
@@ -130,6 +131,7 @@ export class Bucket {
      * @param entry {string} name of the entry
      * @param start {BigInt} start point of the time period
      * @param stop {BigInt} stop point of the time period
+     * @deprecated since version 0.6 use query instead
      */
     async list(entry: string, start: bigint, stop: bigint): Promise<{ size: bigint, timestamp: bigint }[]> {
         const {data} = await this.httpClient.get(`/b/${this.name}/${entry}/list?start=${start}&stop=${stop}`);
@@ -139,5 +141,55 @@ export class Bucket {
                 timestamp: BigInt(rec.ts)
             };
         });
+    }
+
+    /**
+     * Query records for a time interval as generator
+     * @param entry entry name
+     * @param entry {string} name of the entry
+     * @param start {BigInt} start point of the time period
+     * @param stop {BigInt} stop point of the time period
+     * @param ttl {number} TTL of query on the server side
+     * @example
+     * for await (const record in bucket.query("entry-1", start, stop)) {
+     *   console.log(record.ts, record.size);
+     *   const content = await record.read();
+     *   // or use pipe
+     *   const fileStream = fs.createWriteStream(`ts_${record.size}.txt`);
+     *   record.pipe(fileStream);
+     * }
+     */
+    async* query(entry: string, start?: bigint, stop?: bigint, ttl?: number) {
+        const params: string[] = [];
+        if (start !== undefined) {
+            params.push(`start=${start}`);
+        }
+        if (stop !== undefined) {
+            params.push(`stop=${stop}`);
+        }
+        if (ttl !== undefined) {
+            params.push(`ttl=${ttl}`);
+        }
+
+        const url = `/b/${this.name}/${entry}/q?` + params.join("&");
+        const resp = await this.httpClient.get(url);
+        const {id} = resp.data;
+        const {httpClient, name} = this;
+        yield* (async function* () {
+            let last = false;
+            while (!last) {
+                const {
+                    headers,
+                    data,
+                } = await httpClient.get(`/b/${name}/${entry}?q=${id}`, {responseType: "stream"});
+
+                if (data.statusCode == 202) {
+                    break;
+                }
+
+                yield new Record(BigInt(headers["x-reduct-time"]), BigInt(headers["content-length"]), data);
+                last = headers["x-reduct-last"] == "1";
+            }
+        })();
     }
 }
