@@ -9,12 +9,12 @@ Asynchronous HTTP client for [Reduct Storage](https://reduct-storage.dev) writte
 ## Features
 
 * Promise based
-* Support Reduct Storage API v0.5
+* Support Reduct Storage API v0.7
 * Token authentication
 
 ## Getting Started
 
-Read [here](https://docs.reduct-storage.dev/#start-with-docker), how to run Reduct Storage. 
+Read [here](https://docs.reduct-storage.dev/#start-with-docker), how to run Reduct Storage.
 Then install the package:
 
 ```
