@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support Reduct Storage API v0.7, [PR-37](https://github.com/reduct-storage/reduct-js/pull/37)
 
+### Removed:
+
+- Hash for API token and `sjcl` from dependencies [PR-38](https://github.com/reduct-storage/reduct-js/pull/38)
+
 ## [0.5.1] - 2002-07-17
 
 ### Fixed:

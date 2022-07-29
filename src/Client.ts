@@ -10,7 +10,6 @@ import {APIError} from "./APIError";
 import {BucketInfo} from "./BucketInfo";
 import {BucketSettings} from "./BucketSettings";
 import {Bucket} from "./Bucket";
-import {hash, codec} from "sjcl";
 
 /**
  * Options
@@ -38,15 +37,13 @@ export class Client {
             (response: AxiosResponse) => response,
             async (error: AxiosError) => {
                 if (error.config && error.response && error.response.status == 401 && options.apiToken) {
-                    const hashedToken = hash.sha256.hash(options.apiToken);
-
                     try {
                         // Use axios instead the instance not to cycle with 401 error
                         const resp: AxiosResponse = await axios.post("/auth/refresh", {}, {
                             baseURL: url,
                             timeout: options.timeout,
                             headers: {
-                                "Authorization": `Bearer ${codec.hex.fromBits(hashedToken)}`
+                                "Authorization": `Bearer ${options.apiToken}`
                             }
                         });
 
