@@ -9,7 +9,7 @@ Asynchronous HTTP client for [Reduct Storage](https://reduct-storage.dev) writte
 ## Features
 
 * Promise based
-* Support Reduct Storage API v0.7
+* Support Reduct Storage API v0.8
 * Token authentication
 
 ## Getting Started
@@ -27,7 +27,7 @@ And run this example:
 const {Client} = require("reduct-js")
 
 const main = async () => {
-  const client = new Client("https://play.reduct-storage.dev");
+  const client = new Client("https://play.reduct-storage.dev", {apiToken: "reduct"});
 
   const bucket = await client.getOrCreateBucket("bucket");
 

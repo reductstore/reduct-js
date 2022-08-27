@@ -31,44 +31,22 @@ export class Client {
         this.httpClient = axios.create({
             baseURL: url,
             timeout: options.timeout,
+            headers: {
+                "Authorization": `Bearer ${options.apiToken}`
+            }
         });
 
         this.httpClient.interceptors.response.use(
             (response: AxiosResponse) => response,
             async (error: AxiosError) => {
-                if (error.config && error.response && error.response.status == 401 && options.apiToken) {
-                    try {
-                        // Use axios instead the instance not to cycle with 401 error
-                        const resp: AxiosResponse = await axios.post("/auth/refresh", {}, {
-                            baseURL: url,
-                            timeout: options.timeout,
-                            headers: {
-                                "Authorization": `Bearer ${options.apiToken}`
-                            }
-                        });
-
-                        const {access_token} = resp.data;
-                        if (access_token === undefined) {
-                            throw {message: "No access token in response"};
-                        }
-
-                        error.config.headers ||= {};
-                        error.config.headers["Authorization"] = `Bearer ${access_token}`;
-                        this.httpClient.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-                        // Repiet request after token updated
-                        return this.httpClient.request(error.config);
-                    } catch (error) {
-                        if (error instanceof AxiosError) {
-                            throw APIError.from(error);
-                        }
-
-                        throw error;
-                    }
+                if (error instanceof AxiosError) {
+                    throw APIError.from(error);
                 }
 
-                throw APIError.from(error);
+                throw error;
             }
         );
+
     }
 
     /**
