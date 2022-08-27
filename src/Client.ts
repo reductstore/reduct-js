@@ -35,6 +35,18 @@ export class Client {
                 "Authorization": `Bearer ${options.apiToken}`
             }
         });
+
+        this.httpClient.interceptors.response.use(
+            (response: AxiosResponse) => response,
+            async (error: AxiosError) => {
+                if (error instanceof AxiosError) {
+                    throw APIError.from(error);
+                }
+
+                throw error;
+            }
+        );
+
     }
 
     /**

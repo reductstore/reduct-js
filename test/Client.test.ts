@@ -47,7 +47,7 @@ describe("Client", () => {
         await bucket.write("entry", "somedata", 2000_000n);
 
         const info: ServerInfo = await client.getInfo();
-        expect(info.version >= "0.6.0").toBeTruthy();
+        expect(info.version >= "0.8.0").toBeTruthy();
 
         expect(info.bucketCount).toEqual(2n);
         expect(info.usage).toEqual(16n);
