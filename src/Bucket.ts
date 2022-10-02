@@ -23,6 +23,7 @@ export class Bucket {
     constructor(name: string, httpClient: AxiosInstance) {
         this.name = name;
         this.httpClient = httpClient;
+        this.readRecord = this.readRecord.bind(this);
     }
 
     /**
@@ -97,33 +98,14 @@ export class Bucket {
             {headers: {"content-length": content_length.toString()}});
     }
 
+
     /**
      * Read a record from an entry
      * @param entry name of the entry
      * @param ts {BigInt} timestamp of record in microseconds. Get the latest one, if undefined
      */
-    async read(entry: string, ts?: bigint): Promise<Buffer> {
-        const stream = await this.readStream(entry, ts);
-        const chunks: Buffer[] = [];
-        return new Promise((resolve, reject) => {
-            stream.on("data", (chunk: Buffer) => chunks.push(chunk));
-            stream.on("error", (err: Error) => reject(err));
-            stream.on("end", () => resolve(Buffer.concat(chunks)));
-        });
-    }
-
-    /**
-     * Read a record from an entry as a stream
-     * @param entry name of the entry
-     * @param ts {BigInt} timestamp of record in microseconds. Get the latest one, if undefined
-     */
-    async readStream(entry: string, ts?: bigint): Promise<Stream> {
-        let url = `/b/${this.name}/${entry}`;
-        if (ts !== undefined) {
-            url += `?ts=${ts}`;
-        }
-        const {data} = await this.httpClient.get(url, {responseType: "stream"});
-        return data;
+    async read(entry: string, ts?: bigint): Promise<Record> {
+        return await this.readRecord(entry, ts ? ts.toString() : undefined, undefined);
     }
 
     /**
@@ -157,22 +139,33 @@ export class Bucket {
         const url = `/b/${this.name}/${entry}/q?` + params.join("&");
         const resp = await this.httpClient.get(url);
         const {id} = resp.data;
-        const {httpClient, name} = this;
+        const {readRecord} = this;
         yield* (async function* () {
             let last = false;
             while (!last) {
-                const {
-                    headers,
-                    data,
-                } = await httpClient.get(`/b/${name}/${entry}?q=${id}`, {responseType: "stream"});
+                const record = await readRecord(entry, undefined, id);
+                yield record;
+                // eslint-disable-next-line prefer-destructuring
+                last = record.last;
 
-                if (data.statusCode == 202) {
-                    break;
-                }
-
-                yield new Record(BigInt(headers["x-reduct-time"]), BigInt(headers["content-length"]), data);
-                last = headers["x-reduct-last"] == "1";
             }
         })();
     }
+
+    private async readRecord(entry: string, ts?: string, id?: string): Promise<Record> {
+        let param = "";
+        if (ts) {
+            param = `ts=${ts}`;
+        }
+        if (id) {
+            param = `q=${id}`;
+        }
+
+        const {
+            headers,
+            data,
+        } = await this.httpClient.get(`/b/${this.name}/${entry}?${param}`, {responseType: "stream"});
+        return new Record(BigInt(headers["x-reduct-time"]), BigInt(headers["content-length"]), headers["x-reduct-last"] == "1", data);
+    }
+
 }

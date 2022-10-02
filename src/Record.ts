@@ -6,15 +6,17 @@ import Stream from "stream";
 export class Record {
     public readonly time: bigint;
     public readonly size: bigint;
+    public readonly last: boolean;
     public readonly stream: Stream;
 
     /**
      * Constructor which should be call from Bucket
      * @internal
      */
-    public constructor(time: bigint, size: bigint, stream: Stream) {
+    public constructor(time: bigint, size: bigint, last: boolean, stream: Stream) {
         this.time = time;
         this.size = size;
+        this.last = last;
         this.stream = stream;
     }
 

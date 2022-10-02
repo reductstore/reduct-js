@@ -80,12 +80,18 @@ describe("Bucket", () => {
 
     it("should read latest record", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        await (expect(bucket.read("entry-2"))).resolves.toEqual(Buffer.from("somedata3", "ascii"));
+        const record = await bucket.read("entry-2");
+
+        expect(record).toMatchObject({size: 9n, time: 3000000n, last: true});
+        expect(await record.read()).toEqual(Buffer.from("somedata3", "ascii"));
     });
 
     it("should read a record by timestamp", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        await (expect(bucket.read("entry-2", 2000_000n))).resolves.toEqual(Buffer.from("somedata2", "ascii"));
+        const record = await bucket.read("entry-2", 2000000n);
+
+        expect(record).toMatchObject({size: 9n, time: 2000000n, last: true});
+        expect(await record.read()).toEqual(Buffer.from("somedata2", "ascii"));
     });
 
     it("should read a record with error if timestamp is wrong", async () => {
@@ -99,7 +105,7 @@ describe("Bucket", () => {
         const bucket: Bucket = await client.getBucket("bucket");
         await bucket.writeStream("big-blob", Stream.Readable.from(bigBlob), bigBlob.length);
 
-        const readStream: Stream = await bucket.readStream("big-blob");
+        const readStream: Stream = (await bucket.read("big-blob")).stream;
 
         const actual: Buffer = await new Promise((resolve, reject) => {
             const chunks: Buffer[] = [];
