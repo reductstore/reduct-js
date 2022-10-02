@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed:
 
 - `Bucket.list` method, [PR-43](https://github.com/reduct-storage/reduct-js/pull/43)
+- `Bucket.readStream`, `Bucket.writeStream` methods, [PR-44](https://github.com/reduct-storage/reduct-js/pull/44)
+
+### Changes:
+
+- `Bucket.read`, `Bucket.write` methods, [PR-44](https://github.com/reduct-storage/reduct-js/pull/44)
 
 ## [0.7.0] - 2022-08-27
 
