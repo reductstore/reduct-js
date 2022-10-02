@@ -93,14 +93,6 @@ describe("Bucket", () => {
         await (expect(bucket.read("entry-2", 10000_000n))).rejects.toMatchObject({status: 404});
     });
 
-    it("should list record in a entry", async () => {
-        const bucket: Bucket = await client.getBucket("bucket");
-        await (expect(bucket.list("entry-2", 0n, 4000_000n))).resolves.toEqual([
-            {size: 9n, timestamp: 2000_000n},
-            {size: 9n, timestamp: 3000_000n}
-        ]);
-    });
-
     it("should write and read a big blob as streams", async () => {
         const bigBlob = crypto.randomBytes(2 ** 20);
 

@@ -127,23 +127,6 @@ export class Bucket {
     }
 
     /**
-     * List records for a time period
-     * @param entry {string} name of the entry
-     * @param start {BigInt} start point of the time period
-     * @param stop {BigInt} stop point of the time period
-     * @deprecated since version 0.6 use query instead
-     */
-    async list(entry: string, start: bigint, stop: bigint): Promise<{ size: bigint, timestamp: bigint }[]> {
-        const {data} = await this.httpClient.get(`/b/${this.name}/${entry}/list?start=${start}&stop=${stop}`);
-        return data.records.map((rec: any) => {
-            return {
-                size: BigInt(rec.size),
-                timestamp: BigInt(rec.ts)
-            };
-        });
-    }
-
-    /**
      * Query records for a time interval as generator
      * @param entry entry name
      * @param entry {string} name of the entry
