@@ -1,6 +1,6 @@
 {
   "name": "reduct-js",
-  "version": "0.7.0",
+  "version": "1.0.0",
   "description": "Reduct Storage Client SDK for Javascript/NodeJS/Typescript",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",
