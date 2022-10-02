@@ -10,9 +10,8 @@ import {Bucket} from "../src/Bucket";
 import {cleanStorage, makeClient} from "./Helpers";
 import {BucketInfo} from "../src/BucketInfo";
 import {QuotaType} from "../src/BucketSettings";
+import {ReadableRecord} from "../src/Record";
 
-
-import {Record} from "../src/Record";
 
 describe("Bucket", () => {
     const client: Client = makeClient();
@@ -21,9 +20,9 @@ describe("Bucket", () => {
         cleanStorage(client).then(() =>
             client.createBucket("bucket").then((bucket: Bucket) =>
                 Promise.all([
-                    bucket.write("entry-1", "somedata1", 1000_000n),
-                    bucket.write("entry-2", "somedata2", 2000_000n),
-                    bucket.write("entry-2", "somedata3", 3000_000n)
+                    bucket.beginWrite("entry-1", 1000_000n).then(async rec => await rec.write("somedata1")),
+                    bucket.beginWrite("entry-2", 2000_000n).then(async rec => await rec.write("somedata2")),
+                    bucket.beginWrite("entry-2", 3000_000n).then(async rec => await rec.write("somedata3")),
                 ])
             )).then(() => done());
 
@@ -80,7 +79,7 @@ describe("Bucket", () => {
 
     it("should read latest record", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        const record = await bucket.read("entry-2");
+        const record = await bucket.beginRead("entry-2");
 
         expect(record).toMatchObject({size: 9n, time: 3000000n, last: true});
         expect(await record.read()).toEqual(Buffer.from("somedata3", "ascii"));
@@ -88,7 +87,7 @@ describe("Bucket", () => {
 
     it("should read a record by timestamp", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        const record = await bucket.read("entry-2", 2000000n);
+        const record = await bucket.beginRead("entry-2", 2000000n);
 
         expect(record).toMatchObject({size: 9n, time: 2000000n, last: true});
         expect(await record.read()).toEqual(Buffer.from("somedata2", "ascii"));
@@ -96,16 +95,17 @@ describe("Bucket", () => {
 
     it("should read a record with error if timestamp is wrong", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        await (expect(bucket.read("entry-2", 10000_000n))).rejects.toMatchObject({status: 404});
+        await (expect(bucket.beginRead("entry-2", 10000_000n))).rejects.toMatchObject({status: 404});
     });
 
     it("should write and read a big blob as streams", async () => {
         const bigBlob = crypto.randomBytes(2 ** 20);
 
         const bucket: Bucket = await client.getBucket("bucket");
-        await bucket.writeStream("big-blob", Stream.Readable.from(bigBlob), bigBlob.length);
+        const record = await bucket.beginWrite("big-blob");
+        await record.write(Stream.Readable.from(bigBlob), bigBlob.length);
 
-        const readStream: Stream = (await bucket.read("big-blob")).stream;
+        const readStream: Stream = (await bucket.beginRead("big-blob")).stream;
 
         const actual: Buffer = await new Promise((resolve, reject) => {
             const chunks: Buffer[] = [];
@@ -121,7 +121,7 @@ describe("Bucket", () => {
 
     it("should query records", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        const records: Record[] = await all(bucket.query("entry-2"));
+        const records: ReadableRecord[] = await all(bucket.query("entry-2"));
 
         expect(records.length).toEqual(2);
         expect(records[0].time).toEqual(2_000_000n);
@@ -135,7 +135,7 @@ describe("Bucket", () => {
 
     it("should query records with parameters", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        let records: Record[] = await all(bucket.query("entry-2", 3_000_000n));
+        let records: ReadableRecord[] = await all(bucket.query("entry-2", 3_000_000n));
         expect(records.length).toEqual(1);
 
         records = await all(bucket.query("entry-2", 2_000_000n, 2_000_001n));

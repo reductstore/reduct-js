@@ -3,8 +3,7 @@ import {AxiosInstance} from "axios";
 import {BucketSettings} from "./BucketSettings";
 import {BucketInfo} from "./BucketInfo";
 import {EntryInfo} from "./EntryInfo";
-import * as Stream from "stream";
-import {Record} from "./Record";
+import {ReadableRecord, WritableRecord} from "./Record";
 
 /**
  * Represents a bucket in Reduct Storage
@@ -75,36 +74,26 @@ export class Bucket {
     }
 
     /**
-     * Write a record into an entry
+     * Start writing a record into an entry
      * @param entry name of the entry
-     * @param data {string | Buffer} data as string
      * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
+     * @return Promise<WritableRecord>
+     * @example
+     * const record = await bucket.write("entry", 1203121n);
+     * await record.write("Hello!);
      */
-    async write(entry: string, data: string | Buffer, ts?: bigint): Promise<void> {
-        const stream = Stream.Readable.from(data);
-        await this.writeStream(entry, stream, data.length, ts);
-    }
-
-    /**
-     * Write a record from a stream
-     * @param entry name of the entry
-     * @param stream stream to write
-     * @param content_length content length in size. The storage engine should know it in advance
-     * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
-     */
-    async writeStream(entry: string, stream: Stream, content_length: bigint | number, ts?: bigint): Promise<void> {
+    async beginWrite(entry: string, ts?: bigint): Promise<WritableRecord> {
         ts ||= BigInt(Date.now() * 1000);
-        await this.httpClient.post(`/b/${this.name}/${entry}?ts=${ts}`, stream,
-            {headers: {"content-length": content_length.toString()}});
+        return Promise.resolve(new WritableRecord(this.name, entry, ts, this.httpClient));
     }
 
-
     /**
-     * Read a record from an entry
+     * Start reading a record from an entry
      * @param entry name of the entry
      * @param ts {BigInt} timestamp of record in microseconds. Get the latest one, if undefined
+     * @return Promise<ReadableRecord>
      */
-    async read(entry: string, ts?: bigint): Promise<Record> {
+    async beginRead(entry: string, ts?: bigint): Promise<ReadableRecord> {
         return await this.readRecord(entry, ts ? ts.toString() : undefined, undefined);
     }
 
@@ -152,7 +141,7 @@ export class Bucket {
         })();
     }
 
-    private async readRecord(entry: string, ts?: string, id?: string): Promise<Record> {
+    private async readRecord(entry: string, ts?: string, id?: string): Promise<ReadableRecord> {
         let param = "";
         if (ts) {
             param = `ts=${ts}`;
@@ -165,7 +154,7 @@ export class Bucket {
             headers,
             data,
         } = await this.httpClient.get(`/b/${this.name}/${entry}?${param}`, {responseType: "stream"});
-        return new Record(BigInt(headers["x-reduct-time"]), BigInt(headers["content-length"]), headers["x-reduct-last"] == "1", data);
+        return new ReadableRecord(BigInt(headers["x-reduct-time"]), BigInt(headers["content-length"]), headers["x-reduct-last"] == "1", data);
     }
 
 }
