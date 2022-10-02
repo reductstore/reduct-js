@@ -1,15 +1,18 @@
 const {Client} = require("../lib/cjs/index.js");
 
-const main = async () => {
-  const client = new Client("http://127.0.0.1:8383");
+const client = new Client("http://127.0.0.1:8383");
 
-  const bucket = await client.getOrCreateBucket("bucket");
-  
-  const timestamp = Date.now() * 1000;
-  await bucket.write("entry-1", "Hello, World!", timestamp);
-  console.log(await bucket.read("entry-1", timestamp));
+const main = async () => {
+    const bucket = await client.getOrCreateBucket("bucket");
+
+    const timestamp = Date.now() * 1000;
+    let record = await bucket.beginWrite("entry-1", timestamp);
+    await record.write("Hello, World!");
+
+    record = await bucket.beginRead("entry-1", timestamp);
+    console.log(await record.readAsString());
 };
 
 main()
-  .then(() => console.log("done"))
-  .catch((err) => console.error("oops: ", err));
+    .then(() => console.log("done"))
+    .catch((err) => console.error("oops: ", err));
