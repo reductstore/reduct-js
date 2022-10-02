@@ -64,3 +64,12 @@ jobs:
           docker image ls -a
       - name: Run tests
         run: docker run --network=host ${{github.repository}} npm run lint
+
+  publish:
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
