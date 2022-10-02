@@ -5,6 +5,7 @@ nav:
   - API Reference:
       - Client: docs/api/client.md
       - Bucket: docs/api/bucket.md
+      - Record: docs/api/record.md
   - Reduct Storage: https://reduct-storage.dev
 
 repo_name: reduct-storage/reduct-js

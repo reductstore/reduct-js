@@ -79,7 +79,7 @@ export class Bucket {
      * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
      * @return Promise<WritableRecord>
      * @example
-     * const record = await bucket.write("entry", 1203121n);
+     * const record = await bucket.beginWrite("entry", 1203121n);
      * await record.write("Hello!);
      */
     async beginWrite(entry: string, ts?: bigint): Promise<WritableRecord> {
