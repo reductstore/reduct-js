@@ -3,8 +3,7 @@ import {AxiosInstance} from "axios";
 import {BucketSettings} from "./BucketSettings";
 import {BucketInfo} from "./BucketInfo";
 import {EntryInfo} from "./EntryInfo";
-import * as Stream from "stream";
-import {Record} from "./Record";
+import {ReadableRecord, WritableRecord} from "./Record";
 
 /**
  * Represents a bucket in Reduct Storage
@@ -23,6 +22,7 @@ export class Bucket {
     constructor(name: string, httpClient: AxiosInstance) {
         this.name = name;
         this.httpClient = httpClient;
+        this.readRecord = this.readRecord.bind(this);
     }
 
     /**
@@ -74,56 +74,27 @@ export class Bucket {
     }
 
     /**
-     * Write a record into an entry
+     * Start writing a record into an entry
      * @param entry name of the entry
-     * @param data {string | Buffer} data as string
      * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
+     * @return Promise<WritableRecord>
+     * @example
+     * const record = await bucket.write("entry", 1203121n);
+     * await record.write("Hello!);
      */
-    async write(entry: string, data: string | Buffer, ts?: bigint): Promise<void> {
-        const stream = Stream.Readable.from(data);
-        await this.writeStream(entry, stream, data.length, ts);
-    }
-
-    /**
-     * Write a record from a stream
-     * @param entry name of the entry
-     * @param stream stream to write
-     * @param content_length content length in size. The storage engine should know it in advance
-     * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
-     */
-    async writeStream(entry: string, stream: Stream, content_length: bigint | number, ts?: bigint): Promise<void> {
+    async beginWrite(entry: string, ts?: bigint): Promise<WritableRecord> {
         ts ||= BigInt(Date.now() * 1000);
-        await this.httpClient.post(`/b/${this.name}/${entry}?ts=${ts}`, stream,
-            {headers: {"content-length": content_length.toString()}});
+        return Promise.resolve(new WritableRecord(this.name, entry, ts, this.httpClient));
     }
 
     /**
-     * Read a record from an entry
+     * Start reading a record from an entry
      * @param entry name of the entry
      * @param ts {BigInt} timestamp of record in microseconds. Get the latest one, if undefined
+     * @return Promise<ReadableRecord>
      */
-    async read(entry: string, ts?: bigint): Promise<Buffer> {
-        const stream = await this.readStream(entry, ts);
-        const chunks: Buffer[] = [];
-        return new Promise((resolve, reject) => {
-            stream.on("data", (chunk: Buffer) => chunks.push(chunk));
-            stream.on("error", (err: Error) => reject(err));
-            stream.on("end", () => resolve(Buffer.concat(chunks)));
-        });
-    }
-
-    /**
-     * Read a record from an entry as a stream
-     * @param entry name of the entry
-     * @param ts {BigInt} timestamp of record in microseconds. Get the latest one, if undefined
-     */
-    async readStream(entry: string, ts?: bigint): Promise<Stream> {
-        let url = `/b/${this.name}/${entry}`;
-        if (ts !== undefined) {
-            url += `?ts=${ts}`;
-        }
-        const {data} = await this.httpClient.get(url, {responseType: "stream"});
-        return data;
+    async beginRead(entry: string, ts?: bigint): Promise<ReadableRecord> {
+        return await this.readRecord(entry, ts ? ts.toString() : undefined, undefined);
     }
 
     /**
@@ -157,22 +128,33 @@ export class Bucket {
         const url = `/b/${this.name}/${entry}/q?` + params.join("&");
         const resp = await this.httpClient.get(url);
         const {id} = resp.data;
-        const {httpClient, name} = this;
+        const {readRecord} = this;
         yield* (async function* () {
             let last = false;
             while (!last) {
-                const {
-                    headers,
-                    data,
-                } = await httpClient.get(`/b/${name}/${entry}?q=${id}`, {responseType: "stream"});
+                const record = await readRecord(entry, undefined, id);
+                yield record;
+                // eslint-disable-next-line prefer-destructuring
+                last = record.last;
 
-                if (data.statusCode == 202) {
-                    break;
-                }
-
-                yield new Record(BigInt(headers["x-reduct-time"]), BigInt(headers["content-length"]), data);
-                last = headers["x-reduct-last"] == "1";
             }
         })();
     }
+
+    private async readRecord(entry: string, ts?: string, id?: string): Promise<ReadableRecord> {
+        let param = "";
+        if (ts) {
+            param = `ts=${ts}`;
+        }
+        if (id) {
+            param = `q=${id}`;
+        }
+
+        const {
+            headers,
+            data,
+        } = await this.httpClient.get(`/b/${this.name}/${entry}?${param}`, {responseType: "stream"});
+        return new ReadableRecord(BigInt(headers["x-reduct-time"]), BigInt(headers["content-length"]), headers["x-reduct-last"] == "1", data);
+    }
+
 }

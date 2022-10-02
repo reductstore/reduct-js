@@ -11,7 +11,7 @@ repos:
 -   repo: local
     hooks:
     - id: tsc
-      types_or: [ javascript, jsx, ts, tsx ]
+      types_or: [ jsx, ts, tsx ]
       name: tsc
       entry: npm
       language: node
@@ -23,7 +23,7 @@ repos:
 -   repo: local
     hooks:
     - id: eslint
-      types_or: [ javascript, jsx, ts, tsx ]
+      types_or: [ ts, tsx ]
       name: eslint
       entry: npm
       language: node

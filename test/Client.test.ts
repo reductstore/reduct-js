@@ -43,8 +43,11 @@ describe("Client", () => {
     it("should get information about the server", async () => {
         await client.createBucket("bucket_1");
         const bucket = await client.createBucket("bucket_2");
-        await bucket.write("entry", "somedata", 1000_000n);
-        await bucket.write("entry", "somedata", 2000_000n);
+        let rec = await bucket.beginWrite("entry", 1000_000n);
+        await rec.write("somedata");
+
+        rec = await bucket.beginWrite("entry", 2000_000n);
+        await rec.write("somedata");
 
         const info: ServerInfo = await client.getInfo();
         expect(info.version >= "0.8.0").toBeTruthy();

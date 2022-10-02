@@ -24,20 +24,24 @@ npm i reduct-js
 And run this example:
 
 ```js
-const {Client} = require("reduct-js")
+const {Client} = require("../lib/cjs/index.js");
+
+const client = new Client("http://127.0.0.1:8383");
 
 const main = async () => {
-  const client = new Client("https://play.reduct-storage.dev", {apiToken: "reduct"});
+    const bucket = await client.getOrCreateBucket("bucket");
 
-  const bucket = await client.getOrCreateBucket("bucket");
+    const timestamp = Date.now() * 1000;
+    let record = await bucket.beginWrite("entry-1", timestamp);
+    await record.write("Hello, World!");
 
-  const timestamp = Date.now() * 1000;
-  await bucket.write("entry-1", "Hello, World!", timestamp);
-  console.log(await bucket.read("entry-1", timestamp));
+    record = await bucket.beginRead("entry-1", timestamp);
+    console.log((await record.read()).toString());
 };
 
 main()
-  .then(() => console.log("done"))
-  .catch((err) => console.error("oops: ", err));
+    .then(() => console.log("done"))
+    .catch((err) => console.error("oops: ", err));
+
 
 ```
