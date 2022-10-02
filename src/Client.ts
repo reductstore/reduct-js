@@ -29,7 +29,7 @@ export class Client {
      */
     constructor(url: string, options: ClientOptions = {}) {
         this.httpClient = axios.create({
-            baseURL: url,
+            baseURL: `${url}/api/v1`,
             timeout: options.timeout,
             headers: {
                 "Authorization": `Bearer ${options.apiToken}`

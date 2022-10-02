@@ -28,6 +28,10 @@ jobs:
   tests:
     needs: build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        token: ["", "TOKEN"]
+
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v2
@@ -35,33 +39,14 @@ jobs:
           name: image
           path: /tmp/
       - name: Run Reduct Storage
-        run: docker run -p 8383:8383 -v ${PWD}/data:/data -d ghcr.io/reduct-storage/reduct-storage:latest
+        run: docker run -p 8383:8383 -v ${PWD}/data:/data --env RS_API_TOKEN=${{ matrix.token }} -d ghcr.io/reduct-storage/reduct-storage:main
 
       - name: Load image with tests
         run: |
           docker load --input /tmp/image.tar
           docker image ls -a
       - name: Run tests
-        run: docker run --network=host ${{github.repository}} npm test
-
-  tests_with_token:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: image
-          path: /tmp/
-      - name: Run Reduct Storage
-        run: docker run -p 8383:8383 -v ${PWD}/data:/data --env RS_API_TOKEN=ABC -d ghcr.io/reduct-storage/reduct-storage:latest
-
-      - name: Load image with tests
-        run: |
-          docker load --input /tmp/image.tar
-          docker image ls -a
-      - name: Run tests
-        run: docker run --network=host --env RS_API_TOKEN=ABC ${{github.repository}} npm test
+        run: docker run --network=host --env RS_API_TOKEN=${{ matrix.token }} ${{github.repository}} npm test
 
   lint:
     needs: build
@@ -72,8 +57,6 @@ jobs:
         with:
           name: image
           path: /tmp/
-      - name: Run Reduct Storage
-        run: docker run -p 8383:8383 -v ${PWD}/data:/data -d ghcr.io/reduct-storage/reduct-storage:latest
 
       - name: Load image with tests
         run: |
