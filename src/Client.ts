@@ -10,6 +10,7 @@ import {APIError} from "./APIError";
 import {BucketInfo} from "./BucketInfo";
 import {BucketSettings} from "./BucketSettings";
 import {Bucket} from "./Bucket";
+import {TokenInfo, TokenPermissions} from "./TokenInfo";
 
 /**
  * Options
@@ -107,5 +108,47 @@ export class Client {
 
             throw error; // pass exception forward
         }
+    }
+
+    /**
+     * Create a new access token
+     * @param name name of the token
+     * @param permissions permissions for the token
+     * @return {Promise<string, Date>} the token
+     */
+
+    async createToken(name: string, permissions: TokenPermissions): Promise<string> {
+        const {data} = await this.httpClient.post(`/tokens/${name}`, {
+            permissions: TokenPermissions.serialize(permissions)
+        });
+
+        return data.value as string;
+    }
+
+    /**
+     * Get a token by name
+     * @param name name of the token
+     * @return {Promise<TokenInfo>} the token
+     */
+    async getToken(name: string): Promise<TokenInfo> {
+        const {data} = await this.httpClient.get(`/tokens/${name}`);
+        return TokenInfo.parse(data);
+    }
+
+    /**
+     * List all tokens
+     * @return {Promise<TokenInfo[]>} the list of tokens
+     */
+    async getTokenList(): Promise<TokenInfo[]> {
+        const {data} = await this.httpClient.get("/tokens");
+        return data.tokens.map((token: any) => TokenInfo.parse(token));
+    }
+
+    /**
+     * Delete a token by name
+     * @param name name of the token
+     */
+    async deleteToken(name: string): Promise<void> {
+        await this.httpClient.delete(`/tokens/${name}`);
     }
 }
