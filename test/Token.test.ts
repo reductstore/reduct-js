@@ -1,7 +1,6 @@
 import {Client} from "../src/Client";
 import {cleanStorage, makeClient} from "./Helpers";
-import {TokenPermissions} from "../src/Token";
-import {TokenInfo} from "../lib/cjs/TokenInfo";
+import {TokenPermissions, Token} from "../src/Token";
 
 describe("With Token API Client", () => {
     const client: Client = makeClient();
@@ -18,7 +17,7 @@ describe("With Token API Client", () => {
         const token = await client.createToken("token-1", permissions);
         expect(token).toContain("token-1-");
 
-        const tokenInfo: TokenInfo = await client.getToken("token-1");
+        const tokenInfo: Token = await client.getToken("token-1");
         expect(tokenInfo.name).toEqual("token-1");
         expect(tokenInfo.permissions).toEqual(permissions);
         expect(tokenInfo.createdAt).toBeLessThanOrEqual(Date.now());
