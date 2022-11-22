@@ -114,7 +114,11 @@ export class Client {
      * Create a new access token
      * @param name name of the token
      * @param permissions permissions for the token
-     * @return {Promise<string, Date>} the token
+     * @return {Promise<string>} the token
+     *
+     * @example
+     * const token = await client.createToken("my-token", {fullAccess: true});
+     * const client = new Client("https://play.storage-reduct.dev", {apiToken: token});
      */
 
     async createToken(name: string, permissions: TokenPermissions): Promise<string> {

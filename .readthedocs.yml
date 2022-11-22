@@ -24,7 +24,6 @@ build:
       - npm exec jsdoc2md lib/cjs/Client.js > docs/api/client.md
       - npm exec jsdoc2md lib/cjs/Bucket.js > docs/api/bucket.md
       - npm exec jsdoc2md lib/cjs/Record.js > docs/api/record.md
-      - npm exec jsdoc2md lib/cjs/Token.js > docs/api/token.md
 
       - rm node_modules -rf # not to waste time
 
