@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added:
+
+- Support Reduct Storage API v1.1 with Token API, [PR-46](https://github.com/reduct-storage/reduct-js/pull/46)
 ## [1.0.0] = 2022-10-03
 
 ### Added:
