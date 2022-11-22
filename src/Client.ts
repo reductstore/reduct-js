@@ -10,7 +10,7 @@ import {APIError} from "./APIError";
 import {BucketInfo} from "./BucketInfo";
 import {BucketSettings} from "./BucketSettings";
 import {Bucket} from "./Bucket";
-import {TokenInfo, TokenPermissions} from "./TokenInfo";
+import {Token, TokenPermissions} from "./Token";
 
 /**
  * Options
@@ -118,30 +118,27 @@ export class Client {
      */
 
     async createToken(name: string, permissions: TokenPermissions): Promise<string> {
-        const {data} = await this.httpClient.post(`/tokens/${name}`, {
-            permissions: TokenPermissions.serialize(permissions)
-        });
-
+        const {data} = await this.httpClient.post(`/tokens/${name}`, TokenPermissions.serialize(permissions));
         return data.value as string;
     }
 
     /**
      * Get a token by name
      * @param name name of the token
-     * @return {Promise<TokenInfo>} the token
+     * @return {Promise<Token>} the token
      */
-    async getToken(name: string): Promise<TokenInfo> {
+    async getToken(name: string): Promise<Token> {
         const {data} = await this.httpClient.get(`/tokens/${name}`);
-        return TokenInfo.parse(data);
+        return Token.parse(data);
     }
 
     /**
      * List all tokens
-     * @return {Promise<TokenInfo[]>} the list of tokens
+     * @return {Promise<Token[]>} the list of tokens
      */
-    async getTokenList(): Promise<TokenInfo[]> {
+    async getTokenList(): Promise<Token[]> {
         const {data} = await this.httpClient.get("/tokens");
-        return data.tokens.map((token: any) => TokenInfo.parse(token));
+        return data.tokens.map((token: any) => Token.parse(token));
     }
 
     /**

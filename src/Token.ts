@@ -58,7 +58,7 @@ class OriginalTokenInfo {
 /**
  * Information about an access token
  */
-export class TokenInfo {
+export class Token {
     /**
      * Name of the token
      */
@@ -74,7 +74,7 @@ export class TokenInfo {
      */
     readonly permissions?: TokenPermissions;
 
-    static parse(data: OriginalTokenInfo): TokenInfo {
+    static parse(data: OriginalTokenInfo): Token {
         return {
             name: data.name,
             createdAt: Date.parse(data.created_at),

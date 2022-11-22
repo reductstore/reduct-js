@@ -15,7 +15,14 @@ export const cleanStorage = async (client: Client): Promise<void> => {
                     }
                 );
             }));
-        }).then(() => Promise.resolve());
+        })
+        .then(() => client.getTokenList())
+        .then(tokens => {
+            return Promise.all(tokens.map(token => {
+                return client.deleteToken(token.name);
+            }));
+        })
+        .then(() => Promise.resolve());
 };
 
 export const makeClient = (): Client => {
