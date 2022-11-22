@@ -1,4 +1,4 @@
-FROM node:17-slim
+FROM node:16-slim
 
 WORKDIR /src
 
