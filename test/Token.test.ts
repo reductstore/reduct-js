@@ -24,10 +24,13 @@ describe("With Token API Client", () => {
     });
 
     test("should list tokens", async () => {
-        expect(await client.getTokenList()).toEqual([]);
+        expect(await client.getTokenList()).toEqual([
+            {name: "init-token", createdAt: expect.any(Number)}
+        ]);
         await client.createToken("token-1", {fullAccess: true});
         await client.createToken("token-2", {fullAccess: false});
         expect(await client.getTokenList()).toEqual([
+            {name: "init-token", createdAt: expect.any(Number)},
             {name: "token-1", createdAt: expect.any(Number)},
             {name: "token-2", createdAt: expect.any(Number)}
         ]);
@@ -37,6 +40,8 @@ describe("With Token API Client", () => {
         await client.createToken("token-1", {fullAccess: true});
         await client.deleteToken("token-1");
 
-        expect(await client.getTokenList()).toEqual([]);
+        expect(await client.getTokenList()).toEqual([
+            {name: "init-token", createdAt: expect.any(Number)}
+        ]);
     });
 });

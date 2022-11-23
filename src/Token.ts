@@ -65,7 +65,7 @@ export class Token {
     readonly name: string = "";
 
     /**
-     * Creation time of the token
+     * Creation time of the token as unix timestamp in milliseconds
      */
     readonly createdAt: number = 0;
 

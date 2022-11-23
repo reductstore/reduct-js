@@ -18,7 +18,7 @@ export const cleanStorage = async (client: Client): Promise<void> => {
         })
         .then(() => client.getTokenList())
         .then(tokens => {
-            return Promise.all(tokens.map(token => {
+            return Promise.all(tokens.filter(token => token.name != "init-token").map(token => {
                 return client.deleteToken(token.name);
             }));
         })
