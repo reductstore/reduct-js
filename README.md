@@ -1,8 +1,8 @@
 # Reduct Storage Client SDK for JavaScript
 
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/reduct-storage/reduct-js)
-![npm](https://img.shields.io/npm/dm/reduct-js)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/reduct-storage/reduct-js/ci)
+[![npm](https://img.shields.io/npm/v/reduct-js)](https://www.npmjs.com/package/reduct-js)
+[![npm](https://img.shields.io/npm/dm/reduct-js)](https://www.npmjs.com/package/reduct-js)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/reduct-storage/reduct-js/ci)](https://github.com/reduct-storage/reduct-js/actions)
 
 Asynchronous HTTP client for [Reduct Storage](https://reduct-storage.dev) written in TypeScript.
 
