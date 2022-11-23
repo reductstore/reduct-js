@@ -34,7 +34,6 @@
     "@babel/core": "^7.17.9",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
-    "@types/axios": "^0.14.0",
     "@types/jest": "^27.4.1",
     "@types/md5": "^2.3.2",
     "@types/sjcl": "^1.0.30",

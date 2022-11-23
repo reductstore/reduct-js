@@ -10,6 +10,7 @@ import {APIError} from "./APIError";
 import {BucketInfo} from "./BucketInfo";
 import {BucketSettings} from "./BucketSettings";
 import {Bucket} from "./Bucket";
+import {Token, TokenPermissions} from "./Token";
 
 /**
  * Options
@@ -107,5 +108,48 @@ export class Client {
 
             throw error; // pass exception forward
         }
+    }
+
+    /**
+     * Create a new access token
+     * @param name name of the token
+     * @param permissions permissions for the token
+     * @return {Promise<string>} the token
+     *
+     * @example
+     * const token = await client.createToken("my-token", {fullAccess: true});
+     * const client = new Client("https://play.storage-reduct.dev", {apiToken: token});
+     */
+
+    async createToken(name: string, permissions: TokenPermissions): Promise<string> {
+        const {data} = await this.httpClient.post(`/tokens/${name}`, TokenPermissions.serialize(permissions));
+        return data.value as string;
+    }
+
+    /**
+     * Get a token by name
+     * @param name name of the token
+     * @return {Promise<Token>} the token
+     */
+    async getToken(name: string): Promise<Token> {
+        const {data} = await this.httpClient.get(`/tokens/${name}`);
+        return Token.parse(data);
+    }
+
+    /**
+     * List all tokens
+     * @return {Promise<Token[]>} the list of tokens
+     */
+    async getTokenList(): Promise<Token[]> {
+        const {data} = await this.httpClient.get("/tokens");
+        return data.tokens.map((token: any) => Token.parse(token));
+    }
+
+    /**
+     * Delete a token by name
+     * @param name name of the token
+     */
+    async deleteToken(name: string): Promise<void> {
+        await this.httpClient.delete(`/tokens/${name}`);
     }
 }
