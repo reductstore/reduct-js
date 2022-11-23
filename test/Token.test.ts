@@ -2,7 +2,11 @@ import {Client} from "../src/Client";
 import {cleanStorage, makeClient} from "./Helpers";
 import {TokenPermissions, Token} from "../src/Token";
 
-describe("With Token API Client", () => {
+const describe_token = () =>
+    process.env.RS_API_TOKEN !== undefined && process.env.RS_API_TOKEN.length > 0
+        ? describe : describe.skip;
+
+describe_token()("With Token API Client", () => {
     const client: Client = makeClient();
     beforeEach((done) => {
         cleanStorage(client).then(() => done());
