@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed:
+
+- Add token and permissions to index.ts, [PR-47](https://github.com/reduct-storage/reduct-js/pull/46)
+
 ## [1.1.0] - 2022-11-23
 
 ### Added:
