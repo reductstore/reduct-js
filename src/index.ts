@@ -5,6 +5,7 @@ import {ServerInfo} from "./ServerInfo";
 import {BucketSettings, QuotaType} from "./BucketSettings";
 import {BucketInfo} from "./BucketInfo";
 import {EntryInfo} from "./EntryInfo";
+import {Token, TokenPermissions} from "./Token";
 
 export {
     Client,
@@ -14,5 +15,7 @@ export {
     BucketSettings,
     QuotaType,
     BucketInfo,
-    EntryInfo
+    EntryInfo,
+    Token,
+    TokenPermissions
 };
