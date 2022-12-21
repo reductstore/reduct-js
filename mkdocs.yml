@@ -20,7 +20,9 @@ theme:
   name: material
   language: en
   palette:
-    primary: 231b49
+    primary: indigo
+  logo: docs/img/favicon.png
+  favicon: docs/img/favicon.png
   font:
     text: Roboto
     code: JetBrains Mono
