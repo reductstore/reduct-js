@@ -9,7 +9,10 @@ const describe_token = () =>
 describe_token()("With Token API Client", () => {
     const client: Client = makeClient();
     beforeEach((done) => {
-        cleanStorage(client).then(() => done());
+        cleanStorage(client)
+            .then(() => client.createBucket("bucket_1"))
+            .then(() => client.createBucket("bucket_2"))
+            .then(() => done());
     });
 
     test("should create a token", async () => {

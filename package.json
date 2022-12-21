@@ -1,7 +1,7 @@
 {
   "name": "reduct-js",
   "version": "1.1.1",
-  "description": "Reduct Storage Client SDK for Javascript/NodeJS/Typescript",
+  "description": "ReductStore Client SDK for Javascript/NodeJS/Typescript",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",
   "scripts": {
@@ -16,10 +16,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reduct-storage/reduct-js.git"
+    "url": "git+https://github.com/reductstore/reductstore.git"
   },
   "keywords": [
-    "reductstorage",
+    "reductstorre",
+    "time-series",
     "sdk",
     "http-api",
     "http-client"
@@ -27,9 +28,9 @@
   "author": "Alexey Timin",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/reduct-storage/reduct-js/issues"
+    "url": "https://github.com/reductstore/reduct-js/issues"
   },
-  "homepage": "https://github.com/reduct-storage/reduct-js#readme",
+  "homepage": "https://www.reduct.store",
   "devDependencies": {
     "@babel/core": "^7.17.9",
     "@babel/preset-env": "^7.16.11",

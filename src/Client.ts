@@ -1,5 +1,5 @@
 /**
- * Represents HTTP Client for Reduct Storage API
+ * Represents HTTP Client for ReductStore API
  * @class
  */
 import {ServerInfo} from "./ServerInfo";
@@ -24,7 +24,7 @@ export class Client {
     private readonly httpClient: AxiosInstance;
 
     /**
-     * HTTP Client for Reduct Storage
+     * HTTP Client for ReductStore
      * @param url URL to the storage
      * @param options
      */

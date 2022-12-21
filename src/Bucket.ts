@@ -6,7 +6,7 @@ import {EntryInfo} from "./EntryInfo";
 import {ReadableRecord, WritableRecord} from "./Record";
 
 /**
- * Represents a bucket in Reduct Storage
+ * Represents a bucket in ReductStore
  */
 export class Bucket {
     readonly name: string;

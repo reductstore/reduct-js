@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed:
+
+- Update documentation after rebranding, [PR-50](https://github.com/reductstore/reduct-py/pull/50)
+
 ## [1.1.1] - 2022-11-24
 
 ### Fixed:
@@ -17,13 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added:
 
-- Support Reduct Storage API v1.1 with Token API, [PR-46](https://github.com/reduct-storage/reduct-js/pull/46)
+- Support ReductStore API v1.1 with Token API, [PR-46](https://github.com/reduct-storage/reduct-js/pull/46)
 
 ## [1.0.0] - 2022-10-03
 
 ### Added:
 
-- Support Reduct Storage API v1.0, [PR-43](https://github.com/reduct-storage/reduct-js/pull/43)
+- Support ReductStore API v1.0, [PR-43](https://github.com/reduct-storage/reduct-js/pull/43)
 
 ### Removed:
 
@@ -38,13 +42,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added:
 
-- Support Reduct Storage API v0.8, [PR-40](https://github.com/reduct-storage/reduct-js/pull/40)
+- Support ReductStore API v0.8, [PR-40](https://github.com/reduct-storage/reduct-js/pull/40)
 
 ## [0.6.0] - 2022-07-29
 
 ### Added:
 
-- Support Reduct Storage API v0.7, [PR-37](https://github.com/reduct-storage/reduct-js/pull/37)
+- Support ReductStore API v0.7, [PR-37](https://github.com/reduct-storage/reduct-js/pull/37)
 
 ### Removed:
 
@@ -60,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added:
 
-- Reduct Storage API v0.6, [PR-29](https://github.com/reduct-storage/reduct-js/pull/29)
+- ReductStore API v0.6, [PR-29](https://github.com/reduct-storage/reduct-js/pull/29)
 - Data streaming, [PR-30](https://github.com/reduct-storage/reduct-js/pull/30)
 - Original exception to APIError, [PR-31](https://github.com/reduct-storage/reduct-js/pull/31)
 
