@@ -1,4 +1,6 @@
-site_name: Reduct Client SDK for Java Script
+site_name: ReductStore Client SDK for Java Script
+site_url: https://js.reduct.store
+site_description: ReductStore Client SDK for Java Script
 docs_dir: .
 nav:
   - Home: README.md
@@ -6,10 +8,10 @@ nav:
       - Client: docs/api/client.md
       - Bucket: docs/api/bucket.md
       - Record: docs/api/record.md
-  - Reduct Storage: https://reduct-storage.dev
+  - ReductStore: https://www.reduct.store
 
-repo_name: reduct-storage/reduct-js
-repo_url: https://github.com/reduct-storage/reduct-js
+repo_name: reductstore/reduct-js
+repo_url: https://github.com/reductstore/reduct-js
 edit_uri: edit/main/docs
 
 

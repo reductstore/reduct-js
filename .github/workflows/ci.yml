@@ -38,7 +38,7 @@ jobs:
         with:
           name: image
           path: /tmp/
-      - name: Run Reduct Storage
+      - name: Run ReductStore
         run: docker run -p 8383:8383 -v ${PWD}/data:/data --env RS_API_TOKEN=${{ matrix.token }} -d ghcr.io/reduct-storage/reduct-storage:main
 
       - name: Load image with tests
