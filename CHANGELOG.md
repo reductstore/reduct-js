@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### [1.2.0] - 2022-12-23
+
 ### Added:
 
 - Add support for ReductStore API version 1.2 with method Client.me to get current
@@ -119,7 +121,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.2.0...HEAD
+
+[1.2.0]: https://github.com/reduct-storage/reduct-js/compare/v1.1.1...v1.2.0
 
 [1.1.1]: https://github.com/reduct-storage/reduct-js/compare/v1.1.0...v1.1.1
 
