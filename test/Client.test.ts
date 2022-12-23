@@ -50,7 +50,7 @@ describe("Client", () => {
         await rec.write("somedata");
 
         const info: ServerInfo = await client.getInfo();
-        expect(info.version >= "1.1.0").toBeTruthy();
+        expect(info.version >= "1.2.0").toBeTruthy();
 
         expect(info.bucketCount).toEqual(2n);
         expect(info.usage).toEqual(16n);

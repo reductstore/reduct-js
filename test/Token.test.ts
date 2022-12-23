@@ -15,7 +15,7 @@ describe_token()("With Token API Client", () => {
             .then(() => done());
     });
 
-    test("should create a token", async () => {
+    it("should create a token", async () => {
         const permissions: TokenPermissions = {
             fullAccess: true,
             read: ["bucket_1"],
@@ -30,7 +30,7 @@ describe_token()("With Token API Client", () => {
         expect(tokenInfo.createdAt).toBeLessThanOrEqual(Date.now());
     });
 
-    test("should list tokens", async () => {
+    it("should list tokens", async () => {
         expect(await client.getTokenList()).toEqual([
             {name: "init-token", createdAt: expect.any(Number)}
         ]);
@@ -43,12 +43,18 @@ describe_token()("With Token API Client", () => {
         ]);
     });
 
-    test("should delete a token", async () => {
+    it("should delete a token", async () => {
         await client.createToken("token-1", {fullAccess: true});
         await client.deleteToken("token-1");
 
         expect(await client.getTokenList()).toEqual([
             {name: "init-token", createdAt: expect.any(Number)}
         ]);
+    });
+
+    it("should provide current API token and its permissions", async () => {
+        const token: Token = await client.me();
+        expect(token.name).toEqual("init-token");
+        expect(token.permissions).toEqual({fullAccess: true, read: [], write: []});
     });
 });

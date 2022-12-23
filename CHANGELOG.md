@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added:
+
+- Add support for ReductStore API version 1.2 with method Client.me to get current
+  permissions, [PR-51](https://github.com/reductstore/reduct-js/pull/51)
+
 ### Changed:
 
 - Update documentation after rebranding, [PR-50](https://github.com/reductstore/reduct-py/pull/50)
