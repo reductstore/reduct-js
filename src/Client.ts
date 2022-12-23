@@ -152,4 +152,13 @@ export class Client {
     async deleteToken(name: string): Promise<void> {
         await this.httpClient.delete(`/tokens/${name}`);
     }
+
+    /**
+     * Get current API token and its permissions
+     * @return {Promise<Token>} the token
+     */
+    async me(): Promise<Token> {
+        const {data} = await this.httpClient.get("/me");
+        return Token.parse(data);
+    }
 }
