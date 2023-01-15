@@ -68,7 +68,7 @@ jobs:
           docker load --input /tmp/image.tar
           docker image ls -a
       - name: Run tests
-        run: docker run --network=host ${{github.repository}} node examples/{{matrix.example}}
+        run: docker run --network=host ${{github.repository}} node examples/${{matrix.example}}
 
 
   lint:
