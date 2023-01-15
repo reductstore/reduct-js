@@ -53,6 +53,8 @@ main()
     .catch((err) => console.error("oops: ", err));
 ```
 
+For more examples, see the [Quick Start](https://js.reduct.store/en/latest/docs/quick-start/).
+
 ## References
 
 * [Documentation](https://js.reduct.store/)
