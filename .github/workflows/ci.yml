@@ -29,6 +29,12 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: image
+          path: /tmp/
+
       - name: Run ReductStore
         run: docker run -p 8383:8383 -v ${PWD}/data:/data --env RS_API_TOKEN=${{ matrix.token }} -d ghcr.io/reductstore/reductstore:main
 
