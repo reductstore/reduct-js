@@ -29,7 +29,7 @@ This will start a ReductStore instance listening on port 8383 of your local mach
 Now that you have the `reduct-js` SDK installed and a ReductStore instance running, you can start using the SDK to
 interact with the ReductStore instance.
 
-Here is an example of using the Python SDK to perform a few different operations on a bucket:
+Here is an example of using the JavaScript SDK to perform a few different operations on a bucket:
 
 ```javascript title="QuickStart.js"
 --8<-- "../examples/QuickStart.js"
