@@ -89,7 +89,7 @@ jobs:
         run: docker run --network=host ${{github.repository}} npm run lint
 
   publish:
-    needs: [tests, lint]
+    needs: [run_tests, run_examples, lint]
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
     steps:
