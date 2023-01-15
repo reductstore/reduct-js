@@ -1,11 +1,11 @@
-//
 const {Client, QuotaType} = require("../lib/cjs/index.js");
 const fs = require("fs");
-const {Writable} = require("stream");
 
 const main = async () => {
+    // --8<-- [start:createclient]
     // Create a client
     const client = new Client("http://127.0.0.1:8383");
+    // --8<-- [end:createclient]
 
     // Get or create a bucket with 1Gb quotan
     const bucket = await client.getOrCreateBucket("my-bucket",

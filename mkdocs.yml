@@ -3,7 +3,9 @@ site_url: https://js.reduct.store
 site_description: ReductStore Client SDK for Java Script
 docs_dir: .
 nav:
-  - Home: README.md
+  - Home:
+    - README.md
+    - docs/quick-start.md
   - API Reference:
       - Client: docs/api/client.md
       - Bucket: docs/api/bucket.md
