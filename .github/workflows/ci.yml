@@ -29,15 +29,15 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-       - name: Run ReductStore
-       run: docker run -p 8383:8383 -v ${PWD}/data:/data --env RS_API_TOKEN=${{ matrix.token }} -d ghcr.io/reductstore/reductstore:main
+      - name: Run ReductStore
+        run: docker run -p 8383:8383 -v ${PWD}/data:/data --env RS_API_TOKEN=${{ matrix.token }} -d ghcr.io/reductstore/reductstore:main
 
-       - name: Load image with tests
-         run: |
-           docker load --input /tmp/image.tar
-           docker image ls -a
-       - name: Run tests
-         run: docker run --network=host --env RS_API_TOKEN=${{ matrix.token }} ${{github.repository}} npm test
+      - name: Load image with tests
+        run: |
+          docker load --input /tmp/image.tar
+          docker image ls -a
+      - name: Run tests
+        run: docker run --network=host --env RS_API_TOKEN=${{ matrix.token }} ${{github.repository}} npm test
 
   tests:
     needs: build
