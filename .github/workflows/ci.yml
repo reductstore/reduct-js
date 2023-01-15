@@ -25,19 +25,19 @@ jobs:
           name: image
           path: /tmp/image.tar
 
-  tests:
+  run_tests:
     needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        token: ["", "TOKEN"]
-
+        token: ["", "token"]
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
           name: image
           path: /tmp/
+
       - name: Run ReductStore
         run: docker run -p 8383:8383 -v ${PWD}/data:/data --env RS_API_TOKEN=${{ matrix.token }} -d ghcr.io/reductstore/reductstore:main
 
@@ -47,6 +47,29 @@ jobs:
           docker image ls -a
       - name: Run tests
         run: docker run --network=host --env RS_API_TOKEN=${{ matrix.token }} ${{github.repository}} npm test
+
+  run_examples:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example: ["HelloWorld.js", "QuickStart.js"]
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: image
+          path: /tmp/
+      - name: Run ReductStore
+        run: docker run -p 8383:8383 -v ${PWD}/data:/data -d ghcr.io/reductstore/reductstore:main
+
+      - name: Load image with tests
+        run: |
+          docker load --input /tmp/image.tar
+          docker image ls -a
+      - name: Run tests
+        run: docker run --network=host ${{github.repository}} node examples/${{matrix.example}}
+
 
   lint:
     needs: build
@@ -66,7 +89,7 @@ jobs:
         run: docker run --network=host ${{github.repository}} npm run lint
 
   publish:
-    needs: [tests, lint]
+    needs: [run_tests, run_examples, lint]
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
     steps:
