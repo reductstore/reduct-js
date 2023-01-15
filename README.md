@@ -30,7 +30,7 @@ Then, you can use the following example code to start interacting with your Redu
 application:
 
 ```js
-const {Client} = require("../lib/cjs/index.js");
+const {Client} = require("reduct-js");
 
 const client = new Client("http://127.0.0.1:8383");
 
