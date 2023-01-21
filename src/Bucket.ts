@@ -3,7 +3,7 @@ import {AxiosInstance} from "axios";
 import {BucketSettings} from "./BucketSettings";
 import {BucketInfo} from "./BucketInfo";
 import {EntryInfo} from "./EntryInfo";
-import {ReadableRecord, WritableRecord} from "./Record";
+import {LabelMap, ReadableRecord, WritableRecord} from "./Record";
 
 /**
  * Represents a bucket in ReductStore
@@ -77,14 +77,16 @@ export class Bucket {
      * Start writing a record into an entry
      * @param entry name of the entry
      * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
+     * @param labels {Record<string, LabelMap} labels for the record, should be a key-value map
      * @return Promise<WritableRecord>
      * @example
-     * const record = await bucket.beginWrite("entry", 1203121n);
+     * const record = await bucket.beginWrite("entry", 1203121n, {label1: "value1", label2: "value2"});
      * await record.write("Hello!);
      */
-    async beginWrite(entry: string, ts?: bigint): Promise<WritableRecord> {
+    async beginWrite(entry: string, ts?: bigint, labels?: LabelMap): Promise<WritableRecord> {
         ts ||= BigInt(Date.now() * 1000);
-        return Promise.resolve(new WritableRecord(this.name, entry, ts, this.httpClient));
+
+        return Promise.resolve(new WritableRecord(this.name, entry, ts, this.httpClient, labels ? labels : {}));
     }
 
     /**
@@ -154,7 +156,17 @@ export class Bucket {
             headers,
             data,
         } = await this.httpClient.get(`/b/${this.name}/${entry}?${param}`, {responseType: "stream"});
-        return new ReadableRecord(BigInt(headers["x-reduct-time"]), BigInt(headers["content-length"]), headers["x-reduct-last"] == "1", data);
+
+        const labels: LabelMap = {};
+        for (const [key, value] of Object.entries(headers as Record<string, string>)) {
+            if (key.startsWith("x-reduct-label-")) {
+                labels[key.substring(15)] = value;
+            }
+        }
+        return new ReadableRecord(BigInt(headers["x-reduct-time"]), BigInt(headers["content-length"]),
+            headers["x-reduct-last"] == "1",
+            data,
+            labels);
     }
 
 }

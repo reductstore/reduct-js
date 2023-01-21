@@ -119,6 +119,15 @@ describe("Bucket", () => {
         expect(md5(actual)).toEqual(md5(bigBlob));
     });
 
+    it("should read write and read labels along with records", async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const record = await bucket.beginWrite("entry-1", undefined, {label1: "label1", label2: 100n, label3: true});
+        await record.write("somedata1");
+
+        const readRecord = await bucket.beginRead("entry-1");
+        expect(readRecord.labels).toEqual({label1: "label1", label2: "100", label3: "true"});
+    });
+
     it("should query records", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
         const records: ReadableRecord[] = await all(bucket.query("entry-2"));
