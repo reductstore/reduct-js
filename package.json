@@ -12,8 +12,7 @@
     "prepublishOnly": "npm run tsc"
   },
   "files": [
-    "lib/",
-    "src/"
+    "lib/"
   ],
   "repository": {
     "type": "git",
