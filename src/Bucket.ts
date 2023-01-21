@@ -3,7 +3,16 @@ import {AxiosInstance} from "axios";
 import {BucketSettings} from "./BucketSettings";
 import {BucketInfo} from "./BucketInfo";
 import {EntryInfo} from "./EntryInfo";
-import {ReadableRecord, WritableRecord} from "./Record";
+import {LabelMap, ReadableRecord, WritableRecord} from "./Record";
+
+/**
+ * Options for querying records
+ */
+export interface QueryOptions  {
+    ttl?: number;   // Time to live in seconds
+    include?: LabelMap; //  include only record which have all these labels with the same value
+    exclude?: LabelMap;  //  exclude record which have all these labels with the same value
+}
 
 /**
  * Represents a bucket in ReductStore
@@ -77,14 +86,16 @@ export class Bucket {
      * Start writing a record into an entry
      * @param entry name of the entry
      * @param ts {BigInt} timestamp in microseconds for the record. It is current time if undefined.
+     * @param labels {Record<string, LabelMap} labels for the record, should be a key-value map
      * @return Promise<WritableRecord>
      * @example
-     * const record = await bucket.beginWrite("entry", 1203121n);
+     * const record = await bucket.beginWrite("entry", 1203121n, {label1: "value1", label2: "value2"});
      * await record.write("Hello!);
      */
-    async beginWrite(entry: string, ts?: bigint): Promise<WritableRecord> {
+    async beginWrite(entry: string, ts?: bigint, labels?: LabelMap): Promise<WritableRecord> {
         ts ||= BigInt(Date.now() * 1000);
-        return Promise.resolve(new WritableRecord(this.name, entry, ts, this.httpClient));
+
+        return Promise.resolve(new WritableRecord(this.name, entry, ts, this.httpClient, labels ? labels : {}));
     }
 
     /**
@@ -103,17 +114,18 @@ export class Bucket {
      * @param entry {string} name of the entry
      * @param start {BigInt} start point of the time period
      * @param stop {BigInt} stop point of the time period
-     * @param ttl {number} TTL of query on the server side
+     * @param options {number | QueryOptions}  if number it is TTL of query on the server side, otherwise it is options for query
      * @example
      * for await (const record in bucket.query("entry-1", start, stop)) {
      *   console.log(record.ts, record.size);
+     *   console.log(record.labels);
      *   const content = await record.read();
      *   // or use pipe
      *   const fileStream = fs.createWriteStream(`ts_${record.size}.txt`);
      *   record.pipe(fileStream);
      * }
      */
-    async* query(entry: string, start?: bigint, stop?: bigint, ttl?: number) {
+    async* query(entry: string, start?: bigint, stop?: bigint, options?: number | QueryOptions): AsyncGenerator<ReadableRecord> {
         const params: string[] = [];
         if (start !== undefined) {
             params.push(`start=${start}`);
@@ -121,8 +133,21 @@ export class Bucket {
         if (stop !== undefined) {
             params.push(`stop=${stop}`);
         }
-        if (ttl !== undefined) {
-            params.push(`ttl=${ttl}`);
+        if (options !== undefined) {
+            if (typeof options === "number") {
+                params.push(`ttl=${options}`);
+            } else {
+                // Build query string from options
+                if (options.ttl !== undefined) {
+                    params.push(`ttl=${options.ttl}`);
+                }
+                for (const [key, value] of Object.entries(options.include ? options.include : {})) {
+                    params.push(`include-${key}=${value}`);
+                }
+                for (const [key, value] of Object.entries(options.exclude ? options.exclude : {})) {
+                    params.push(`exclude-${key}=${value}`);
+                }
+            }
         }
 
         const url = `/b/${this.name}/${entry}/q?` + params.join("&");
@@ -154,7 +179,17 @@ export class Bucket {
             headers,
             data,
         } = await this.httpClient.get(`/b/${this.name}/${entry}?${param}`, {responseType: "stream"});
-        return new ReadableRecord(BigInt(headers["x-reduct-time"]), BigInt(headers["content-length"]), headers["x-reduct-last"] == "1", data);
+
+        const labels: LabelMap = {};
+        for (const [key, value] of Object.entries(headers as Record<string, string>)) {
+            if (key.startsWith("x-reduct-label-")) {
+                labels[key.substring(15)] = value;
+            }
+        }
+        return new ReadableRecord(BigInt(headers["x-reduct-time"]), BigInt(headers["content-length"]),
+            headers["x-reduct-last"] == "1",
+            data,
+            labels);
     }
 
 }

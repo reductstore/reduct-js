@@ -119,6 +119,15 @@ describe("Bucket", () => {
         expect(md5(actual)).toEqual(md5(bigBlob));
     });
 
+    it("should read write and read labels along with records", async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const record = await bucket.beginWrite("entry-1", undefined, {label1: "label1", label2: 100n, label3: true});
+        await record.write("somedata1");
+
+        const readRecord = await bucket.beginRead("entry-1");
+        expect(readRecord.labels).toEqual({label1: "label1", label2: "100", label3: "true"});
+    });
+
     it("should query records", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
         const records: ReadableRecord[] = await all(bucket.query("entry-2"));
@@ -144,6 +153,29 @@ describe("Bucket", () => {
 
         await expect(all(bucket.query("entry-2", undefined, undefined, 0)))
             .rejects.toHaveProperty("status", 404);
+    });
+
+    it("should query records with labels", async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+
+        let record = await bucket.beginWrite("entry-labels", undefined, {label1: "value1", label2: "value2"});
+        await record.write("somedata1");
+        record = await bucket.beginWrite("entry-labels", undefined, {label1: "value1", label2: "value3"});
+        await record.write("somedata1");
+
+        let records: ReadableRecord[] = await all(bucket.query("entry-labels", undefined, undefined,
+            {
+                include: {label1: "value1", label2: "value2"},
+            }));
+        expect(records.length).toEqual(1);
+        expect(records[0].labels).toEqual({label1: "value1", label2: "value2"});
+
+        records= await all(bucket.query("entry-labels", undefined, undefined,
+            {
+                exclude: {label1: "value1", label2: "value2"},
+            }));
+        expect(records.length).toEqual(1);
+        expect(records[0].labels).toEqual({label1: "value1", label2: "value3"});
     });
 
 });

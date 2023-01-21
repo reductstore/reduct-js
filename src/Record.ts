@@ -2,6 +2,9 @@ import Stream from "stream";
 // @ts-ignore`
 import {AxiosInstance} from "axios";
 
+
+export type LabelMap = Record<string, string | number | boolean | bigint>
+
 /**
  * Represents a record in an entry for reading
  */
@@ -10,16 +13,18 @@ export class ReadableRecord {
     public readonly size: bigint;
     public readonly last: boolean;
     public readonly stream: Stream;
+    public readonly labels: LabelMap = {};
 
     /**
      * Constructor which should be call from Bucket
      * @internal
      */
-    public constructor(time: bigint, size: bigint, last: boolean, stream: Stream) {
+    public constructor(time: bigint, size: bigint, last: boolean, stream: Stream, labels: LabelMap) {
         this.time = time;
         this.size = size;
         this.last = last;
         this.stream = stream;
+        this.labels = labels;
     }
 
     /**
@@ -50,16 +55,18 @@ export class WritableRecord {
     private readonly bucketName: string;
     private readonly entryName: string;
     private readonly httpClient: AxiosInstance;
+    private readonly labels: LabelMap = {};
 
     /**
      * Constructor for stream
      * @internal
      */
-    public constructor(bucketName: string, entryName: string, time: bigint, httpClient: AxiosInstance) {
+    public constructor(bucketName: string, entryName: string, time: bigint, httpClient: AxiosInstance, labels: LabelMap) {
         this.bucketName = bucketName;
         this.entryName = entryName;
         this.time = time;
         this.httpClient = httpClient;
+        this.labels = labels;
     }
 
     /**
@@ -73,9 +80,18 @@ export class WritableRecord {
             contentLength = data.length;
         }
 
+        const headers: Record<string, string> = {
+            "Content-Length": contentLength.toString(),
+            "Content-Type": "application/octet-stream"
+        };
+
+        for (const [key, value] of Object.entries(this.labels)) {
+            headers[`x-reduct-label-${key}`] = value.toString();
+        }
+
         const {bucketName, entryName, time} = this;
         await this.httpClient.post(`/b/${bucketName}/${entryName}?ts=${time}`, data, {
-                headers: {"content-length": contentLength.toString()}
+                headers: headers
             }
         );
     }
