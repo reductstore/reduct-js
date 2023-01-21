@@ -6,6 +6,15 @@ import {EntryInfo} from "./EntryInfo";
 import {LabelMap, ReadableRecord, WritableRecord} from "./Record";
 
 /**
+ * Options for querying records
+ */
+export interface QueryOptions  {
+    ttl?: number;   // Time to live in seconds
+    include?: LabelMap; //  include only record which have all these labels with the same value
+    exclude?: LabelMap;  //  exclude record which have all these labels with the same value
+}
+
+/**
  * Represents a bucket in ReductStore
  */
 export class Bucket {
@@ -105,17 +114,18 @@ export class Bucket {
      * @param entry {string} name of the entry
      * @param start {BigInt} start point of the time period
      * @param stop {BigInt} stop point of the time period
-     * @param ttl {number} TTL of query on the server side
+     * @param options {number | QueryOptions}  if number it is TTL of query on the server side, otherwise it is options for query
      * @example
      * for await (const record in bucket.query("entry-1", start, stop)) {
      *   console.log(record.ts, record.size);
+     *   console.log(record.labels);
      *   const content = await record.read();
      *   // or use pipe
      *   const fileStream = fs.createWriteStream(`ts_${record.size}.txt`);
      *   record.pipe(fileStream);
      * }
      */
-    async* query(entry: string, start?: bigint, stop?: bigint, ttl?: number) {
+    async* query(entry: string, start?: bigint, stop?: bigint, options?: number | QueryOptions): AsyncGenerator<ReadableRecord> {
         const params: string[] = [];
         if (start !== undefined) {
             params.push(`start=${start}`);
@@ -123,8 +133,21 @@ export class Bucket {
         if (stop !== undefined) {
             params.push(`stop=${stop}`);
         }
-        if (ttl !== undefined) {
-            params.push(`ttl=${ttl}`);
+        if (options !== undefined) {
+            if (typeof options === "number") {
+                params.push(`ttl=${options}`);
+            } else {
+                // Build query string from options
+                if (options.ttl !== undefined) {
+                    params.push(`ttl=${options.ttl}`);
+                }
+                for (const [key, value] of Object.entries(options.include ? options.include : {})) {
+                    params.push(`include-${key}=${value}`);
+                }
+                for (const [key, value] of Object.entries(options.exclude ? options.exclude : {})) {
+                    params.push(`exclude-${key}=${value}`);
+                }
+            }
         }
 
         const url = `/b/${this.name}/${entry}/q?` + params.join("&");

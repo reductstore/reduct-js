@@ -155,4 +155,27 @@ describe("Bucket", () => {
             .rejects.toHaveProperty("status", 404);
     });
 
+    it("should query records with labels", async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+
+        let record = await bucket.beginWrite("entry-labels", undefined, {label1: "value1", label2: "value2"});
+        await record.write("somedata1");
+        record = await bucket.beginWrite("entry-labels", undefined, {label1: "value1", label2: "value3"});
+        await record.write("somedata1");
+
+        let records: ReadableRecord[] = await all(bucket.query("entry-labels", undefined, undefined,
+            {
+                include: {label1: "value1", label2: "value2"},
+            }));
+        expect(records.length).toEqual(1);
+        expect(records[0].labels).toEqual({label1: "value1", label2: "value2"});
+
+        records= await all(bucket.query("entry-labels", undefined, undefined,
+            {
+                exclude: {label1: "value1", label2: "value2"},
+            }));
+        expect(records.length).toEqual(1);
+        expect(records[0].labels).toEqual({label1: "value1", label2: "value3"});
+    });
+
 });
