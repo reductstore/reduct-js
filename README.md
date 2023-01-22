@@ -14,7 +14,7 @@ data stored in ReductStore.
 * Promise-based API for easy asynchronous programming
 * Support for ReductStore API version 1.3
 * Token-based authentication for secure access to the database
-* Support for labels for read, write and querying
+* Labelin for read-write operations and querying
 
 ## Getting Started
 
