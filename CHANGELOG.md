@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Quick Start example and guide, [PR-54](https://github.com/reductstore/reduct-js/pull/54)
 - Support labels for read, write and querying, [PR-55](https://github.com/reductstore/reduct-js/pull/55)
 
+### Changed:
+
+- Use x-reduct-error header for error message, [PR-56](https://github.com/reductstore/reduct-js/pull/56)
+
 ### [1.2.0] - 2022-12-23
 
 ### Added:

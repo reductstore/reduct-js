@@ -33,13 +33,7 @@ export class APIError {
         const resp = error.response;
         if (resp !== undefined) {
             apiError.status = resp.status;
-            if (resp.data !== undefined) {
-                // @ts-ignore
-                const {detail} = resp.data;
-                if (detail !== undefined) {
-                    apiError.message += ": " + detail;
-                }
-            }
+            apiError.message = resp.headers["x-reduct-error"];
         }
 
         return apiError;

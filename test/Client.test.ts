@@ -87,7 +87,7 @@ describe("Client", () => {
     it("should get bucket with error", async () => {
         await expect(client.getBucket("NOTEXIST")).rejects.toMatchObject({
             status: 404,
-            message: "Request failed with status code 404: Bucket 'NOTEXIST' is not found"
+            message: "Bucket 'NOTEXIST' is not found"
         });
     });
 
@@ -119,7 +119,7 @@ describe("Client", () => {
         await client.createBucket("bucket");
         await expect(client.createBucket("bucket")).rejects.toMatchObject({
             status: 409,
-            message: "Request failed with status code 409: Bucket 'bucket' already exists",
+            message: "Bucket 'bucket' already exists",
         });
     });
 
