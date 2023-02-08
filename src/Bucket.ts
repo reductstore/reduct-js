@@ -14,6 +14,9 @@ export interface QueryOptions {
     exclude?: LabelMap;  //  exclude record which have all these labels with the same value
 }
 
+/**
+ * Options for writing records
+ */
 export interface WriteOptions {
     ts?: bigint;    // timestamp of the record
     labels?: LabelMap;  // labels of the record
@@ -92,7 +95,6 @@ export class Bucket {
      * Start writing a record into an entry
      * @param entry name of the entry
      * @param options {BigInt | WriteOptions} timestamp in microseconds for the record or options. It is current time if undefined.
-     * @param labels {Record<string, LabelMap} labels for the record, should be a key-value map
      * @return Promise<WritableRecord>
      * @example
      * const record = await bucket.beginWrite("entry", 1203121n, {label1: "value1", label2: "value2"});
