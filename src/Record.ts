@@ -1,6 +1,7 @@
 import Stream from "stream";
 // @ts-ignore`
 import {AxiosInstance} from "axios";
+import {WriteOptions} from "./Bucket";
 
 
 export type LabelMap = Record<string, string | number | boolean | bigint>
@@ -14,17 +15,19 @@ export class ReadableRecord {
     public readonly last: boolean;
     public readonly stream: Stream;
     public readonly labels: LabelMap = {};
+    public readonly contentType: string | undefined;
 
     /**
      * Constructor which should be call from Bucket
      * @internal
      */
-    public constructor(time: bigint, size: bigint, last: boolean, stream: Stream, labels: LabelMap) {
+    public constructor(time: bigint, size: bigint, last: boolean, stream: Stream, labels: LabelMap, contentType?: string) {
         this.time = time;
         this.size = size;
         this.last = last;
         this.stream = stream;
         this.labels = labels;
+        this.contentType = contentType;
     }
 
     /**
@@ -51,22 +54,20 @@ export class ReadableRecord {
  * Represents a record in an entry for writing
  */
 export class WritableRecord {
-    public readonly time: bigint;
     private readonly bucketName: string;
     private readonly entryName: string;
     private readonly httpClient: AxiosInstance;
-    private readonly labels: LabelMap = {};
+    private readonly options: WriteOptions;
 
     /**
      * Constructor for stream
      * @internal
      */
-    public constructor(bucketName: string, entryName: string, time: bigint, httpClient: AxiosInstance, labels: LabelMap) {
+    public constructor(bucketName: string, entryName: string, options: WriteOptions, httpClient: AxiosInstance) {
         this.bucketName = bucketName;
         this.entryName = entryName;
-        this.time = time;
         this.httpClient = httpClient;
-        this.labels = labels;
+        this.options = options;
     }
 
     /**
@@ -80,17 +81,22 @@ export class WritableRecord {
             contentLength = data.length;
         }
 
+        const {bucketName, entryName, options} = this;
+
         const headers: Record<string, string> = {
             "Content-Length": contentLength.toString(),
-            "Content-Type": "application/octet-stream"
+            "Content-Type": options.contentType ?? "application/octet-stream"
         };
 
-        for (const [key, value] of Object.entries(this.labels)) {
+        for (const [key, value] of Object.entries(options.labels ?? {})) {
             headers[`x-reduct-label-${key}`] = value.toString();
         }
 
-        const {bucketName, entryName, time} = this;
-        await this.httpClient.post(`/b/${bucketName}/${entryName}?ts=${time}`, data, {
+        if (options.ts === undefined) {
+            throw new Error("Timestamp must be set");
+        }
+
+        await this.httpClient.post(`/b/${bucketName}/${entryName}?ts=${options.ts}`, data, {
                 headers: headers
             }
         );

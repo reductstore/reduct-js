@@ -1,5 +1,5 @@
 import {Client} from "./Client";
-import {Bucket} from "./Bucket";
+import {Bucket, QueryOptions, WriteOptions} from "./Bucket";
 import {APIError} from "./APIError";
 import {ServerInfo} from "./ServerInfo";
 import {BucketSettings, QuotaType} from "./BucketSettings";
@@ -10,6 +10,8 @@ import {Token, TokenPermissions} from "./Token";
 export {
     Client,
     Bucket,
+    QueryOptions,
+    WriteOptions,
     APIError,
     ServerInfo,
     BucketSettings,

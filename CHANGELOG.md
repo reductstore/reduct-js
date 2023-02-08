@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Quick Start example and guide, [PR-54](https://github.com/reductstore/reduct-js/pull/54)
 - Support labels for read, write and querying, [PR-55](https://github.com/reductstore/reduct-js/pull/55)
+- Support for content type of records, [PR-57](https://github.com/reductstore/reduct-js/pull/57)
 
 ### Changed:
 
