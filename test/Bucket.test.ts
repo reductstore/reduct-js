@@ -121,11 +121,20 @@ describe("Bucket", () => {
 
     it("should read write and read labels along with records", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        const record = await bucket.beginWrite("entry-1", undefined, {label1: "label1", label2: 100n, label3: true});
+        const record = await bucket.beginWrite("entry-1", {labels: {label1: "label1", label2: 100n, label3: true}});
         await record.write("somedata1");
 
         const readRecord = await bucket.beginRead("entry-1");
         expect(readRecord.labels).toEqual({label1: "label1", label2: "100", label3: "true"});
+    });
+
+    it("should read and write content type of records", async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const record = await bucket.beginWrite("entry-1", {contentType: "text/plain"});
+        await record.write("somedata1");
+
+        const readRecord = await bucket.beginRead("entry-1");
+        expect(readRecord.contentType).toEqual("text/plain");
     });
 
     it("should query records", async () => {
@@ -158,9 +167,9 @@ describe("Bucket", () => {
     it("should query records with labels", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
 
-        let record = await bucket.beginWrite("entry-labels", undefined, {label1: "value1", label2: "value2"});
+        let record = await bucket.beginWrite("entry-labels", {labels: {label1: "value1", label2: "value2"}});
         await record.write("somedata1");
-        record = await bucket.beginWrite("entry-labels", undefined, {label1: "value1", label2: "value3"});
+        record = await bucket.beginWrite("entry-labels", {labels: {label1: "value1", label2: "value3"}});
         await record.write("somedata1");
 
         let records: ReadableRecord[] = await all(bucket.query("entry-labels", undefined, undefined,
@@ -170,7 +179,7 @@ describe("Bucket", () => {
         expect(records.length).toEqual(1);
         expect(records[0].labels).toEqual({label1: "value1", label2: "value2"});
 
-        records= await all(bucket.query("entry-labels", undefined, undefined,
+        records = await all(bucket.query("entry-labels", undefined, undefined,
             {
                 exclude: {label1: "value1", label2: "value2"},
             }));
