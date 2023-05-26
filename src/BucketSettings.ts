@@ -32,25 +32,25 @@ export class BucketSettings {
     static parse(data: Original): BucketSettings {
         const {max_block_size, max_block_records, quota_type, quota_size} = data;
         return {
-            maxBlockSize: max_block_size !== undefined ? BigInt(max_block_size) : undefined,
-            maxBlockRecords: max_block_records !== undefined ? BigInt(max_block_records) : undefined,
+            maxBlockSize: max_block_size,
+            maxBlockRecords: max_block_records,
             // @ts-ignore
             quotaType: quota_type !== undefined ? QuotaType[quota_type] : undefined,
-            quotaSize: quota_size !== undefined ? BigInt(quota_size) : undefined
+            quotaSize: quota_size
         };
     }
 
     static serialize(settings: BucketSettings): Original {
         const {maxBlockSize, maxBlockRecords, quotaType, quotaSize} = settings;
         return {
-            max_block_size: maxBlockSize !== undefined ? maxBlockSize.toString() : undefined,
-            max_block_records: maxBlockRecords !== undefined ? maxBlockRecords.toString() : undefined,
-            quota_type: quotaType !== undefined ? quotaType.toString() : undefined,
-            quota_size: quotaSize !== undefined ? quotaSize.toString() : undefined,
+            max_block_size: maxBlockSize,
+            max_block_records: maxBlockRecords,
+            quota_type: quotaType !== undefined ? QuotaType[quotaType] : undefined,
+            quota_size: quotaSize
         };
     }
 
 
 }
 
-type Original = { quota_size?: string; max_block_size?: string; quota_type?: string; max_block_records?: string };
+type Original = { quota_size?: bigint; max_block_size?: bigint; quota_type?: string; max_block_records?: bigint };

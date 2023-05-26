@@ -18,14 +18,16 @@ describe("Bucket", () => {
 
     beforeEach((done) => {
         cleanStorage(client).then(() =>
-            client.createBucket("bucket").then((bucket: Bucket) =>
-                Promise.all([
-                    bucket.beginWrite("entry-1", 1000_000n).then(async rec => await rec.write("somedata1")),
-                    bucket.beginWrite("entry-2", 2000_000n).then(async rec => await rec.write("somedata2")),
-                    bucket.beginWrite("entry-2", 3000_000n).then(async rec => await rec.write("somedata3")),
-                ])
-            )).then(() => done());
+            client.createBucket("bucket").then(async (bucket: Bucket) => {
+                let rec = await bucket.beginWrite("entry-1", 1000_000n);
+                await rec.write("somedata1");
 
+                rec = await bucket.beginWrite("entry-2", 2000_000n);
+                await rec.write("somedata2");
+
+                rec = await bucket.beginWrite("entry-2", 3000_000n);
+                await rec.write("somedata3");
+            })).then(() => done());
     });
 
     it("should get info about bucket", async () => {
@@ -82,7 +84,7 @@ describe("Bucket", () => {
         const record = await bucket.beginRead("entry-2");
 
         expect(record).toMatchObject({size: 9n, time: 3000000n, last: true});
-        expect(await record.read()).toEqual(Buffer.from("somedata3", "ascii"));
+        expect((await record.read()).toString()).toEqual("somedata3");
     });
 
     it("should read a record by timestamp", async () => {
