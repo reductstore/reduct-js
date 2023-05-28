@@ -4,6 +4,7 @@ import {BucketSettings} from "./BucketSettings";
 import {BucketInfo} from "./BucketInfo";
 import {EntryInfo} from "./EntryInfo";
 import {LabelMap, ReadableRecord, WritableRecord} from "./Record";
+import {APIError} from "./APIError";
 
 /**
  * Options for querying records
@@ -172,13 +173,16 @@ export class Bucket {
         const {id} = resp.data;
         const {readRecord} = this;
         yield* (async function* () {
-            let last = false;
-            while (!last) {
-                const record = await readRecord(entry, undefined, id);
-                yield record;
-                // eslint-disable-next-line prefer-destructuring
-                last = record.last;
-
+            while (true) {
+                try {
+                    const record = await readRecord(entry, undefined, id);
+                    yield record;
+                } catch (e) {
+                    if (e instanceof APIError && e.status === 204) {
+                        return;
+                    }
+                    throw e;
+                }
             }
         })();
     }
@@ -193,9 +197,14 @@ export class Bucket {
         }
 
         const {
+            status,
             headers,
             data,
         } = await this.httpClient.get(`/b/${this.name}/${entry}?${param}`, {responseType: "stream"});
+
+        if (status === 204) {
+            throw new APIError(headers["x-reduct-error"] ?? "No content", 204);
+        }
 
         const labels: LabelMap = {};
         for (const [key, value] of Object.entries(headers as Record<string, string>)) {
@@ -203,6 +212,7 @@ export class Bucket {
                 labels[key.substring(15)] = value;
             }
         }
+
         return new ReadableRecord(BigInt(headers["x-reduct-time"]), BigInt(headers["content-length"]),
             headers["x-reduct-last"] == "1",
             data,

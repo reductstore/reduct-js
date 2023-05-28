@@ -11,7 +11,7 @@ import {BucketInfo} from "./BucketInfo";
 import {BucketSettings} from "./BucketSettings";
 import {Bucket} from "./Bucket";
 import {Token, TokenPermissions} from "./Token";
-
+import {Readable} from "stream";
 /**
  * Options
  */
@@ -29,12 +29,36 @@ export class Client {
      * @param options
      */
     constructor(url: string, options: ClientOptions = {}) {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const bigJson = require("json-bigint")({
+                alwaysParseAsBig: true,
+                useNativeBigInt: true,
+            }
+        );
+
+        // http client with big int support in JSON
         this.httpClient = axios.create({
             baseURL: `${url}/api/v1`,
             timeout: options.timeout,
             headers: {
                 "Authorization": `Bearer ${options.apiToken}`
-            }
+            },
+            transformRequest: [(data: any) => {
+                if (typeof data !== "object" || data instanceof Readable) {
+                    return data;
+                }
+                return bigJson.stringify(data);
+            }],
+            transformResponse: [(data: any) => {
+                if (typeof data !== "string") {
+                    return data;
+                }
+
+                if (data.length == 0) {
+                    return {};
+                }
+                return bigJson.parse(data);
+            }]
         });
 
         this.httpClient.interceptors.response.use(

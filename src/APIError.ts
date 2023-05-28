@@ -26,16 +26,26 @@ export class APIError {
      * @param error {AxiosError}
      */
     static from(error: AxiosError): APIError {
-        const apiError = new APIError();
-        apiError.original = error;
-        apiError.message = error.message;
+        const original = error;
+        let {message} = error;
+        let status: number | undefined = undefined;
 
         const resp = error.response;
         if (resp !== undefined) {
-            apiError.status = resp.status;
-            apiError.message = resp.headers["x-reduct-error"];
+            // eslint-disable-next-line prefer-destructuring
+            status = resp.status;
+            message = resp.headers["x-reduct-error"];
         }
 
-        return apiError;
+        return new APIError(message, status, original);
+    }
+
+    /**
+     * Create an error from HTTP status and message
+     */
+    constructor(message: string, status?: number, original?: AxiosError)  {
+        this.status = status;
+        this.message = message;
+        this.original = original;
     }
 }

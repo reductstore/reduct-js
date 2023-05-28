@@ -67,7 +67,7 @@ type Original = {
     oldest_record: string;
     latest_record: string;
     defaults: {
-        bucket: { quota_size: string; max_block_size: string; quota_type: string };
+        bucket: { quota_size: bigint; max_block_size: bigint; quota_type: string,  max_block_records: bigint };
 
     }
 }

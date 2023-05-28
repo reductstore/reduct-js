@@ -22,7 +22,7 @@ test("Client should raise timeout error", async () => {
 });
 
 test("Client should raise an error with original error from http client", async () => {
-    const client: Client = new Client("http://somedomain.xxx", {timeout: 10});
+    const client: Client = new Client("http://google.com:333", {timeout: 10});
 
     await expect(client.getInfo()).rejects.toMatchObject({
         original: {
