@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed:
+
+- Fix JSON parsing for big integers (for Rust implementation), [PR-58](https://github.com/reductstore/reduct-js/pull/58)
+
 ## [1.3.0] - 2023-02-09
 
 ### Added:
