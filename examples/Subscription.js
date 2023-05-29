@@ -29,7 +29,7 @@ const read = async () => {
         console.log(`Record labels: ${JSON.stringify(record.labels)}`);
         console.log(`Record data: ${await record.readAsString()}`);
 
-        if (count++ === 10) {
+        if (count++ === 5) {
             break;
         }
     }
