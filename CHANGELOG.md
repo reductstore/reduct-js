@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added:
+
+- Implement continuous query, [PR-59](https://github.com/reductstore/reduct-js/pull/59)
+
 ### Changed:
 
 - Fix JSON parsing for big integers (for Rust implementation), [PR-58](https://github.com/reductstore/reduct-js/pull/58)

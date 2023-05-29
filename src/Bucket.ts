@@ -10,9 +10,11 @@ import {APIError} from "./APIError";
  * Options for querying records
  */
 export interface QueryOptions {
-    ttl?: number;   // Time to live in seconds
+    ttl?: number;       // Time to live in seconds
     include?: LabelMap; //  include only record which have all these labels with the same value
     exclude?: LabelMap;  //  exclude record which have all these labels with the same value
+    continuous?: boolean;  //  await for new records
+    poolInterval?: number;  //  interval for pooling new records (only for continue=true)
 }
 
 /**
@@ -98,11 +100,15 @@ export class Bucket {
      * @param options {BigInt | WriteOptions} timestamp in microseconds for the record or options. It is current time if undefined.
      * @return Promise<WritableRecord>
      * @example
-     * const record = await bucket.beginWrite("entry", 1203121n, {label1: "value1", label2: "value2"});
+     * const record = await bucket.beginWrite("entry", {
+     *  ts: 12345667n
+     *  labels: {label1: "value1", label2: "value2"}
+     *  contentType: "text/plain"
+     * );
      * await record.write("Hello!);
      */
     async beginWrite(entry: string, options?: bigint | WriteOptions): Promise<WritableRecord> {
-        let localOptions: WriteOptions = {};
+        let localOptions: WriteOptions = {ts: undefined};
         if (options !== undefined) {
             if (typeof (options) === "bigint") {
                 localOptions = {ts: options};
@@ -145,12 +151,16 @@ export class Bucket {
      */
     async* query(entry: string, start?: bigint, stop?: bigint, options?: number | QueryOptions): AsyncGenerator<ReadableRecord> {
         const params: string[] = [];
+        let continueQuery = false;
+        let poolInterval = 1;
         if (start !== undefined) {
             params.push(`start=${start}`);
         }
+
         if (stop !== undefined) {
             params.push(`stop=${stop}`);
         }
+
         if (options !== undefined) {
             if (typeof options === "number") {
                 params.push(`ttl=${options}`);
@@ -164,6 +174,20 @@ export class Bucket {
                 }
                 for (const [key, value] of Object.entries(options.exclude ? options.exclude : {})) {
                     params.push(`exclude-${key}=${value}`);
+                }
+                if (options.continuous !== undefined) {
+                    params.push(`continuous=${options.continuous ? "true" : "false"}`);
+                    continueQuery = options.continuous;
+
+                    if (options.poolInterval !== undefined) {
+                        // eslint-disable-next-line prefer-destructuring
+                        poolInterval = options.poolInterval;
+                    }
+
+                    // Set default TTL for continue query as 2 * poolInterval
+                    if (options.ttl === undefined) {
+                        params.push(`ttl=${poolInterval * 2}`);
+                    }
                 }
             }
         }
@@ -179,6 +203,10 @@ export class Bucket {
                     yield record;
                 } catch (e) {
                     if (e instanceof APIError && e.status === 204) {
+                        if (continueQuery) {
+                            await new Promise((resolve) => setTimeout(resolve, poolInterval * 1000));
+                            continue;
+                        }
                         return;
                     }
                     throw e;
@@ -189,10 +217,10 @@ export class Bucket {
 
     private async readRecord(entry: string, ts?: string, id?: string): Promise<ReadableRecord> {
         let param = "";
-        if (ts) {
+        if (ts !== undefined) {
             param = `ts=${ts}`;
         }
-        if (id) {
+        if (id !== undefined) {
             param = `q=${id}`;
         }
 
