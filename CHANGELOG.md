@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2023-05-29
+
 ### Added:
 
 - Implement continuous query, [PR-59](https://github.com/reductstore/reduct-js/pull/59)
@@ -141,7 +143,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.4.0...HEAD
+
+[1.4.0]: https://github.com/reduct-storage/reduct-js/compare/v1.3.0...v1.4.0
 
 [1.3.0]: https://github.com/reduct-storage/reduct-js/compare/v1.2.0...v1.3.0
 
