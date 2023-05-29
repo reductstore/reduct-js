@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        example: ["HelloWorld.js", "QuickStart.js"]
+        example: ["HelloWorld.js", "QuickStart.js", "Subscription.js"]
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v2
