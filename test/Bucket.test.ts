@@ -50,12 +50,12 @@ describe("Bucket", () => {
             quotaType: QuotaType.NONE
         });
 
-        await bucket.setSettings({maxBlockSize: 0n});
+        await bucket.setSettings({maxBlockSize: 0n, quotaType: QuotaType.FIFO});
         await expect(bucket.getSettings()).resolves.toEqual({
             maxBlockSize: 0n,
             maxBlockRecords: 1024n,
             quotaSize: 0n,
-            quotaType: QuotaType.NONE
+            quotaType: QuotaType.FIFO
         });
     });
 
@@ -117,6 +117,20 @@ describe("Bucket", () => {
             readStream.on("end", () => resolve(Buffer.concat(chunks)));
         });
 
+        expect(actual.length).toEqual(bigBlob.length);
+        expect(md5(actual)).toEqual(md5(bigBlob));
+    });
+
+    it ("should write and read a big blob as buffers", async () => {
+        const bigBlob = crypto.randomBytes(2 ** 20);
+
+        const bucket: Bucket = await client.getBucket("bucket");
+        const record = await bucket.beginWrite("big-blob");
+        await record.write(bigBlob);
+
+        const reader = await bucket.beginRead("big-blob");
+
+        const actual: Buffer = await reader.read();
         expect(actual.length).toEqual(bigBlob.length);
         expect(md5(actual)).toEqual(md5(bigBlob));
     });

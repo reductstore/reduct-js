@@ -12,6 +12,7 @@ import {BucketSettings} from "./BucketSettings";
 import {Bucket} from "./Bucket";
 import {Token, TokenPermissions} from "./Token";
 import {Readable} from "stream";
+import {Buffer} from "buffer";
 /**
  * Options
  */
@@ -44,7 +45,7 @@ export class Client {
                 "Authorization": `Bearer ${options.apiToken}`
             },
             transformRequest: [(data: any) => {
-                if (typeof data !== "object" || data instanceof Readable) {
+                if (typeof data !== "object" || data instanceof Readable || data instanceof Buffer) {
                     return data;
                 }
                 return bigJson.stringify(data);
