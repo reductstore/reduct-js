@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2023-06-03
+
 ### Fixed:
 
 - Sending a record as Buffer, [PR-60](https://github.com/reductstore/reduct-js/pull/60)
@@ -147,7 +149,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.4.1...HEAD
+
+[1.4.1]: https://github.com/reduct-storage/reduct-js/compare/v1.4.0...v1.4.1
 
 [1.4.0]: https://github.com/reduct-storage/reduct-js/compare/v1.3.0...v1.4.0
 
