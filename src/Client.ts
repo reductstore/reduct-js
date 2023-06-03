@@ -45,12 +45,14 @@ export class Client {
                 "Authorization": `Bearer ${options.apiToken}`
             },
             transformRequest: [(data: any) => {
+                // very ugly hack to support big int in JSON
                 if (typeof data !== "object" || data instanceof Readable || data instanceof Buffer) {
                     return data;
                 }
                 return bigJson.stringify(data);
             }],
             transformResponse: [(data: any) => {
+                // very ugly hack to support big int in JSON
                 if (typeof data !== "string") {
                     return data;
                 }
