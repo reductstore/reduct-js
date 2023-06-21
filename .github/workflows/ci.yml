@@ -41,7 +41,7 @@ jobs:
           path: /tmp/
 
       - name: Run ReductStore
-        run: docker run -p 8383:8383 -v ${PWD}/data:/data --env RS_API_TOKEN=${{ matrix.token }} -d reduct/store:{{ matrix.reductstore_version }}
+        run: docker run -p 8383:8383 -v ${PWD}/data:/data --env RS_API_TOKEN=${{ matrix.token }} -d reduct/store:${{ matrix.reductstore_version }}
 
       - name: Load image with tests
         run: |
@@ -64,7 +64,7 @@ jobs:
           name: image
           path: /tmp/
       - name: Run ReductStore
-        run: docker run -p 8383:8383 -v ${PWD}/data:/data -d reduct/store:{{ matrix.reductstore_version }}
+        run: docker run -p 8383:8383 -v ${PWD}/data:/data -d reduct/store:${{ matrix.reductstore_version }}
 
       - name: Load image with tests
         run: |
