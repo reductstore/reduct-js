@@ -338,6 +338,7 @@ function parseCsvRow(row: string): { size: bigint, contentType?: string, labels:
     }
 
     const size = BigInt(items[0]);
+    // eslint-disable-next-line prefer-destructuring
     const contentType = items[1];
     const labels: LabelMap = {};
 
