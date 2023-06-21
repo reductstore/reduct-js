@@ -5,6 +5,7 @@ import {BucketInfo} from "./BucketInfo";
 import {EntryInfo} from "./EntryInfo";
 import {LabelMap, ReadableRecord, WritableRecord} from "./Record";
 import {APIError} from "./APIError";
+import {Readable} from "stream";
 
 /**
  * Options for querying records
@@ -193,26 +194,32 @@ export class Bucket {
         }
 
         const url = `/b/${this.name}/${entry}/q?` + params.join("&");
-        const resp = await this.httpClient.get(url);
-        const {id} = resp.data;
-        const {readRecord} = this;
-        yield* (async function* () {
-            while (true) {
-                try {
-                    const record = await readRecord(entry, undefined, id);
-                    yield record;
-                } catch (e) {
-                    if (e instanceof APIError && e.status === 204) {
-                        if (continueQuery) {
-                            await new Promise((resolve) => setTimeout(resolve, poolInterval * 1000));
-                            continue;
-                        }
-                        return;
+        const {data, headers} = await this.httpClient.get(url);
+        const {id} = data;
+        if (headers["x-reduct-api"] >= "1.5") {
+            yield* this.fetch_and_parse_batched_records(entry, id, continueQuery, poolInterval);
+        } else {
+            yield* this.fetch_and_parse_single_record(entry, id, continueQuery, poolInterval);
+
+        }
+    }
+
+    private async* fetch_and_parse_single_record(entry: string, id: string, continueQuery: boolean, poolInterval: number) {
+        while (true) {
+            try {
+                const record = await this.readRecord(entry, undefined, id);
+                yield record;
+            } catch (e) {
+                if (e instanceof APIError && e.status === 204) {
+                    if (continueQuery) {
+                        await new Promise((resolve) => setTimeout(resolve, poolInterval * 1000));
+                        continue;
                     }
-                    throw e;
+                    return;
                 }
+                throw e;
             }
-        })();
+        }
     }
 
     private async readRecord(entry: string, ts?: string, id?: string): Promise<ReadableRecord> {
@@ -248,4 +255,105 @@ export class Bucket {
             headers["content-type"],);
     }
 
+    private async* fetch_and_parse_batched_records(entry: string, id: string, continueQuery: boolean, poolInterval: number) {
+        while (true) {
+            try {
+                for await (const record of this.readBatchedRecords(entry, id)) {
+                    yield record;
+
+                    if (record.last) {
+                        return;
+                    }
+                }
+            } catch (e) {
+                if (e instanceof APIError && e.status === 204) {
+                    if (continueQuery) {
+                        await new Promise((resolve) => setTimeout(resolve, poolInterval * 1000));
+                        continue;
+                    }
+                    return;
+                }
+                throw e;
+            }
+        }
+    }
+
+    private async* readBatchedRecords(entry: string, id: string): AsyncGenerator<ReadableRecord> {
+        const {
+            status,
+            headers,
+            data,
+        } = await this.httpClient.get(`/b/${this.name}/${entry}/batch?q=${id}`, {responseType: "stream"});
+
+        if (status === 204) {
+            throw new APIError(headers["x-reduct-error"] ?? "No content", 204);
+        }
+
+        let count = 0;
+        const total = Object.entries(headers).reduce((acc, [key, _]) => key.startsWith("x-reduct-time-") ? acc + 1 : acc, 0);
+        let last = false;
+        for (const [key, value] of Object.entries(headers as Record<string, string>)) {
+            if (!key.startsWith("x-reduct-time-"))
+                continue;
+
+            const ts = key.substring(14);
+            const {size, contentType, labels} = parseCsvRow(value);
+
+            count += 1;
+            let stream;
+            if (count === total) {
+                if (headers["x-reduct-last"] === "true") {
+                    last = true;
+                }
+                stream = data;
+            } else {
+                stream = Readable.from(data.read(Number(size)));
+            }
+
+            yield new ReadableRecord(BigInt(ts), size, last, stream, labels, contentType);
+        }
+    }
+}
+
+function parseCsvRow(row: string): { size: bigint, contentType?: string, labels: LabelMap } {
+    const items: string[] = [];
+    let escaped = "";
+
+    for (const item of row.split(",")) {
+        if (item.startsWith("\"") && !escaped) {
+            escaped = item.substring(1);
+        }
+
+        if (escaped) {
+            if (item.endsWith("\"")) {
+                escaped = escaped.slice(0, -1);
+                items.push(escaped);
+                escaped = "";
+            } else {
+                escaped += item;
+            }
+        } else {
+            items.push(item);
+        }
+    }
+
+    const size = BigInt(items[0]);
+    // eslint-disable-next-line prefer-destructuring
+    const contentType = items[1];
+    const labels: LabelMap = {};
+
+    for (const item of items.slice(2)) {
+        if (!item.includes("=")) {
+            continue;
+        }
+
+        const [key, value] = item.split("=", 2);
+        labels[key] = value;
+    }
+
+    return {
+        size,
+        contentType,
+        labels,
+    };
 }
