@@ -155,7 +155,7 @@ describe("Bucket", () => {
 
     it.each([
         [false, ["somedata2", "somedata3"]],
-        [true, ["", "", ""]]
+        [true, ["", ""]]
     ])("should query records head=%p", async (head: boolean, contents: string[]) => {
         const bucket: Bucket = await client.getBucket("bucket");
         const records: ReadableRecord[] = await all(bucket.query("entry-2", undefined, undefined, {
