@@ -6,6 +6,7 @@ import {EntryInfo} from "./EntryInfo";
 import {LabelMap, ReadableRecord, WritableRecord} from "./Record";
 import {APIError} from "./APIError";
 import {Readable} from "stream";
+import {Buffer} from "buffer";
 
 /**
  * Options for querying records
@@ -318,7 +319,7 @@ export class Bucket {
                 }
                 stream = data;
             } else {
-                stream = Readable.from(data.read(Number(size)) ?? "");
+                stream = Readable.from(head ? Buffer.from([]) : data.read(Number(size)));
             }
 
             yield new ReadableRecord(BigInt(ts), size, last, stream, labels, contentType);
