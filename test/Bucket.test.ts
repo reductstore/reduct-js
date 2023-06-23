@@ -87,12 +87,12 @@ describe("Bucket", () => {
         expect((await record.read()).toString()).toEqual("somedata3");
     });
 
-    it("should read a record by timestamp", async () => {
+    it.each([[false, "somedata2"], [true, ""]])("should read a record by timestamp (head=%p)", async (head: boolean, content: string) => {
         const bucket: Bucket = await client.getBucket("bucket");
-        const record = await bucket.beginRead("entry-2", 2000000n);
+        const record = await bucket.beginRead("entry-2", 2000000n, head);
 
         expect(record).toMatchObject({size: 9n, time: 2000000n, last: true});
-        expect(await record.read()).toEqual(Buffer.from("somedata2", "ascii"));
+        expect(await record.read()).toEqual(Buffer.from(content, "ascii"));
     });
 
     it("should read a record with error if timestamp is wrong", async () => {
@@ -153,18 +153,23 @@ describe("Bucket", () => {
         expect(readRecord.contentType).toEqual("text/plain");
     });
 
-    it("should query records", async () => {
+    it.each([
+        [false, ["somedata2", "somedata3"]],
+        [true, ["", ""]]
+    ])("should query records head=%p", async (head: boolean, contents: string[]) => {
         const bucket: Bucket = await client.getBucket("bucket");
-        const records: ReadableRecord[] = await all(bucket.query("entry-2"));
+        const records: ReadableRecord[] = await all(bucket.query("entry-2", undefined, undefined, {
+            head,
+        }));
 
         expect(records.length).toEqual(2);
         expect(records[0].time).toEqual(2_000_000n);
         expect(records[0].size).toEqual(9n);
-        expect(await records[0].read()).toEqual(Buffer.from("somedata2", "ascii"));
+        expect(await records[0].read()).toEqual(Buffer.from(contents[0], "ascii"));
 
         expect(records[1].time).toEqual(3_000_000n);
         expect(records[1].size).toEqual(9n);
-        expect(await records[1].read()).toEqual(Buffer.from("somedata3", "ascii"));
+        expect(await records[1].read()).toEqual(Buffer.from(contents[1], "ascii"));
     });
 
     it("should query records with parameters", async () => {

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added:
 
 - Support for `GET /api/v1/b/:bucket/:entry/batch` endpoint, [PR-62](https://github.com/reductstore/reduct-js/pull/62) 
+- Option `head` to `Bucket.query` and `Bucket.beginRead`, [PR-63](https://github.com/reductstore/reduct-js/pull/63)
 
 ## [1.4.1] - 2023-06-03
 
