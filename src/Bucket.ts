@@ -16,6 +16,7 @@ export interface QueryOptions {
     exclude?: LabelMap;  //  exclude record which have all these labels with the same value
     continuous?: boolean;  //  await for new records
     poolInterval?: number;  //  interval for pooling new records (only for continue=true)
+    head?: boolean;  //  return only head of the record
 }
 
 /**
@@ -127,10 +128,11 @@ export class Bucket {
      * Start reading a record from an entry
      * @param entry name of the entry
      * @param ts {BigInt} timestamp of record in microseconds. Get the latest one, if undefined
+     * @param head {boolean} return only head of the record
      * @return Promise<ReadableRecord>
      */
-    async beginRead(entry: string, ts?: bigint): Promise<ReadableRecord> {
-        return await this.readRecord(entry, ts ? ts.toString() : undefined, undefined);
+    async beginRead(entry: string, ts?: bigint, head?: boolean): Promise<ReadableRecord> {
+        return await this.readRecord(entry, head ?? false, ts ? ts.toString() : undefined);
     }
 
     /**
@@ -154,6 +156,8 @@ export class Bucket {
         const params: string[] = [];
         let continueQuery = false;
         let poolInterval = 1;
+        let head = false;
+
         if (start !== undefined) {
             params.push(`start=${start}`);
         }
@@ -170,12 +174,15 @@ export class Bucket {
                 if (options.ttl !== undefined) {
                     params.push(`ttl=${options.ttl}`);
                 }
+
                 for (const [key, value] of Object.entries(options.include ? options.include : {})) {
                     params.push(`include-${key}=${value}`);
                 }
+
                 for (const [key, value] of Object.entries(options.exclude ? options.exclude : {})) {
                     params.push(`exclude-${key}=${value}`);
                 }
+
                 if (options.continuous !== undefined) {
                     params.push(`continuous=${options.continuous ? "true" : "false"}`);
                     continueQuery = options.continuous;
@@ -190,6 +197,8 @@ export class Bucket {
                         params.push(`ttl=${poolInterval * 2}`);
                     }
                 }
+
+                head = options.head ?? false;
             }
         }
 
@@ -197,17 +206,17 @@ export class Bucket {
         const {data, headers} = await this.httpClient.get(url);
         const {id} = data;
         if (headers["x-reduct-api"] >= "1.5") {
-            yield* this.fetch_and_parse_batched_records(entry, id, continueQuery, poolInterval);
+            yield* this.fetchAndParseBatchedRecords(entry, id, continueQuery, poolInterval, head);
         } else {
-            yield* this.fetch_and_parse_single_record(entry, id, continueQuery, poolInterval);
+            yield* this.fetchAndParseSingleRecord(entry, id, continueQuery, poolInterval, head);
 
         }
     }
 
-    private async* fetch_and_parse_single_record(entry: string, id: string, continueQuery: boolean, poolInterval: number) {
+    private async* fetchAndParseSingleRecord(entry: string, id: string, continueQuery: boolean, poolInterval: number, head: boolean) {
         while (true) {
             try {
-                const record = await this.readRecord(entry, undefined, id);
+                const record = await this.readRecord(entry, head, undefined, id);
                 yield record;
             } catch (e) {
                 if (e instanceof APIError && e.status === 204) {
@@ -222,7 +231,7 @@ export class Bucket {
         }
     }
 
-    private async readRecord(entry: string, ts?: string, id?: string): Promise<ReadableRecord> {
+    private async readRecord(entry: string, head: boolean, ts?: string, id?: string): Promise<ReadableRecord> {
         let param = "";
         if (ts !== undefined) {
             param = `ts=${ts}`;
@@ -231,11 +240,12 @@ export class Bucket {
             param = `q=${id}`;
         }
 
+        const request = head ? this.httpClient.head : this.httpClient.get;
         const {
             status,
             headers,
             data,
-        } = await this.httpClient.get(`/b/${this.name}/${entry}?${param}`, {responseType: "stream"});
+        } = await request(`/b/${this.name}/${entry}?${param}`, {responseType: "stream"});
 
         if (status === 204) {
             throw new APIError(headers["x-reduct-error"] ?? "No content", 204);
@@ -255,10 +265,10 @@ export class Bucket {
             headers["content-type"],);
     }
 
-    private async* fetch_and_parse_batched_records(entry: string, id: string, continueQuery: boolean, poolInterval: number) {
+    private async* fetchAndParseBatchedRecords(entry: string, id: string, continueQuery: boolean, poolInterval: number, head: boolean) {
         while (true) {
             try {
-                for await (const record of this.readBatchedRecords(entry, id)) {
+                for await (const record of this.readBatchedRecords(entry, head, id)) {
                     yield record;
 
                     if (record.last) {
@@ -278,12 +288,13 @@ export class Bucket {
         }
     }
 
-    private async* readBatchedRecords(entry: string, id: string): AsyncGenerator<ReadableRecord> {
+    private async* readBatchedRecords(entry: string, head: boolean, id: string): AsyncGenerator<ReadableRecord> {
+        const request = head ? this.httpClient.head : this.httpClient.get;
         const {
             status,
             headers,
             data,
-        } = await this.httpClient.get(`/b/${this.name}/${entry}/batch?q=${id}`, {responseType: "stream"});
+        } = await request(`/b/${this.name}/${entry}/batch?q=${id}`, {responseType: "stream"});
 
         if (status === 204) {
             throw new APIError(headers["x-reduct-error"] ?? "No content", 204);
