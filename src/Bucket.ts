@@ -318,7 +318,7 @@ export class Bucket {
                 }
                 stream = data;
             } else {
-                stream = Readable.from(data.read(Number(size)));
+                stream = Readable.from(data.read(Number(size)) ?? "");
             }
 
             yield new ReadableRecord(BigInt(ts), size, last, stream, labels, contentType);
