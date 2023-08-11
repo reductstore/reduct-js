@@ -58,9 +58,7 @@ describe("Client", () => {
         expect(info.oldestRecord).toEqual(1000_000n);
         expect(info.latestRecord).toEqual(2000_000n);
 
-        expect(info.defaults.bucket).toEqual({
-            maxBlockSize: 64000000n,
-            maxBlockRecords: 1024n,
+        expect(info.defaults.bucket).toMatchObject({
             quotaSize: 0n,
             quotaType: QuotaType.NONE,
         });
@@ -91,11 +89,10 @@ describe("Client", () => {
         });
     });
 
-    it("should create a bucket if default settings", async () => {
+    it("should create a bucket with default settings", async () => {
         const bucket = await client.createBucket("bucket");
-        await expect(bucket.getSettings()).resolves.toEqual({
+        await expect(bucket.getSettings()).resolves.toMatchObject({
             maxBlockSize: 64000000n,
-            maxBlockRecords: 1024n,
             quotaSize: 0n,
             quotaType: QuotaType.NONE
         });

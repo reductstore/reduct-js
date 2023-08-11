@@ -98,6 +98,16 @@ export class Bucket {
     }
 
     /**
+     * Remove an entry
+     * @async
+     * @param entry {string} name of the entry
+     * @return {Promise<void>}
+     */
+    async removeEntry(entry: string): Promise<void> {
+        await this.httpClient.delete(`/b/${this.name}/${entry}`);
+    }
+
+    /**
      * Start writing a record into an entry
      * @param entry name of the entry
      * @param options {BigInt | WriteOptions} timestamp in microseconds for the record or options. It is current time if undefined.

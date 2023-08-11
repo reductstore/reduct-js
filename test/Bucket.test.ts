@@ -4,6 +4,8 @@ import md5 from "md5";
 import * as Stream from "stream";
 // @ts-ignore
 import all from "it-all";
+// @ts-ignore
+import request from "sync-request";
 
 import {Client} from "../src/Client";
 import {Bucket} from "../src/Bucket";
@@ -12,13 +14,26 @@ import {BucketInfo} from "../src/BucketInfo";
 import {QuotaType} from "../src/BucketSettings";
 import {ReadableRecord} from "../src/Record";
 
+const it_api = (version: string) => {
+    const resp = request("HEAD", "http://localhost:8383/api/v1/alive");
+    if (resp.headers["x-reduct-api"] >= version) {
+        return it;
+    } else {
+        return it.skip;
+    }
+};
 
 describe("Bucket", () => {
     const client: Client = makeClient();
 
     beforeEach((done) => {
         cleanStorage(client).then(() =>
-            client.createBucket("bucket").then(async (bucket: Bucket) => {
+            client.createBucket("bucket", {
+                maxBlockSize: 64000000n,
+                maxBlockRecords: 256n,
+                quotaSize: 0n,
+                quotaType: QuotaType.NONE
+            }).then(async (bucket: Bucket) => {
                 let rec = await bucket.beginWrite("entry-1", 1000_000n);
                 await rec.write("somedata1");
 
@@ -45,14 +60,14 @@ describe("Bucket", () => {
         const bucket: Bucket = await client.getBucket("bucket");
         await expect(bucket.getSettings()).resolves.toEqual({
             maxBlockSize: 64000000n,
-            maxBlockRecords: 1024n,
+            maxBlockRecords: 256n,
             quotaSize: 0n,
             quotaType: QuotaType.NONE
         });
 
-        await bucket.setSettings({maxBlockSize: 0n, quotaType: QuotaType.FIFO});
+        await bucket.setSettings({maxBlockRecords: 1024n, quotaType: QuotaType.FIFO});
         await expect(bucket.getSettings()).resolves.toEqual({
-            maxBlockSize: 0n,
+            maxBlockSize: 64000000n,
             maxBlockRecords: 1024n,
             quotaSize: 0n,
             quotaType: QuotaType.FIFO
@@ -121,7 +136,7 @@ describe("Bucket", () => {
         expect(md5(actual)).toEqual(md5(bigBlob));
     });
 
-    it ("should write and read a big blob as buffers", async () => {
+    it("should write and read a big blob as buffers", async () => {
         const bigBlob = crypto.randomBytes(2 ** 20);
 
         const bucket: Bucket = await client.getBucket("bucket");
@@ -206,6 +221,12 @@ describe("Bucket", () => {
             }));
         expect(records.length).toEqual(1);
         expect(records[0].labels).toEqual({label1: "value1", label2: "value3"});
+    });
+
+    it_api("1.6")("should remove entry", async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        await bucket.removeEntry("entry-1");
+        await expect(bucket.beginRead("entry-1")).rejects.toMatchObject({status: 404});
     });
 
 });
