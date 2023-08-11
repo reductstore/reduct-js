@@ -59,7 +59,7 @@ describe("Client", () => {
         expect(info.latestRecord).toEqual(2000_000n);
 
         expect(info.defaults.bucket).toMatchObject({
-            quotaSize: 0,
+            quotaSize: 0n,
             quotaType: QuotaType.NONE,
         });
     });
