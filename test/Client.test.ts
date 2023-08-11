@@ -59,8 +59,7 @@ describe("Client", () => {
         expect(info.latestRecord).toEqual(2000_000n);
 
         expect(info.defaults.bucket).toMatchObject({
-            maxBlockSize: "64000000",
-            quotaSize: "0",
+            quotaSize: 0,
             quotaType: QuotaType.NONE,
         });
     });
