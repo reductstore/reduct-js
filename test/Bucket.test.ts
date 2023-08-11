@@ -200,6 +200,12 @@ describe("Bucket", () => {
             .rejects.toHaveProperty("status", 404);
     });
 
+    it_api("1.6")("should query limited number of query", async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const records: ReadableRecord[] = await all(bucket.query("entry-2", 0n, undefined, {limit: 1}));
+        expect(records.length).toEqual(1);
+    });
+
     it("should query records with labels", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
 
