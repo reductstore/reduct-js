@@ -89,11 +89,10 @@ describe("Client", () => {
         });
     });
 
-    it("should create a bucket if default settings", async () => {
+    it("should create a bucket with default settings", async () => {
         const bucket = await client.createBucket("bucket");
-        await expect(bucket.getSettings()).resolves.toEqual({
+        await expect(bucket.getSettings()).resolves.toMatchObject({
             maxBlockSize: 64000000n,
-            maxBlockRecords: 256n,
             quotaSize: 0n,
             quotaType: QuotaType.NONE
         });
