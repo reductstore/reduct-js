@@ -11,7 +11,7 @@ import {Client} from "../src/Client";
 import {Bucket} from "../src/Bucket";
 import {cleanStorage, makeClient} from "./Helpers";
 import {BucketInfo} from "../src/BucketInfo";
-import {QuotaType} from "../src/BucketSettings";
+import {BucketSettings, QuotaType} from "../src/BucketSettings";
 import {ReadableRecord} from "../src/Record";
 
 const it_api = (version: string) => {
@@ -65,10 +65,10 @@ describe("Bucket", () => {
             quotaType: QuotaType.NONE
         });
 
-        await bucket.setSettings({maxBlockSize: 0n, quotaType: QuotaType.FIFO});
+        await bucket.setSettings({maxBlockRecords: 1024n, quotaType: QuotaType.FIFO});
         await expect(bucket.getSettings()).resolves.toEqual({
-            maxBlockSize: 0n,
-            maxBlockRecords: 256n,
+            maxBlockSize: 64000000n,
+            maxBlockRecords: 1024n,
             quotaSize: 0n,
             quotaType: QuotaType.FIFO
         });
