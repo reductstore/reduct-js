@@ -18,6 +18,7 @@ export interface QueryOptions {
     continuous?: boolean;  //  await for new records
     poolInterval?: number;  //  interval for pooling new records (only for continue=true)
     head?: boolean;  //  return only head of the record
+    limit?: number;  //  limit number of records
 }
 
 /**
@@ -207,6 +208,10 @@ export class Bucket {
                     if (options.ttl === undefined) {
                         params.push(`ttl=${poolInterval * 2}`);
                     }
+                }
+
+                if (options.limit !== undefined) {
+                    params.push(`limit=${options.limit}`);
                 }
 
                 head = options.head ?? false;
