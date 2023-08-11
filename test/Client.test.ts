@@ -60,7 +60,7 @@ describe("Client", () => {
 
         expect(info.defaults.bucket).toEqual({
             maxBlockSize: 64000000n,
-            maxBlockRecords: 1024n,
+            maxBlockRecords: 256n,
             quotaSize: 0n,
             quotaType: QuotaType.NONE,
         });
@@ -95,7 +95,7 @@ describe("Client", () => {
         const bucket = await client.createBucket("bucket");
         await expect(bucket.getSettings()).resolves.toEqual({
             maxBlockSize: 64000000n,
-            maxBlockRecords: 1024n,
+            maxBlockRecords: 256n,
             quotaSize: 0n,
             quotaType: QuotaType.NONE
         });
