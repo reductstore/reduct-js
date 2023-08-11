@@ -11,7 +11,6 @@ import {Client} from "../src/Client";
 import {Bucket} from "../src/Bucket";
 import {cleanStorage, makeClient} from "./Helpers";
 import {BucketInfo} from "../src/BucketInfo";
-import {BucketSettings, QuotaType} from "../src/BucketSettings";
 import {ReadableRecord} from "../src/Record";
 
 const it_api = (version: string) => {
