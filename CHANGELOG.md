@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2023-08-15
+
 ### Added:
 
 - `Bucket.remove_entry` method to remove entry from bucket, [PR-65](https://github.com/reductstore/reduct-js/pull/65)
@@ -161,7 +163,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.6.0...HEAD
+
+[1.6.0]: https://github.com/reduct-storage/reduct-js/compare/v1.5.0...v1.6.0
 
 [1.5.0]: https://github.com/reduct-storage/reduct-js/compare/v1.4.1...v1.5.0
 
