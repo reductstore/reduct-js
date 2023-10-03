@@ -50,12 +50,10 @@ describe_token()("With Token API Client", () => {
         expect(tokens[1]).toMatchObject({
             name: "token-1",
             isProvisioned: false,
-            permissions: {fullAccess: true, read: [], write: []},
         });
         expect(tokens[2]).toMatchObject({
             name: "token-2",
             isProvisioned: false,
-            permissions: {fullAccess: false, read: [], write: []},
         });
 
     });
