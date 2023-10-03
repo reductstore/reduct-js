@@ -31,24 +31,41 @@ describe_token()("With Token API Client", () => {
     });
 
     it("should list tokens", async () => {
-        expect(await client.getTokenList()).toEqual([
-            {name: "init-token", createdAt: expect.any(Number)}
-        ]);
+        let tokens = await client.getTokenList();
+        expect(tokens).toHaveLength(1);
+        expect(tokens[0]).toMatchObject({
+            name: "init-token",
+            createdAt: expect.any(Number),
+            isProvisioned: false,
+        });
+
         await client.createToken("token-1", {fullAccess: true});
         await client.createToken("token-2", {fullAccess: false});
-        expect(await client.getTokenList()).toEqual([
-            {name: "init-token", createdAt: expect.any(Number)},
-            {name: "token-1", createdAt: expect.any(Number)},
-            {name: "token-2", createdAt: expect.any(Number)}
-        ]);
+
+        tokens = await client.getTokenList();
+        expect(tokens).toHaveLength(3);
+        expect(tokens[0]).toMatchObject({
+            name: "init-token",
+        });
+        expect(tokens[1]).toMatchObject({
+            name: "token-1",
+            isProvisioned: false,
+            permissions: {fullAccess: true, read: [], write: []},
+        });
+        expect(tokens[2]).toMatchObject({
+            name: "token-2",
+            isProvisioned: false,
+            permissions: {fullAccess: false, read: [], write: []},
+        });
+
     });
 
     it("should delete a token", async () => {
         await client.createToken("token-1", {fullAccess: true});
         await client.deleteToken("token-1");
 
-        expect(await client.getTokenList()).toEqual([
-            {name: "init-token", createdAt: expect.any(Number)}
+        expect(await client.getTokenList()).toMatchObject([
+            {name: "init-token"}
         ]);
     });
 

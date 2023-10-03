@@ -27,6 +27,11 @@ export class BucketInfo {
      */
     readonly latestRecord: bigint = 0n;
 
+    /**
+     * Is the bucket provisioned, and you can't remove it or change its settings
+     */
+    readonly isProvisioned: boolean = false;
+
 
     static parse(bucket: Original): BucketInfo {
         return {
@@ -35,8 +40,16 @@ export class BucketInfo {
             size: BigInt(bucket.size),
             oldestRecord: BigInt(bucket.oldest_record),
             latestRecord: BigInt(bucket.latest_record),
+            isProvisioned: bucket.is_provisioned
         };
     }
 }
 
-type Original = { name: string; entry_count: string; size: string; oldest_record: string; latest_record: string; }
+type Original = {
+    name: string;
+    entry_count: string;
+    size: string;
+    oldest_record: string;
+    latest_record: string;
+    is_provisioned: boolean;
+}
