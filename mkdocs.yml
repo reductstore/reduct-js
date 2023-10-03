@@ -10,6 +10,7 @@ nav:
       - Client: docs/api/client.md
       - Bucket: docs/api/bucket.md
       - Record: docs/api/record.md
+      - Batch: docs/api/batch.md
   - ReductStore: https://www.reduct.store
 
 repo_name: reductstore/reduct-js

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added:
+
+- Support for ReductStore API v1.7: `isProvisioned` flag for `BucketInfo` and `Token` and `Bucket.beginWriteBatch`
+  method for batch writing, [PR-68](https://github.com/reductstore/reduct-js/pull/68)
+
 ## [1.6.0] - 2023-08-15
 
 ### Added:
@@ -18,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added:
 
-- Support for `GET /api/v1/b/:bucket/:entry/batch` endpoint, [PR-62](https://github.com/reductstore/reduct-js/pull/62) 
+- Support for `GET /api/v1/b/:bucket/:entry/batch` endpoint, [PR-62](https://github.com/reductstore/reduct-js/pull/62)
 - Option `head` to `Bucket.query` and `Bucket.beginRead`, [PR-63](https://github.com/reductstore/reduct-js/pull/63)
 
 ## [1.4.1] - 2023-06-03

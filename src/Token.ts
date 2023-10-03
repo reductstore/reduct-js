@@ -52,6 +52,7 @@ export class TokenPermissions {
 class OriginalTokenInfo {
     name = "";
     created_at = "";
+    is_provisioned? = false;
     permissions?: OriginalTokenPermission = undefined;
 }
 
@@ -70,6 +71,11 @@ export class Token {
     readonly createdAt: number = 0;
 
     /**
+     * Is the token provisioned, and you can't remove it or change it
+     */
+    readonly isProvisioned: boolean = false;
+
+    /**
      * Permissions of the token
      */
     readonly permissions?: TokenPermissions;
@@ -78,6 +84,7 @@ export class Token {
         return {
             name: data.name,
             createdAt: Date.parse(data.created_at),
+            isProvisioned: data.is_provisioned ?? false,
             permissions: data.permissions ? TokenPermissions.parse(data.permissions) : undefined
         };
     }
