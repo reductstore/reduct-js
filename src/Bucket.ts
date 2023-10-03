@@ -7,6 +7,7 @@ import {LabelMap, ReadableRecord, WritableRecord} from "./Record";
 import {APIError} from "./APIError";
 import {Readable} from "stream";
 import {Buffer} from "buffer";
+import {Batch} from "./Batch";
 
 /**
  * Options for querying records
@@ -339,6 +340,14 @@ export class Bucket {
 
             yield new ReadableRecord(BigInt(ts), size, last, stream, labels, contentType);
         }
+    }
+
+    /**
+     * Create a new batch for writing records to the database.
+     * @param entry
+     */
+    async beginBatch(entry: string): Promise<Batch> {
+        return new Batch(this.name, entry, this.httpClient);
     }
 }
 

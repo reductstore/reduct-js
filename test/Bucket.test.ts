@@ -13,15 +13,18 @@ import {cleanStorage, makeClient} from "./Helpers";
 import {BucketInfo} from "../src/BucketInfo";
 import {QuotaType} from "../src/BucketSettings";
 import {ReadableRecord} from "../src/Record";
+import {APIError} from "../src/APIError";
 
 const it_api = (version: string) => {
     const resp = request("HEAD", "http://localhost:8383/api/v1/alive");
-    if (resp.headers["x-reduct-api"] >= version) {
+    const api_version = resp.headers["x-reduct-api"] ?? "0.0";
+    if (api_version >= version) {
         return it;
     } else {
         return it.skip;
     }
 };
+
 
 describe("Bucket", () => {
     const client: Client = makeClient();
@@ -235,4 +238,52 @@ describe("Bucket", () => {
         await expect(bucket.beginRead("entry-1")).rejects.toMatchObject({status: 404});
     });
 
+    it_api("1.7")("should write a batch of records", async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const batch = await bucket.beginBatch("entry-10");
+        batch.add(1000n, "somedata1");
+        batch.add(2000n, "somedata2", "text/plain");
+        batch.add(3000n, "somedata3", undefined, {label1: "value1", label2: "value2"});
+        await batch.write();
+
+        const records: ReadableRecord[] = await all(bucket.query("entry-10"));
+        expect(records.length).toEqual(3);
+
+        expect(records[0]).toMatchObject({
+            time: 1000n,
+            size: 9n,
+            contentType: "application/octet-stream",
+            labels: {},
+        });
+        expect(await records[0].read()).toEqual(Buffer.from("somedata1", "ascii"));
+
+        expect(records[1]).toMatchObject({
+            time: 2000n,
+            size: 9n,
+            contentType: "text/plain",
+            labels: {},
+        });
+        expect(await records[1].read()).toEqual(Buffer.from("somedata2", "ascii"));
+
+        expect(records[2]).toMatchObject({
+            time: 3000n,
+            size: 9n,
+            contentType: "application/octet-stream",
+            labels: {label1: "value1", label2: "value2"},
+        });
+        expect(await records[2].read()).toEqual(Buffer.from("somedata3", "ascii"));
+    });
+
+    it_api("1.7")("should write a batch of records with errors", async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+
+        const batch = await bucket.beginBatch("entry-1");
+        batch.add(1000_000n, "somedata1");
+        batch.add(2000n, "somedata2", "text/plain");
+        batch.add(3000n, "somedata3", undefined, {label1: "value1", label2: "value2"});
+
+        const errors = await batch.write();
+        expect(errors.size).toEqual(1);
+        expect(errors.get(1000_000n)).toEqual(new APIError("A record with timestamp 1000000 already exists", 409));
+    });
 });
