@@ -52,7 +52,7 @@ export class TokenPermissions {
 class OriginalTokenInfo {
     name = "";
     created_at = "";
-    is_provisioned = false;
+    is_provisioned? = false;
     permissions?: OriginalTokenPermission = undefined;
 }
 
@@ -84,7 +84,7 @@ export class Token {
         return {
             name: data.name,
             createdAt: Date.parse(data.created_at),
-            isProvisioned: data.is_provisioned,
+            isProvisioned: data.is_provisioned ?? false,
             permissions: data.permissions ? TokenPermissions.parse(data.permissions) : undefined
         };
     }

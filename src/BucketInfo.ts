@@ -40,7 +40,7 @@ export class BucketInfo {
             size: BigInt(bucket.size),
             oldestRecord: BigInt(bucket.oldest_record),
             latestRecord: BigInt(bucket.latest_record),
-            isProvisioned: bucket.is_provisioned
+            isProvisioned: bucket.is_provisioned ?? false
         };
     }
 }
@@ -51,5 +51,5 @@ type Original = {
     size: string;
     oldest_record: string;
     latest_record: string;
-    is_provisioned: boolean;
+    is_provisioned?: boolean;
 }
