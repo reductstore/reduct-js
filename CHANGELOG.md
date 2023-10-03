@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added:
+
+- `Bucket.beginBatch` and support for ReductStore API v1.7, [PR-68](https://github.com/reductstore/reduct-js/pull/68)
+
 ## [1.6.0] - 2023-08-15
 
 ### Added:
