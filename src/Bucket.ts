@@ -346,7 +346,7 @@ export class Bucket {
      * Create a new batch for writing records to the database.
      * @param entry
      */
-    async beginBatch(entry: string): Promise<Batch> {
+    async beginWriteBatch(entry: string): Promise<Batch> {
         return new Batch(this.name, entry, this.httpClient);
     }
 }

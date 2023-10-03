@@ -240,7 +240,7 @@ describe("Bucket", () => {
 
     it_api("1.7")("should write a batch of records", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        const batch = await bucket.beginBatch("entry-10");
+        const batch = await bucket.beginWriteBatch("entry-10");
         batch.add(1000n, "somedata1");
         batch.add(2000n, "somedata2", "text/plain");
         batch.add(3000n, "somedata3", undefined, {label1: "value1", label2: "value2"});
@@ -277,7 +277,7 @@ describe("Bucket", () => {
     it_api("1.7")("should write a batch of records with errors", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
 
-        const batch = await bucket.beginBatch("entry-1");
+        const batch = await bucket.beginWriteBatch("entry-1");
         batch.add(1000_000n, "somedata1");
         batch.add(2000n, "somedata2", "text/plain");
         batch.add(3000n, "somedata3", undefined, {label1: "value1", label2: "value2"});
