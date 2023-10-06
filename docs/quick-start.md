@@ -32,7 +32,7 @@ interact with the ReductStore instance.
 Here is an example of using the JavaScript SDK to perform a few different operations on a bucket:
 
 ```javascript title="QuickStart.js"
---8<-- "../examples/QuickStart.js"
+--8<-- "./examples/QuickStart.js"
 ```
 
 Let's break down what this example is doing.
@@ -43,7 +43,7 @@ To start interacting with the database, we need to create a client. You can use 
 module. Pass the URL of the ReductStore instance you want to connect to as an argument to the `Client` constructor:
 
 ```javascript title="QuickStart.js"
---8<-- "../examples/QuickStart.js:createclient"
+--8<-- "./examples/QuickStart.js:createclient"
 ```
 
 ### Creating a Bucket
@@ -55,7 +55,7 @@ start
 removing old data once the bucket reaches 1Gb:
 
 ```javascript title="QuickStart.js"
---8<-- "../examples/QuickStart.js:createbucket"
+--8<-- "./examples/QuickStart.js:createbucket"
 ```
 
 ### Writing data to a Bucket
@@ -67,14 +67,14 @@ The `beginWrite`
 method will use current time as the timestamp for the entry if it is not specified:
 
 ```javascript title="QuickStart.js"
---8<-- "../examples/QuickStart.js:writedata"
+--8<-- "./examples/QuickStart.js:writedata"
 ```
 
 The `WritableRecord.write` method accepts a `ReadbleStream` object as an argument, so you can use it to write data from
 a file or any other source:
 
 ```javascript title="QuickStart.js"
---8<-- "../examples/QuickStart.js:uploadfile"
+--8<-- "./examples/QuickStart.js:uploadfile"
 ```
 
 Pay attention that the `write` method has to know the size of the written data in advance.
@@ -87,13 +87,13 @@ The `beginRead` method returns a `ReadableRecord` object with information about 
 content:
 
 ```javascript title="QuickStart.js"
---8<-- "../examples/QuickStart.js:readdata"
+--8<-- "./examples/QuickStart.js:readdata"
 ```
 
 To iterate over all entry in a bucket, you can use the `query` method on a `Bucket` instance:
 
 ```javascript title="QuickStart.js"
---8<-- "../examples/QuickStart.js:query"
+--8<-- "./examples/QuickStart.js:query"
 ```
 
 In this example, we iterate over all entries in the bucket and read them as streams. However, you can use the `start`
