@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2023-10-06
+
 ### Added:
 
 - Support for ReductStore API v1.7: `isProvisioned` flag for `BucketInfo` and `Token` and `Bucket.beginWriteBatch`
@@ -168,7 +170,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.7.0...HEAD
+
+[1.7.0]: https://github.com/reduct-storage/reduct-js/compare/v1.6.0...v1.7.0
 
 [1.6.0]: https://github.com/reduct-storage/reduct-js/compare/v1.5.0...v1.6.0
 
