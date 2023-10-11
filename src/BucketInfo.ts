@@ -30,7 +30,7 @@ export class BucketInfo {
     /**
      * Is the bucket provisioned, and you can't remove it or change its settings
      */
-    readonly isProvisioned: boolean = false;
+    readonly isProvisioned?: boolean = false;
 
 
     static parse(bucket: Original): BucketInfo {

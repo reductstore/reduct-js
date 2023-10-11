@@ -73,7 +73,7 @@ export class Token {
     /**
      * Is the token provisioned, and you can't remove it or change it
      */
-    readonly isProvisioned: boolean = false;
+    readonly isProvisioned?: boolean = false;
 
     /**
      * Permissions of the token
