@@ -335,7 +335,24 @@ export class Bucket {
                 }
                 stream = data;
             } else {
-                stream = Readable.from(head ? Buffer.from([]) : data.read(Number(size)));
+                let buffer = Buffer.from([]);
+                if (!head) {
+                    buffer = await new Promise((resolve, reject) => {
+                        data.on("readable", function handler() {
+                            const chunk = data.read(Number(size));
+                            if (chunk !== null) {
+                                resolve(chunk);
+                                data.off("readable", handler);
+                            }
+                        });
+
+                        data.on("error", (err: any) => {
+                            reject(err);
+                        });
+                    });
+
+                }
+                stream = Readable.from(buffer);
             }
 
             yield new ReadableRecord(BigInt(ts), size, last, stream, labels, contentType);
