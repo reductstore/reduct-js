@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.2] - 2023-10-28
+
+### Fixed:
+
+- RS-56: Queering batched records, [PR-71](https://github.com/reductstore/reduct-js/pull/71)
+
 ## [1.7.1] - 2023-10-11
 
 ### Fixed:
