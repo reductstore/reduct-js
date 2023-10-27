@@ -1,6 +1,6 @@
 {
   "name": "reduct-js",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "description": "ReductStore Client SDK for Javascript/NodeJS/Typescript",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",
