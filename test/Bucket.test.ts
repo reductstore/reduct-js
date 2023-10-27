@@ -153,6 +153,24 @@ describe("Bucket", () => {
         expect(md5(actual)).toEqual(md5(bigBlob));
     });
 
+    it("should query batched big blobs", async () => {
+        const bigBlob1 = crypto.randomBytes(2 ** 20);
+        const bigBlob2 = crypto.randomBytes(2 ** 20);
+
+        const bucket: Bucket = await client.getBucket("bucket");
+        let record = await bucket.beginWrite("big-blob");
+        await record.write(bigBlob1);
+
+        record = await bucket.beginWrite("big-blob");
+        await record.write(bigBlob2);
+
+        const blobs = await all(bucket.query("big-blob"));
+
+        expect(blobs.length).toEqual(2);
+        expect(md5(await blobs[0].read())).toEqual(md5(bigBlob1));
+        expect(md5(await blobs[1].read())).toEqual(md5(bigBlob2));
+    });
+
     it("should read write and read labels along with records", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
         const record = await bucket.beginWrite("entry-1", {labels: {label1: "label1", label2: 100n, label3: true}});
@@ -238,7 +256,7 @@ describe("Bucket", () => {
         await expect(bucket.beginRead("entry-1")).rejects.toMatchObject({status: 404});
     });
 
-    it_api("1.7")("should write a batch of records", async () => {
+    it("should write a batch of records", async () => {
         const bucket: Bucket = await client.getBucket("bucket");
         const batch = await bucket.beginWriteBatch("entry-10");
         batch.add(1000n, "somedata1");
