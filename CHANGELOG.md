@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.3] - 2023-10-29
+
+### Fixed:
+
+- RS-57: `MaxListenersExceededWarning` warn in `Bucket.query`, [PR-73](https://github.com/reductstore/reduct-js/pull/73)
+
 ## [1.7.2] - 2023-10-28
 
 ### Fixed:
@@ -182,7 +188,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.7.2...HEAD
+[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.7.3...HEAD
+
+[1.7.3]: https://github.com/reduct-storage/reduct-js/compare/v1.7.2...v1.7.3
 
 [1.7.2]: https://github.com/reduct-storage/reduct-js/compare/v1.7.1...v1.7.2
 
