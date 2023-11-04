@@ -13,6 +13,7 @@ import {Bucket} from "./Bucket";
 import {Token, TokenPermissions} from "./Token";
 import {Readable} from "stream";
 import {Buffer} from "buffer";
+
 /**
  * Options
  */
@@ -44,6 +45,8 @@ export class Client {
             headers: {
                 "Authorization": `Bearer ${options.apiToken}`
             },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
             transformRequest: [(data: any) => {
                 // very ugly hack to support big int in JSON
                 if (typeof data !== "object" || data instanceof Readable || data instanceof Buffer) {

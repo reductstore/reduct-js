@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed:
+
+- RS-74: Fix content length limit, [PR-74](https://github.com/reductstore/reduct-js/pull/74)
+
 ## [1.7.3] - 2023-10-29
 
 ### Fixed:
