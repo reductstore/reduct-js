@@ -154,8 +154,8 @@ describe("Bucket", () => {
     });
 
     it("should query batched big blobs", async () => {
-        const bigBlob1 = crypto.randomBytes(2 ** 20);
-        const bigBlob2 = crypto.randomBytes(2 ** 20);
+        const bigBlob1 = crypto.randomBytes(16_000_000);
+        const bigBlob2 = crypto.randomBytes(16_000_000);
 
         const bucket: Bucket = await client.getBucket("bucket");
         let record = await bucket.beginWrite("big-blob");
