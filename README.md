@@ -12,14 +12,14 @@ data stored in ReductStore.
 ## Features
 
 * Promise-based API for easy asynchronous programming
-* Support for [ReductStore HTTP API v1.7](https://docs.reduct.store/http-api)
+* Support for [ReductStore HTTP API v1.7](https://reduct.store/docs/http-api)
 * Token-based authentication for secure access to the database
 * Labeling for read-write operations and querying
 
 ## Getting Started
 
 To get started with the ReductStore Client SDK for JavaScript, you'll need to have ReductStore installed and running on
-your machine. You can find instructions for installing ReductStore [here](https://docs.reduct.store/#start-with-docker).
+your machine. You can find instructions for installing ReductStore [here](https://reduct.store/docs/#start-with-docker).
 
 Once you have ReductStore up and running, you can install the ReductStore Client SDK for JavaScript using npm:
 
@@ -59,4 +59,4 @@ For more examples, see the [Quick Start](https://js.reduct.store/en/latest/docs/
 ## References
 
 * [Documentation](https://js.reduct.store/)
-* [ReductStore HTTP API](https://docs.reduct.store/http-api)
+* [ReductStore HTTP API](https://reduct.store/docs/http-api)
