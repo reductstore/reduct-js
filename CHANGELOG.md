@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed:
+
+- docs: update link to new website, [PR-75](https://github.com/reductstore/reduct-js/pull/75)
+
 ## [1.7.4] - 2023-11-04
 
 ### Fixed:
