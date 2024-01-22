@@ -23,12 +23,6 @@ export const cleanStorage = async (client: Client): Promise<void> => {
                 return client.deleteToken(token.name);
             }));
         })
-        .then(() => client.getReplicationList())
-        .then(replications => {
-            return Promise.all(replications.map(replication => {
-                return client.deleteReplication(replication.name);
-            }));
-        })
         .then(() => Promise.resolve());
 };
 

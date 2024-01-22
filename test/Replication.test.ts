@@ -17,6 +17,12 @@ describe("Replication", () => {
 
     beforeEach((done) => {
         cleanStorage(client)
+            .then(() => client.getReplicationList())
+            .then(replications => {
+                return Promise.all(replications.map(replication => {
+                    return client.deleteReplication(replication.name);
+                }));
+            })
             .then(() => client.createBucket("test-bucket-1"))
             .then(() => client.createBucket("test-bucket-2"))
             .then(() => done());
@@ -28,7 +34,7 @@ describe("Replication", () => {
     });
 
     it_api("1.8")("should create a replication", async () => {
-        await client.createReplication("test-replication",  settings);
+        await client.createReplication("test-replication", settings);
 
         const replications = await client.getReplicationList();
         expect(replications).toHaveLength(1);
