@@ -1,7 +1,8 @@
 import {Bucket} from "../src/Bucket";
 import {Client} from "../src/Client";
 import * as process from "process";
-
+// @ts-ignore
+import request from "sync-request";
 /**
  * Remove all buckets
  * @param client
@@ -29,4 +30,14 @@ export const makeClient = (): Client => {
     return new Client("http://127.0.0.1:8383", {
         apiToken: process.env.RS_API_TOKEN
     });
+};
+
+export const it_api = (version: string) => {
+    const resp = request("HEAD", "http://localhost:8383/api/v1/alive");
+    const api_version = resp.headers["x-reduct-api"] ?? "0.0";
+    if (api_version >= version) {
+        return it;
+    } else {
+        return it.skip;
+    }
 };

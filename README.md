@@ -12,7 +12,7 @@ data stored in ReductStore.
 ## Features
 
 * Promise-based API for easy asynchronous programming
-* Support for [ReductStore HTTP API v1.7](https://reduct.store/docs/http-api)
+* Support for [ReductStore HTTP API v1.8](https://reduct.store/docs/http-api)
 * Token-based authentication for secure access to the database
 * Labeling for read-write operations and querying
 

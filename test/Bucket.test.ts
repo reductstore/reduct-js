@@ -4,26 +4,17 @@ import md5 from "md5";
 import * as Stream from "stream";
 // @ts-ignore
 import all from "it-all";
-// @ts-ignore
-import request from "sync-request";
+
 
 import {Client} from "../src/Client";
 import {Bucket} from "../src/Bucket";
-import {cleanStorage, makeClient} from "./Helpers";
-import {BucketInfo} from "../src/BucketInfo";
-import {QuotaType} from "../src/BucketSettings";
+import {cleanStorage, it_api, makeClient} from "./Helpers";
+import {BucketInfo} from "../src/messages/BucketInfo";
+import {QuotaType} from "../src/messages/BucketSettings";
 import {ReadableRecord} from "../src/Record";
 import {APIError} from "../src/APIError";
 
-const it_api = (version: string) => {
-    const resp = request("HEAD", "http://localhost:8383/api/v1/alive");
-    const api_version = resp.headers["x-reduct-api"] ?? "0.0";
-    if (api_version >= version) {
-        return it;
-    } else {
-        return it.skip;
-    }
-};
+
 
 
 describe("Bucket", () => {
