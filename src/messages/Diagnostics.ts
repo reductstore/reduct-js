@@ -28,7 +28,7 @@ pub struct Diagnostics {
 
 class DiagnosticsErrorOriginal {
     count = 0;
-    last_message = ""
+    last_message = "";
 }
 
 
@@ -92,6 +92,7 @@ export class OriginalDiagnostics {
     hourly = new OrigianlDiagnosticsItem();
 
 }
+
 /**
  * Diagnostics
  */
