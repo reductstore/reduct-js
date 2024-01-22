@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added:
+
+- RS-46: Support Replication API, [PR-76](https://github.com/reductstore/reduct-js/pull/76)
+
 ### Changed:
 
 - docs: update link to new website, [PR-75](https://github.com/reductstore/reduct-js/pull/75)
