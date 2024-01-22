@@ -1,8 +1,8 @@
 // @ts-ignore`
 import {AxiosInstance} from "axios";
-import {BucketSettings} from "./BucketSettings";
-import {BucketInfo} from "./BucketInfo";
-import {EntryInfo} from "./EntryInfo";
+import {BucketSettings} from "./messages/BucketSettings";
+import {BucketInfo} from "./messages/BucketInfo";
+import {EntryInfo} from "./messages/EntryInfo";
 import {LabelMap, ReadableRecord, WritableRecord} from "./Record";
 import {APIError} from "./APIError";
 import {Readable} from "stream";

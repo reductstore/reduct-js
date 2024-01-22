@@ -1,6 +1,6 @@
 import {Client} from "../src/Client";
 import {cleanStorage, makeClient} from "./Helpers";
-import {TokenPermissions, Token} from "../src/Token";
+import {TokenPermissions, Token} from "../src/messages/Token";
 
 const describe_token = () =>
     process.env.RS_API_TOKEN !== undefined && process.env.RS_API_TOKEN.length > 0

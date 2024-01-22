@@ -1,11 +1,14 @@
 import {Client} from "./Client";
 import {Bucket, QueryOptions, WriteOptions} from "./Bucket";
 import {APIError} from "./APIError";
-import {ServerInfo} from "./ServerInfo";
-import {BucketSettings, QuotaType} from "./BucketSettings";
-import {BucketInfo} from "./BucketInfo";
-import {EntryInfo} from "./EntryInfo";
-import {Token, TokenPermissions} from "./Token";
+import {ServerInfo} from "./messages/ServerInfo";
+import {BucketSettings, QuotaType} from "./messages/BucketSettings";
+import {BucketInfo} from "./messages/BucketInfo";
+import {EntryInfo} from "./messages/EntryInfo";
+import {Token, TokenPermissions} from "./messages/Token";
+import {ReplicationInfo} from "./messages/ReplicationInfo";
+import {ReplicationSettings} from "./messages/ReplicationSettings";
+import {FullReplicationInfo} from "./messages/ReplicationInfo";
 
 export {
     Client,
@@ -19,5 +22,8 @@ export {
     BucketInfo,
     EntryInfo,
     Token,
-    TokenPermissions
+    TokenPermissions,
+    ReplicationInfo,
+    ReplicationSettings,
+    FullReplicationInfo,
 };

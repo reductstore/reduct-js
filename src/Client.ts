@@ -2,17 +2,19 @@
  * Represents HTTP Client for ReductStore API
  * @class
  */
-import {ServerInfo} from "./ServerInfo";
+import {ServerInfo} from "./messages/ServerInfo";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import axios, {AxiosInstance, AxiosResponse, AxiosError} from "axios";
 import {APIError} from "./APIError";
-import {BucketInfo} from "./BucketInfo";
-import {BucketSettings} from "./BucketSettings";
+import {BucketInfo} from "./messages/BucketInfo";
+import {BucketSettings} from "./messages/BucketSettings";
 import {Bucket} from "./Bucket";
-import {Token, TokenPermissions} from "./Token";
+import {Token, TokenPermissions} from "./messages/Token";
 import {Readable} from "stream";
 import {Buffer} from "buffer";
+import {FullReplicationInfo, ReplicationInfo} from "./messages/ReplicationInfo";
+import {ReplicationSettings} from "./messages/ReplicationSettings";
 
 /**
  * Options
@@ -190,5 +192,55 @@ export class Client {
     async me(): Promise<Token> {
         const {data} = await this.httpClient.get("/me");
         return Token.parse(data);
+    }
+
+    /**
+     * Get the list of replications
+     * @return {Promise<ReplicationInfo[]>} the list of replications
+     */
+    async getReplicationList(): Promise<ReplicationInfo[]> {
+        const {data} = await this.httpClient.get("/replications") as {
+            data: { replications: ReplicationInfo[] }
+        };
+        return data.replications.map((replication: any) => ReplicationInfo.parse(replication));
+    }
+
+    /**
+     * Get full information about a replication
+     * @param name name of the replication
+     * @return {Promise<FullReplicationInfo>} the replication
+     */
+    async getReplication(name: string): Promise<FullReplicationInfo> {
+        const {data} = await this.httpClient.get(`/replications/${name}`);
+        return FullReplicationInfo.parse(data);
+    }
+
+    /**
+     * Create a new replication
+     * @param name name of the replication
+     * @param settings settings of the replication
+     * @return {Promise<void>}
+     */
+    async createReplication(name: string, settings: ReplicationSettings): Promise<void> {
+        await this.httpClient.post(`/replications/${name}`, ReplicationSettings.serialize(settings));
+    }
+
+    /**
+     * Update a replication
+     * @param name name of the replication
+     * @param settings settings of the replication
+     * @return {Promise<void>}
+     */
+    async updateReplication(name: string, settings: ReplicationSettings): Promise<void> {
+        await this.httpClient.put(`/replications/${name}`, ReplicationSettings.serialize(settings));
+    }
+
+    /**
+     * Delete a replication
+     * @param name name of the replication
+     * @return {Promise<void>}
+     */
+    async deleteReplication(name: string): Promise<void> {
+        await this.httpClient.delete(`/replications/${name}`);
     }
 }
