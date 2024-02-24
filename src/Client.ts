@@ -3,9 +3,8 @@
  * @class
  */
 import {ServerInfo} from "./messages/ServerInfo";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import axios, {AxiosInstance, AxiosResponse, AxiosError} from "axios";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const axios = require("axios").default;
 import {APIError} from "./APIError";
 import {BucketInfo} from "./messages/BucketInfo";
 import {BucketSettings} from "./messages/BucketSettings";
@@ -15,6 +14,8 @@ import {Readable} from "stream";
 import {Buffer} from "buffer";
 import {FullReplicationInfo, ReplicationInfo} from "./messages/ReplicationInfo";
 import {ReplicationSettings} from "./messages/ReplicationSettings";
+// @ts-ignore
+import {AxiosError, AxiosInstance, AxiosResponse} from "axios";
 
 /**
  * Options

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed:
+
+- RS-122: Update axios up to 1.6 and other dev dependencies, [PR-77](https://github.com/reductstore/reduct-js/pull/77)
+
 ## [1.8.0] - 2024-01-22
 
 ### Added:

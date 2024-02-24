@@ -14,9 +14,6 @@ import {QuotaType} from "../src/messages/BucketSettings";
 import {ReadableRecord} from "../src/Record";
 import {APIError} from "../src/APIError";
 
-
-
-
 describe("Bucket", () => {
     const client: Client = makeClient();
 
