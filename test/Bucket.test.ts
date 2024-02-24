@@ -3,7 +3,7 @@ import {Buffer} from "buffer";
 import md5 from "md5";
 import * as Stream from "stream";
 // @ts-ignore
-import all from "it-all";
+import {all} from "it-all";
 
 
 import {Client} from "../src/Client";
@@ -13,9 +13,6 @@ import {BucketInfo} from "../src/messages/BucketInfo";
 import {QuotaType} from "../src/messages/BucketSettings";
 import {ReadableRecord} from "../src/Record";
 import {APIError} from "../src/APIError";
-
-
-
 
 describe("Bucket", () => {
     const client: Client = makeClient();
