@@ -3,7 +3,7 @@ import {Buffer} from "buffer";
 import md5 from "md5";
 import * as Stream from "stream";
 // @ts-ignore
-import {all} from "it-all";
+import all from "it-all";
 
 
 import {Client} from "../src/Client";

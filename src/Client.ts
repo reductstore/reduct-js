@@ -4,7 +4,7 @@
  */
 import {ServerInfo} from "./messages/ServerInfo";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const axios = require('axios').default;
+const axios = require("axios").default;
 import {APIError} from "./APIError";
 import {BucketInfo} from "./messages/BucketInfo";
 import {BucketSettings} from "./messages/BucketSettings";
