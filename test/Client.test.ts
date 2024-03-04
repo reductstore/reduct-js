@@ -1,5 +1,5 @@
 import {Client} from "../src/Client";
-import {ServerInfo, LicenseInfo} from "../src/messages/ServerInfo";
+import {ServerInfo} from "../src/messages/ServerInfo";
 import {Bucket} from "../src/Bucket";
 import {QuotaType} from "../src/messages/BucketSettings";
 import {cleanStorage, it_env, makeClient} from "./Helpers";
