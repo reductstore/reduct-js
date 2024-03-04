@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added:
+
+- RS-183: Add verifySSL option to ClientOptions, [PR-78](https://github.com/reductstore/reduct-js/pull/78)
+- RS-178: Add license information to ServerInfo, [PR-79](https://github.com/reductstore/reduct-js/pull/79)
+
 ### Changed:
 
 - RS-122: Update axios up to 1.6 and other dev dependencies, [PR-77](https://github.com/reductstore/reduct-js/pull/77)
-- RS-183: Add verifySSL option to ClientOptions, [PR-78](https://github.com/reductstore/reduct-js/pull/78)
 
 ## [1.8.0] - 2024-01-22
 
