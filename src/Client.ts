@@ -16,6 +16,7 @@ import {FullReplicationInfo, ReplicationInfo} from "./messages/ReplicationInfo";
 import {ReplicationSettings} from "./messages/ReplicationSettings";
 // @ts-ignore
 import {AxiosError, AxiosInstance, AxiosResponse} from "axios";
+import * as https from "https";
 
 /**
  * Options
@@ -23,6 +24,7 @@ import {AxiosError, AxiosInstance, AxiosResponse} from "axios";
 export type ClientOptions = {
     apiToken?: string;   // API token for authentication
     timeout?: number;    // communication timeout
+    verifySSL?: boolean; // verify SSL certificate
 }
 
 export class Client {
@@ -45,6 +47,10 @@ export class Client {
         this.httpClient = axios.create({
             baseURL: `${url}/api/v1`,
             timeout: options.timeout,
+            httpsAgent: new https.Agent({
+                rejectUnauthorized: options.verifySSL !== false
+            }),
+
             headers: {
                 "Authorization": `Bearer ${options.apiToken}`
             },
