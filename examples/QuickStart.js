@@ -23,7 +23,7 @@ const main = async () => {
     // --8<-- [start:uploadfile]
     // More complex case. Upload a file as a stream with a custom timestamp unix timestamp in microseconds
     const timestamp = Date.now() * 1000;
-    record = await bucket.beginWrite("entry", timestamp);
+    record = await bucket.beginWrite("entry", BigInt.valueOf(timestamp));
     const fileStream = await fs.createReadStream(__filename);   // let's upload this file
     await record.write(fileStream, fs.statSync(__filename).size);
     // --8<-- [end:uploadfile]
