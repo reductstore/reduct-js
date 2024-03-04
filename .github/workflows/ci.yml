@@ -70,7 +70,7 @@ jobs:
         run: |
           docker load --input /tmp/image.tar
           docker image ls -a
-      - name: Run tests
+      - name: Run example
         run: docker run --network=host ${{github.repository}} node examples/${{matrix.example}}
 
 

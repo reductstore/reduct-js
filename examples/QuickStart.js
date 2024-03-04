@@ -56,4 +56,4 @@ const main = async () => {
 
 };
 
-main().catch(e => console.error(e));
+main().then(() => console.log("done"));
