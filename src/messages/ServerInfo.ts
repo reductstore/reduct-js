@@ -10,8 +10,8 @@ export class LicenseInfo {
     readonly licensee: string = "UNKNOWN";
     /// Invoice number
     readonly invoice: string = "UNKNOWN";
-    /// Expiry date
-    readonly expiryDate: Date = new Date();
+    /// Expiry date as unix timestamp in milliseconds
+    readonly expiryDate: number = 0;
     /// Plan name
     readonly plan: string = "UNKNOWN";
     /// Number of devices
@@ -23,12 +23,12 @@ export class LicenseInfo {
 
     static parse(data: OriginalLicenseInfo): LicenseInfo {
         return {
-            licensee: data.licensee,
+            licensee:  data.licensee,
             invoice: data.invoice,
-            expiryDate: new Date(data.expiry_date),
+            expiryDate: Date.parse(data.expiry_date),
             plan: data.plan,
-            deviceNumber: data.device_number,
-            diskQuota: data.disk_quota,
+            deviceNumber: Number(data.device_number),
+            diskQuota: Number(data.disk_quota),
             fingerprint: data.fingerprint
         };
     }
