@@ -56,7 +56,7 @@ jobs:
     strategy:
       matrix:
         example: ["HelloWorld.js", "QuickStart.js", "Subscription.js"]
-        reductstore_version: ["main", "latest"]
+        reductstore_version: ["main"]
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v2
