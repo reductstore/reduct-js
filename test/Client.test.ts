@@ -2,7 +2,7 @@ import {Client} from "../src/Client";
 import {ServerInfo} from "../src/messages/ServerInfo";
 import {Bucket} from "../src/Bucket";
 import {QuotaType} from "../src/messages/BucketSettings";
-import {cleanStorage, makeClient} from "./Helpers";
+import {cleanStorage, it_env, makeClient} from "./Helpers";
 
 
 test("Client should raise network error", async () => {
@@ -62,6 +62,20 @@ describe("Client", () => {
             quotaSize: 0n,
             quotaType: QuotaType.NONE,
         });
+    });
+
+    it_env("RS_LICENSE_PATH")("should get information about the server with license", async () => {
+        const info: ServerInfo = await client.getInfo();
+        expect(info.license).toEqual({
+                deviceNumber: 1,
+                diskQuota: 0,
+                expiryDate: Date.parse("2035-01-01T00:00:00.000Z"),
+                fingerprint: "df92c95a7c9b56c2af99b290c39d8471c3e6cbf9dc33dc9bdb4116b98d465cc9",
+                invoice: "xxxxxx",
+                licensee: "ReductStore,LLC",
+                plan: "UNLIMITED",
+            }
+        );
     });
 
     it("should get list of buckets", async () => {

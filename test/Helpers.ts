@@ -3,6 +3,7 @@ import {Client} from "../src/Client";
 import * as process from "process";
 // @ts-ignore
 import request from "sync-request";
+
 /**
  * Remove all buckets
  * @param client
@@ -36,6 +37,15 @@ export const it_api = (version: string) => {
     const resp = request("HEAD", "http://localhost:8383/api/v1/alive");
     const api_version = resp.headers["x-reduct-api"] ?? "0.0";
     if (api_version >= version) {
+        return it;
+    } else {
+        return it.skip;
+    }
+};
+
+export const it_env = (name: string) => {
+    const variable = process.env[name];
+    if (variable !== undefined && variable.length > 0) {
         return it;
     } else {
         return it.skip;
