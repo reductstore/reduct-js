@@ -36,5 +36,4 @@ const read = async () => {
 };
 
 Promise.all([write(), read()])
-    .then(() => console.log("done"))
-    .catch((err) => console.error("oops: ", err));
+    .then(() => console.log("done"));

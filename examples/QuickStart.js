@@ -23,7 +23,7 @@ const main = async () => {
     // --8<-- [start:uploadfile]
     // More complex case. Upload a file as a stream with a custom timestamp unix timestamp in microseconds
     const timestamp = Date.now() * 1000;
-    record = await bucket.beginWrite("entry", timestamp);
+    record = await bucket.beginWrite("entry", BigInt.valueOf(timestamp));
     const fileStream = await fs.createReadStream(__filename);   // let's upload this file
     await record.write(fileStream, fs.statSync(__filename).size);
     // --8<-- [end:uploadfile]
@@ -35,7 +35,7 @@ const main = async () => {
     // --8<-- [end:readdata]
 
     // --8<-- [start:query]
-    // More complex case. Iterate over all records in the entry and read them as steams
+    // More complex case. Iterate over all records in the entry and read them as streams
     function streamToString (stream) {
         const chunks = [];
         return new Promise((resolve, reject) => {
@@ -56,4 +56,4 @@ const main = async () => {
 
 };
 
-main().catch(e => console.error(e));
+main().then(() => console.log("done"));
