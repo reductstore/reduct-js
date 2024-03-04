@@ -3,6 +3,7 @@ import {Client} from "../src/Client";
 import * as process from "process";
 // @ts-ignore
 import request from "sync-request";
+
 /**
  * Remove all buckets
  * @param client
@@ -43,9 +44,10 @@ export const it_api = (version: string) => {
 };
 
 export const it_env = (name: string) => {
-    if (process.env[name] !== undefined) {
+    const variable = process.env[name];
+    if (variable !== undefined && variable.length > 0) {
         return it;
     } else {
         return it.skip;
     }
-}
+};

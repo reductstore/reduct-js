@@ -67,7 +67,9 @@ describe("Client", () => {
     it_env("RS_LICENSE_PATH")("should get information about the server with license", async () => {
         const info: ServerInfo = await client.getInfo();
         expect(info.license).toMatchObject(
-            {}
+            {
+                plan: "community",
+            }
         );
     });
 
