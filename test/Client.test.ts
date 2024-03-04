@@ -66,10 +66,15 @@ describe("Client", () => {
 
     it_env("RS_LICENSE_PATH")("should get information about the server with license", async () => {
         const info: ServerInfo = await client.getInfo();
-        expect(info.license).toEqual(
-            {
-                plan: "community",
-            } as LicenseInfo
+        expect(info.license).toEqual({
+                deviceNumber: 1,
+                diskQuota: 0,
+                expiryDate: Date.parse("2035-01-01T00:00:00.000Z"),
+                fingerprint: "df92c95a7c9b56c2af99b290c39d8471c3e6cbf9dc33dc9bdb4116b98d465cc9",
+                invoice: "xxxxxx",
+                licensee: "ReductStore,LLC",
+                plan: "UNLIMITED",
+            }
         );
     });
 
