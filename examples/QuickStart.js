@@ -35,7 +35,7 @@ const main = async () => {
     // --8<-- [end:readdata]
 
     // --8<-- [start:query]
-    // More complex case. Iterate over all records in the entry and read them as steams
+    // More complex case. Iterate over all records in the entry and read them as streams
     function streamToString (stream) {
         const chunks = [];
         return new Promise((resolve, reject) => {
