@@ -1,7 +1,7 @@
 import {Client} from "./Client";
 import {Bucket, QueryOptions, WriteOptions} from "./Bucket";
 import {APIError} from "./APIError";
-import {ServerInfo} from "./messages/ServerInfo";
+import {ServerInfo, LicenseInfo} from "./messages/ServerInfo";
 import {BucketSettings, QuotaType} from "./messages/BucketSettings";
 import {BucketInfo} from "./messages/BucketInfo";
 import {EntryInfo} from "./messages/EntryInfo";
@@ -16,6 +16,7 @@ export {
     QueryOptions,
     WriteOptions,
     APIError,
+    LicenseInfo,
     ServerInfo,
     BucketSettings,
     QuotaType,
