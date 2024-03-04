@@ -32,23 +32,32 @@ jobs:
       matrix:
         token: ["", "token"]
         reductstore_version: [ "main" ]
-
+        license: ["", "/workdir/lic.key"]
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
           name: image
           path: /tmp/
+      - name: Generate license
+        run: echo '${{secrets.LICENSE_KEY}}' > lic.key
 
       - name: Run ReductStore
-        run: docker run -p 8383:8383 -v ${PWD}/data:/data --env RS_API_TOKEN=${{ matrix.token }} -d reduct/store:${{ matrix.reductstore_version }}
+        run: docker run -p 8383:8383 -v ${PWD}:/workdir 
+          --env RS_API_TOKEN=${{matrix.token}} 
+          --env RS_LOG_LEVEL=DEBUG 
+          --env RS_LICENSE_PATH=${{matrix.license}} 
+          -d reduct/store:${{ matrix.reductstore_version }}
 
       - name: Load image with tests
         run: |
           docker load --input /tmp/image.tar
           docker image ls -a
       - name: Run tests
-        run: docker run --network=host --env RS_API_TOKEN=${{ matrix.token }} ${{github.repository}} npm test
+        run: docker run --network=host 
+          --env RS_API_TOKEN=${{ matrix.token }}
+          --env RS_LICENSE_PATH=${{matrix.license}} 
+          ${{github.repository}} npm test
 
   run_examples:
     needs: build
@@ -63,6 +72,7 @@ jobs:
         with:
           name: image
           path: /tmp/
+
       - name: Run ReductStore
         run: docker run -p 8383:8383 -v ${PWD}/data:/data -d reduct/store:${{ matrix.reductstore_version }}
 

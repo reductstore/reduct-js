@@ -41,3 +41,11 @@ export const it_api = (version: string) => {
         return it.skip;
     }
 };
+
+export const it_env = (name: string) => {
+    if (process.env[name] !== undefined) {
+        return it;
+    } else {
+        return it.skip;
+    }
+}
