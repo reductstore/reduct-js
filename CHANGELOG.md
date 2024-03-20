@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+### Changed:
+
+- RS-223: Revert axios port to 0.x version, [PR-80](https://github.com/reductstore/reduct-js/pull/80)
+
 ## [1.9.0] - 2024-03-08
 
 ### Added:
