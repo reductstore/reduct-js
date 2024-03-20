@@ -3,8 +3,9 @@
  * @class
  */
 import {ServerInfo} from "./messages/ServerInfo";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const axios = require("axios").default;
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import axios, {AxiosInstance, AxiosResponse, AxiosError} from "axios";
 import {APIError} from "./APIError";
 import {BucketInfo} from "./messages/BucketInfo";
 import {BucketSettings} from "./messages/BucketSettings";
