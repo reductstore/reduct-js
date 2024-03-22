@@ -17,6 +17,7 @@ import {FullReplicationInfo, ReplicationInfo} from "./messages/ReplicationInfo";
 import {ReplicationSettings} from "./messages/ReplicationSettings";
 // @ts-ignore
 import {AxiosError, AxiosInstance, AxiosResponse} from "axios";
+import {AxiosRequestConfig} from "../node_modules/axios/index";
 import * as https from "https";
 
 /**
@@ -45,12 +46,9 @@ export class Client {
         );
 
         // http client with big int support in JSON
-        this.httpClient = axios.create({
+        const axiosConfig: AxiosRequestConfig = {
             baseURL: `${url}/api/v1`,
             timeout: options.timeout,
-            httpsAgent: new https.Agent({
-                rejectUnauthorized: options.verifySSL !== false
-            }),
 
             headers: {
                 "Authorization": `Bearer ${options.apiToken}`
@@ -75,7 +73,13 @@ export class Client {
                 }
                 return bigJson.parse(data);
             }]
-        });
+        };
+        if (typeof window === "undefined") {
+            axiosConfig.httpsAgent = new https.Agent({
+                rejectUnauthorized: options.verifySSL !== false
+            });
+        }
+        this.httpClient = axios.create(axiosConfig);
 
         this.httpClient.interceptors.response.use(
             (response: AxiosResponse) => response,

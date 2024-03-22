@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed:
+
+- RS-224: Use https Agent only outside browser environment, [PR-81](https://github.com/reductstore/reduct-js/pull/81/files)
 
 ## [1.9.1] - 2024-03-20
 
