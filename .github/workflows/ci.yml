@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         token: ["", "token"]
-        reductstore_version: [ "main" ]
+        reductstore_version: [ "main", "latest" ]
         license: ["", "/workdir/lic.key"]
     steps:
       - name: Download artifact
@@ -76,6 +76,12 @@ jobs:
       - name: Run ReductStore
         run: docker run -p 8383:8383 -v ${PWD}/data:/data -d reduct/store:${{ matrix.reductstore_version }}
 
+      - name: Wait for ReductStore
+        run: |
+          while ! curl -s http://localhost:8383/healthcheck | grep -q "OK"; do
+            sleep 1
+          done
+
       - name: Load image with tests
         run: |
           docker load --input /tmp/image.tar
@@ -106,7 +112,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: download-artifact@v4
       - uses: actions/setup-node@v3
         with:
           node-version: 17
