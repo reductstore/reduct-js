@@ -39,6 +39,10 @@ jobs:
         with:
           name: image
           path: /tmp/
+
+      - name: check
+        run: ls -la /tmp
+
       - name: Generate license
         run: echo '${{secrets.LICENSE_KEY}}' > lic.key
 
