@@ -35,7 +35,7 @@ jobs:
         license: ["", "/workdir/lic.key"]
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: image
           path: /tmp/
@@ -68,7 +68,7 @@ jobs:
         reductstore_version: ["main", "latest"]
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: image
           path: /tmp/
@@ -77,10 +77,7 @@ jobs:
         run: docker run -p 8383:8383 -v ${PWD}/data:/data -d reduct/store:${{ matrix.reductstore_version }}
 
       - name: Wait for ReductStore
-        run: |
-          while ! curl -s http://localhost:8383/healthcheck | grep -q "OK"; do
-            sleep 1
-          done
+        run: sleep 3
 
       - name: Load image with tests
         run: |
@@ -95,7 +92,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: image
           path: /tmp/
@@ -112,7 +109,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
     steps:
-      - uses: download-artifact@v4
+      - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
         with:
           node-version: 17
