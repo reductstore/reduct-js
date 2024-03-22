@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.2] - 2024-03-22
+
 ### Fixed:
 
 - RS-224: Use https Agent only outside browser environment, [PR-81](https://github.com/reductstore/reduct-js/pull/81/files)
@@ -225,9 +227,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.8.1...HEAD
+[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.9.2...HEAD
 
-[1.8.1]: https://github.com/reduct-storage/reduct-js/compare/v1.8.0...v1.8.1
+[1.9.2]: https://github.com/reduct-storage/reduct-js/compare/v1.9.1...v1.9.2
+
+[1.9.1]: https://github.com/reduct-storage/reduct-js/compare/v1.9.0...v1.9.1
+
+[1.9.0]: https://github.com/reduct-storage/reduct-js/compare/v1.8.0...v1.9.0
 
 [1.8.0]: https://github.com/reduct-storage/reduct-js/compare/v1.7.3...v1.8.0
 
