@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed:
+
+- Update GitHub actions to get rid of warnings, [PR-82](https://github.com/reductstore/reduct-js/pull/82)
+
 ## [1.9.2] - 2024-03-22
 
 ### Fixed:
