@@ -10,9 +10,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
       - name: Build and export
         uses: docker/build-push-action@v5
         with:
@@ -20,7 +20,7 @@ jobs:
           tags: ${{github.repository}}:latest
           outputs: type=docker,dest=/tmp/image.tar
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: image
           path: /tmp/image.tar
@@ -39,6 +39,7 @@ jobs:
         with:
           name: image
           path: /tmp/
+
       - name: Generate license
         run: echo '${{secrets.LICENSE_KEY}}' > lic.key
 
@@ -109,7 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: 17
