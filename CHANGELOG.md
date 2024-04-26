@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update GitHub actions to get rid of warnings, [PR-82](https://github.com/reductstore/reduct-js/pull/82)
 
+### Fixed:
+
+- Batch class in index.ts, [PR-83](https://github.com/reductstore/reduct-js/pull/83)
+
 ## [1.9.2] - 2024-03-22
 
 ### Fixed:
