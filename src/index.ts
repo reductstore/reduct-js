@@ -9,6 +9,7 @@ import {Token, TokenPermissions} from "./messages/Token";
 import {ReplicationInfo} from "./messages/ReplicationInfo";
 import {ReplicationSettings} from "./messages/ReplicationSettings";
 import {FullReplicationInfo} from "./messages/ReplicationInfo";
+import {Batch} from "./Batch";
 
 export {
     Client,
@@ -27,4 +28,5 @@ export {
     ReplicationInfo,
     ReplicationSettings,
     FullReplicationInfo,
+    Batch
 };
