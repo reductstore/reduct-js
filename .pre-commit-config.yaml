@@ -1,32 +1,37 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: check-added-large-files
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
 
--   repo: local
+  - repo: local
     hooks:
-    - id: tsc
-      types_or: [ jsx, ts, tsx ]
-      name: tsc
-      entry: npm
-      language: node
-      pass_filenames: false
-      args:
-        - run
-        - tsc
+      - id: fmt
+        name: fmt
+        entry: npm
+        language: system
+        args:
+          - run
+          - fmt
 
--   repo: local
-    hooks:
-    - id: eslint
-      types_or: [ ts, tsx ]
-      name: eslint
-      entry: npm
-      language: node
-      args:
-        - run
-        - lint
+      - id: tsc
+        types_or: [jsx, ts, tsx]
+        name: tsc
+        entry: npm
+        language: system
+        pass_filenames: false
+        args:
+          - run
+          - tsc
+      - id: eslint
+        types_or: [ts, tsx]
+        name: eslint
+        entry: npm
+        language: system
+        args:
+          - run
+          - lint

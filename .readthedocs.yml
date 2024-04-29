@@ -26,7 +26,6 @@ build:
       - npm exec jsdoc2md lib/cjs/Record.js > docs/api/record.md
       - npm exec jsdoc2md lib/cjs/Batch.js > docs/api/batch.md
 
-
       - rm node_modules -rf # not to waste time
 
 # Build documentation with MkDocs

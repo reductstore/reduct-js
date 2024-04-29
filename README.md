@@ -11,11 +11,11 @@ data stored in ReductStore.
 
 ## Features
 
-* Promise-based API for easy asynchronous programming
-* Support for [ReductStore HTTP API v1.9](https://wwww.reduct.store/docs/http-api)
-* Token-based authentication for secure access to the database
-* Labeling for read-write operations and querying
-* Batch operations for efficient data processing
+- Promise-based API for easy asynchronous programming
+- Support for [ReductStore HTTP API v1.9](https://wwww.reduct.store/docs/http-api)
+- Token-based authentication for secure access to the database
+- Labeling for read-write operations and querying
+- Batch operations for efficient data processing
 
 ## Getting Started
 
@@ -32,32 +32,32 @@ Then, you can use the following example code to start interacting with your Redu
 application:
 
 ```js
-const {Client} = require("reduct-js");
+const { Client } = require("reduct-js");
 
 const client = new Client("http://127.0.0.1:8383");
 
 const main = async () => {
-    // Get or create a bucket in the database
-    const bucket = await client.getOrCreateBucket("bucket");
+  // Get or create a bucket in the database
+  const bucket = await client.getOrCreateBucket("bucket");
 
-    // Write a record to the bucket
-    const timestamp = Date.now() * 1000;
-    let record = await bucket.beginWrite("entry-1", timestamp);
-    await record.write("Hello, World!");
+  // Write a record to the bucket
+  const timestamp = Date.now() * 1000;
+  let record = await bucket.beginWrite("entry-1", timestamp);
+  await record.write("Hello, World!");
 
-    // Read the record back from the bucket
-    record = await bucket.beginRead("entry-1", timestamp);
-    console.log((await record.read()).toString());
+  // Read the record back from the bucket
+  record = await bucket.beginRead("entry-1", timestamp);
+  console.log((await record.read()).toString());
 };
 
 main()
-    .then(() => console.log("done"))
-    .catch((err) => console.error("oops: ", err));
+  .then(() => console.log("done"))
+  .catch((err) => console.error("oops: ", err));
 ```
 
 For more examples, see the [Quick Start](https://js.reduct.store/en/latest/docs/quick-start/).
 
 ## References
 
-* [Documentation](https://js.reduct.store/)
-* [ReductStore HTTP API](https://reduct.store/docs/http-api)
+- [Documentation](https://js.reduct.store/)
+- [ReductStore HTTP API](https://reduct.store/docs/http-api)

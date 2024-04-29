@@ -102,13 +102,13 @@ retrieve. The `start` argument specifies the beginning of the time interval, and
 the time interval. Both arguments are timestamps in UNIX microseconds:
 
 ```javascript
-const startTs = 1609459200000000  // January 1, 2021 at 00:00:00
-const stopTs = 1609827200000000   // January 31, 2021 at 23:59:59
+const startTs = 1609459200000000; // January 1, 2021 at 00:00:00
+const stopTs = 1609827200000000; // January 31, 2021 at 23:59:59
 for await (const record of bucket.query("entry", startTs, stopTs)) {
-    console.log(`Record timestamp: ${record.timestamp}`);
-    console.log(`Record size: ${record.size}`);
-    console.log(`Record content: ${await record.read()}`);
-    //...
+  console.log(`Record timestamp: ${record.timestamp}`);
+  console.log(`Record size: ${record.size}`);
+  console.log(`Record content: ${await record.read()}`);
+  //...
 }
 ```
 

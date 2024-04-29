@@ -1,11 +1,11 @@
 name: ci
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     tags:
-      - 'v*'
+      - "v*"
   pull_request:
-    branches: [ main ]
+    branches: [main]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         token: ["", "token"]
-        reductstore_version: [ "main", "latest" ]
+        reductstore_version: ["main", "latest"]
         license: ["", "/workdir/lic.key"]
     steps:
       - name: Download artifact
@@ -44,10 +44,10 @@ jobs:
         run: echo '${{secrets.LICENSE_KEY}}' > lic.key
 
       - name: Run ReductStore
-        run: docker run -p 8383:8383 -v ${PWD}:/workdir 
-          --env RS_API_TOKEN=${{matrix.token}} 
-          --env RS_LOG_LEVEL=DEBUG 
-          --env RS_LICENSE_PATH=${{matrix.license}} 
+        run: docker run -p 8383:8383 -v ${PWD}:/workdir
+          --env RS_API_TOKEN=${{matrix.token}}
+          --env RS_LOG_LEVEL=DEBUG
+          --env RS_LICENSE_PATH=${{matrix.license}}
           -d reduct/store:${{ matrix.reductstore_version }}
 
       - name: Load image with tests
@@ -55,9 +55,9 @@ jobs:
           docker load --input /tmp/image.tar
           docker image ls -a
       - name: Run tests
-        run: docker run --network=host 
+        run: docker run --network=host
           --env RS_API_TOKEN=${{ matrix.token }}
-          --env RS_LICENSE_PATH=${{matrix.license}} 
+          --env RS_LICENSE_PATH=${{matrix.license}}
           ${{github.repository}} npm test
 
   run_examples:
@@ -86,7 +86,6 @@ jobs:
           docker image ls -a
       - name: Run example
         run: docker run --network=host ${{github.repository}} node examples/${{matrix.example}}
-
 
   lint:
     needs: build

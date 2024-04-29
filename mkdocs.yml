@@ -4,8 +4,8 @@ site_description: ReductStore Client SDK for Java Script
 docs_dir: .
 nav:
   - Home:
-    - README.md
-    - docs/quick-start.md
+      - README.md
+      - docs/quick-start.md
   - API Reference:
       - Client: docs/api/client.md
       - Bucket: docs/api/bucket.md
@@ -16,7 +16,6 @@ nav:
 repo_name: reductstore/reduct-js
 repo_url: https://github.com/reductstore/reduct-js
 edit_uri: edit/main/
-
 
 # Configuration
 theme:
@@ -71,7 +70,6 @@ markdown_extensions:
 
 plugins:
   - same-dir
-
 
 extra:
   analytics:
