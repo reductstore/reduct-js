@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed:
+
+- RS-234: Integrate prettier to CI and reformat code, [PR-84](https://github.com/reductstore/reduct-js/pull/84)
+
 ## [1.9.3] - 2024-04-26
 
 ### Changed:
@@ -231,64 +235,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed:
 
-* QuotaType in index.js, [PR-9](https://github.com/reduct-storage/reduct-js/pull/9)
+- QuotaType in index.js, [PR-9](https://github.com/reduct-storage/reduct-js/pull/9)
 
-## [0.1.0]  - 2022-04-14
+## [0.1.0] - 2022-04-14
 
 - Initial release
 
 [Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.9.3...HEAD
-
 [1.9.3]: https://github.com/reduct-storage/reduct-js/compare/v1.9.2...v1.9.3
-
 [1.9.2]: https://github.com/reduct-storage/reduct-js/compare/v1.9.1...v1.9.2
-
 [1.9.1]: https://github.com/reduct-storage/reduct-js/compare/v1.9.0...v1.9.1
-
 [1.9.0]: https://github.com/reduct-storage/reduct-js/compare/v1.8.0...v1.9.0
-
 [1.8.0]: https://github.com/reduct-storage/reduct-js/compare/v1.7.3...v1.8.0
-
 [1.7.3]: https://github.com/reduct-storage/reduct-js/compare/v1.7.2...v1.7.3
-
 [1.7.2]: https://github.com/reduct-storage/reduct-js/compare/v1.7.1...v1.7.2
-
 [1.7.1]: https://github.com/reduct-storage/reduct-js/compare/v1.7.0...v1.7.1
-
 [1.7.0]: https://github.com/reduct-storage/reduct-js/compare/v1.6.0...v1.7.0
-
 [1.6.0]: https://github.com/reduct-storage/reduct-js/compare/v1.5.0...v1.6.0
-
 [1.5.0]: https://github.com/reduct-storage/reduct-js/compare/v1.4.1...v1.5.0
-
 [1.4.1]: https://github.com/reduct-storage/reduct-js/compare/v1.4.0...v1.4.1
-
 [1.4.0]: https://github.com/reduct-storage/reduct-js/compare/v1.3.0...v1.4.0
-
 [1.3.0]: https://github.com/reduct-storage/reduct-js/compare/v1.2.0...v1.3.0
-
 [1.2.0]: https://github.com/reduct-storage/reduct-js/compare/v1.1.1...v1.2.0
-
 [1.1.1]: https://github.com/reduct-storage/reduct-js/compare/v1.1.0...v1.1.1
-
 [1.1.0]: https://github.com/reduct-storage/reduct-js/compare/v1.0.0...v1.1.0
-
 [1.0.0]: https://github.com/reduct-storage/reduct-js/compare/v0.7.0...v1.0.0
-
 [0.7.0]: https://github.com/reduct-storage/reduct-js/compare/v0.6.0...v0.7.0
-
 [0.6.0]: https://github.com/reduct-storage/reduct-js/compare/v0.5.1...v0.6.0
-
 [0.5.1]: https://github.com/reduct-storage/reduct-js/compare/v0.5.0...v0.5.1
-
 [0.5.0]: https://github.com/reduct-storage/reduct-js/compare/v0.4.1...v0.5.0
-
 [0.4.1]: https://github.com/reduct-storage/reduct-js/compare/v0.4.0...v0.4.1
-
 [0.4.0]: https://github.com/reduct-storage/reduct-js/compare/v0.3.0...v0.4.0
-
 [0.3.0]: https://github.com/reduct-storage/reduct-js/compare/v0.2.0...v0.3.0
-
 [0.2.0]: https://github.com/reduct-storage/reduct-js/compare/v0.1.0...v0.2.0
-
 [0.1.0]: https://github.com/reduct-storage/reduct-js/compare/tag/v0.1.0
