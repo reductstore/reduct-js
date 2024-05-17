@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added:
+
+- RS-261: Add `each_n` and `each_s` query parameters, [PR-85](https://github.com/reductstore/reduct-js/pull/85)
+
 ### Changed:
 
 - RS-234: Integrate prettier to CI and reformat code, [PR-84](https://github.com/reductstore/reduct-js/pull/84)
