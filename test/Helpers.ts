@@ -42,7 +42,7 @@ export const makeClient = (): Client => {
 export const it_api = (version: string) => {
   const resp = request("HEAD", "http://localhost:8383/api/v1/alive");
   const api_version = resp.headers["x-reduct-api"] ?? "0.0";
-  if (isCompatibale(version, api_version)) {
+  if (isCompatibale(version, api_version.toString())) {
     return it;
   } else {
     return it.skip;

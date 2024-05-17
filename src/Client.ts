@@ -300,8 +300,8 @@ export const isCompatibale = (
     return false;
   }
 
-  const [a_major, a_minor] = min_version.split(".");
-  const [b_major, b_minor] = current_version.split(".");
+  const [a_major, a_minor] = min_version.split(".").map((v) => parseInt(v));
+  const [b_major, b_minor] = current_version.split(".").map((v) => parseInt(v));
 
   return a_major === b_major && a_minor <= b_minor;
 };
