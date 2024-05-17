@@ -8,6 +8,7 @@ import { APIError } from "./APIError";
 import { Readable } from "stream";
 import { Buffer } from "buffer";
 import { Batch } from "./Batch";
+import { isCompatibale } from "./Client";
 
 /**
  * Options for querying records
@@ -16,10 +17,12 @@ export interface QueryOptions {
   ttl?: number; // Time to live in seconds
   include?: LabelMap; //  include only record which have all these labels with the same value
   exclude?: LabelMap; //  exclude record which have all these labels with the same value
+  eachS?: number; //  return only one record per S second
+  eachN?: number; //  return each N-th record
+  limit?: number; //  limit number of records
   continuous?: boolean; //  await for new records
   poolInterval?: number; //  interval for pooling new records (only for continue=true)
   head?: boolean; //  return only head of the record
-  limit?: number; //  limit number of records
 }
 
 /**
@@ -222,6 +225,18 @@ export class Bucket {
           params.push(`exclude-${key}=${value}`);
         }
 
+        if (options.eachS !== undefined) {
+          params.push(`each_s=${options.eachS}`);
+        }
+
+        if (options.eachN !== undefined) {
+          params.push(`each_n=${options.eachN}`);
+        }
+
+        if (options.limit !== undefined) {
+          params.push(`limit=${options.limit}`);
+        }
+
         if (options.continuous !== undefined) {
           params.push(`continuous=${options.continuous ? "true" : "false"}`);
           continueQuery = options.continuous;
@@ -237,10 +252,6 @@ export class Bucket {
           }
         }
 
-        if (options.limit !== undefined) {
-          params.push(`limit=${options.limit}`);
-        }
-
         head = options.head ?? false;
       }
     }
@@ -249,7 +260,7 @@ export class Bucket {
     const { data, headers } = await this.httpClient.get(url);
     const { id } = data;
     const header_api_version = headers["x-reduct-api"];
-    if (header_api_version && header_api_version >= "1.5") {
+    if (isCompatibale("1.5", header_api_version)) {
       yield* this.fetchAndParseBatchedRecords(
         entry,
         id,

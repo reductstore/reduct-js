@@ -291,3 +291,17 @@ export class Client {
     await this.httpClient.delete(`/replications/${name}`);
   }
 }
+
+export const isCompatibale = (
+  min_version?: string,
+  current_version?: string,
+): boolean => {
+  if (min_version === undefined || current_version === undefined) {
+    return false;
+  }
+
+  const [a_major, a_minor] = min_version.split(".");
+  const [b_major, b_minor] = current_version.split(".");
+
+  return a_major === b_major && a_minor <= b_minor;
+};

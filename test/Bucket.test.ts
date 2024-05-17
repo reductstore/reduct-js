@@ -35,6 +35,9 @@ describe("Bucket", () => {
 
             rec = await bucket.beginWrite("entry-2", 3000_000n);
             await rec.write("somedata3");
+
+            rec = await bucket.beginWrite("entry-2", 4000_000n);
+            await rec.write("somedata4");
           }),
       )
       .then(() => done());
@@ -45,10 +48,10 @@ describe("Bucket", () => {
     const info: BucketInfo = await bucket.getInfo();
 
     expect(info.name).toEqual("bucket");
-    expect(info.size).toEqual(155n);
+    expect(info.size).toEqual(202n);
     expect(info.entryCount).toEqual(2n);
     expect(info.oldestRecord).toEqual(1000_000n);
-    expect(info.latestRecord).toEqual(3000_000n);
+    expect(info.latestRecord).toEqual(4000_000n);
   });
 
   it("should get/set settings", async () => {
@@ -85,11 +88,11 @@ describe("Bucket", () => {
       },
       {
         blockCount: 1n,
-        latestRecord: 3000000n,
+        latestRecord: 4000000n,
         name: "entry-2",
         oldestRecord: 2000000n,
-        recordCount: 2n,
-        size: 104n,
+        recordCount: 3n,
+        size: 151n,
       },
     ]);
   });
@@ -98,8 +101,8 @@ describe("Bucket", () => {
     const bucket: Bucket = await client.getBucket("bucket");
     const record = await bucket.beginRead("entry-2");
 
-    expect(record).toMatchObject({ size: 9n, time: 3000000n, last: true });
-    expect((await record.read()).toString()).toEqual("somedata3");
+    expect(record).toMatchObject({ size: 9n, time: 4000000n, last: true });
+    expect((await record.read()).toString()).toEqual("somedata4");
   });
 
   it.each([
@@ -215,7 +218,7 @@ describe("Bucket", () => {
         }),
       );
 
-      expect(records.length).toEqual(2);
+      expect(records.length).toEqual(3);
       expect(records[0].time).toEqual(2_000_000n);
       expect(records[0].size).toEqual(9n);
       expect(await records[0].read()).toEqual(
@@ -235,7 +238,7 @@ describe("Bucket", () => {
     let records: ReadableRecord[] = await all(
       bucket.query("entry-2", 3_000_000n),
     );
-    expect(records.length).toEqual(1);
+    expect(records.length).toEqual(2);
 
     records = await all(bucket.query("entry-2", 2_000_000n, 2_000_001n));
     expect(records.length).toEqual(1);
@@ -251,6 +254,25 @@ describe("Bucket", () => {
       bucket.query("entry-2", 0n, undefined, { limit: 1 }),
     );
     expect(records.length).toEqual(1);
+  });
+
+  it_api("1.10")("should query a record each 2 s", async () => {
+    const bucket: Bucket = await client.getBucket("bucket");
+    const records: ReadableRecord[] = await all(
+      bucket.query("entry-2", 0n, undefined, { eachS: 2.0 }),
+    );
+    expect(records.length).toEqual(2);
+    expect(records[0].time).toEqual(2_000_000n);
+    expect(records[1].time).toEqual(4_000_000n);
+  });
+
+  it_api("1.10")("should query each 3d record", async () => {
+    const bucket: Bucket = await client.getBucket("bucket");
+    const records: ReadableRecord[] = await all(
+      bucket.query("entry-2", 0n, undefined, { eachN: 3 }),
+    );
+    expect(records.length).toEqual(1);
+    expect(records[0].time).toEqual(2_000_000n);
   });
 
   it("should query records with labels", async () => {
