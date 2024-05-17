@@ -5,14 +5,13 @@
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/reductstore/reduct-js/ci.yml?branch=main)](https://github.com/reductstore/reduct-js/actions)
 
 The ReductStore Client SDK for JavaScript is an asynchronous HTTP client for interacting with
-a [ReductStore](https://www.reduct.store) instance
-from a JavaScript application. It is written in TypeScript and provides a set of APIs for accessing and manipulating
+a [ReductStore](https://www.reduct.store) instance from a JavaScript application. It is written in TypeScript and provides a set of APIs for accessing and manipulating
 data stored in ReductStore.
 
 ## Features
 
 - Promise-based API for easy asynchronous programming
-- Support for [ReductStore HTTP API v1.9](https://wwww.reduct.store/docs/http-api)
+- Support for [ReductStore HTTP API v1.10](https://wwww.reduct.store/docs/http-api)
 - Token-based authentication for secure access to the database
 - Labeling for read-write operations and querying
 - Batch operations for efficient data processing

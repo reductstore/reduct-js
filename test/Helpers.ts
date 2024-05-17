@@ -1,5 +1,5 @@
 import { Bucket } from "../src/Bucket";
-import { Client } from "../src/Client";
+import { Client, isCompatibale } from "../src/Client";
 import * as process from "process";
 // @ts-ignore
 import request from "sync-request";
@@ -42,7 +42,7 @@ export const makeClient = (): Client => {
 export const it_api = (version: string) => {
   const resp = request("HEAD", "http://localhost:8383/api/v1/alive");
   const api_version = resp.headers["x-reduct-api"] ?? "0.0";
-  if (api_version >= version) {
+  if (isCompatibale(version, api_version.toString())) {
     return it;
   } else {
     return it.skip;
