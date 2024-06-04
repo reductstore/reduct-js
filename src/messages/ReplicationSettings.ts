@@ -1,5 +1,5 @@
 /**
- * Token Permissions with server-side names
+ * Replication settings
  */
 
 export class OriginalReplicationSettings {
@@ -10,6 +10,8 @@ export class OriginalReplicationSettings {
   entries: string[] = [];
   include: Record<string, string> = {};
   exclude: Record<string, string> = {};
+  each_s?: number;
+  each_n?: number;
 }
 
 /**
@@ -52,6 +54,16 @@ export class ReplicationSettings {
    * If a few labels are specified, a record must not include any of them.
    */
   readonly exclude: Record<string, string> = {};
+
+  /**
+   * Replicate a record every S seconds
+   */
+  readonly each_s?: number;
+
+  /**
+   * Replicate every Nth record
+   */
+  readonly each_n?: number;
 
   static parse(data: OriginalReplicationSettings): ReplicationSettings {
     return {
