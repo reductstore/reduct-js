@@ -1,5 +1,5 @@
 /**
- * Token Permissions with server-side names
+ * Replication settings
  */
 
 export class OriginalReplicationSettings {
@@ -10,6 +10,8 @@ export class OriginalReplicationSettings {
   entries: string[] = [];
   include: Record<string, string> = {};
   exclude: Record<string, string> = {};
+  each_s?: number;
+  each_n?: bigint;
 }
 
 /**
@@ -53,13 +55,27 @@ export class ReplicationSettings {
    */
   readonly exclude: Record<string, string> = {};
 
+  /**
+   * Replicate a record every S seconds
+   */
+  readonly each_s?: number;
+
+  /**
+   * Replicate every Nth record
+   */
+  readonly each_n?: bigint;
+
   static parse(data: OriginalReplicationSettings): ReplicationSettings {
     return {
       srcBucket: data.src_bucket,
       dstBucket: data.dst_bucket,
       dstHost: data.dst_host,
       dstToken: data.dst_token,
-      ...data,
+      include: data.include,
+      exclude: data.exclude,
+      entries: data.entries,
+      each_s: data.each_s,
+      each_n: data.each_n ? BigInt(data.each_n) : data.each_n,
     };
   }
 

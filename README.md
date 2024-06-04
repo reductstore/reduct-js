@@ -19,7 +19,7 @@ data stored in ReductStore.
 ## Getting Started
 
 To get started with the ReductStore Client SDK for JavaScript, you'll need to have ReductStore installed and running on
-your machine. You can find instructions for installing ReductStore [here](https://reduct.store/docs/#start-with-docker).
+your machine. You can find instructions for installing ReductStore [here](https://www.reduct.store/docs/getting-started#docker).
 
 Once you have ReductStore up and running, you can install the ReductStore Client SDK for JavaScript using npm:
 
@@ -59,4 +59,4 @@ For more examples, see the [Quick Start](https://js.reduct.store/en/latest/docs/
 ## References
 
 - [Documentation](https://js.reduct.store/)
-- [ReductStore HTTP API](https://reduct.store/docs/http-api)
+- [ReductStore HTTP API](https://www.reduct.store/docs/http-api)

@@ -43,7 +43,7 @@ export class ReplicationInfo {
       name: data.name,
       isActive: data.is_active,
       isProvisioned: data.is_provisioned,
-      pendingRecords: data.pending_records,
+      pendingRecords: BigInt(data.pending_records),
     };
   }
 }
