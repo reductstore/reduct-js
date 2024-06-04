@@ -90,14 +90,14 @@ describe("Replication", () => {
   it_api("1.10")("should support each_n and each_s", async () => {
     await client.createReplication("test-replication", {
       ...settings,
-      each_n: 10,
+      each_n: 10n,
       each_s: 10,
     });
 
     const replication = await client.getReplication("test-replication");
     expect(replication.settings).toMatchObject({
       ...settings,
-      each_n: 10,
+      each_n: 10n,
       each_s: 10,
     });
   });

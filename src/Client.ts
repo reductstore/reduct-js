@@ -43,7 +43,7 @@ export class Client {
   constructor(url: string, options: ClientOptions = {}) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const bigJson = require("json-bigint")({
-      alwaysParseAsBig: true,
+      alwaysParseAsBig: false,
       useNativeBigInt: true,
     });
 

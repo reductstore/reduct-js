@@ -11,7 +11,7 @@ export class OriginalReplicationSettings {
   include: Record<string, string> = {};
   exclude: Record<string, string> = {};
   each_s?: number;
-  each_n?: number;
+  each_n?: bigint;
 }
 
 /**
@@ -63,7 +63,7 @@ export class ReplicationSettings {
   /**
    * Replicate every Nth record
    */
-  readonly each_n?: number;
+  readonly each_n?: bigint;
 
   static parse(data: OriginalReplicationSettings): ReplicationSettings {
     return {
@@ -71,7 +71,11 @@ export class ReplicationSettings {
       dstBucket: data.dst_bucket,
       dstHost: data.dst_host,
       dstToken: data.dst_token,
-      ...data,
+      include: data.include,
+      exclude: data.exclude,
+      entries: data.entries,
+      each_s: data.each_s,
+      each_n: data.each_n ? BigInt(data.each_n) : data.each_n,
     };
   }
 

@@ -32,11 +32,13 @@ export class BucketSettings {
   static parse(data: Original): BucketSettings {
     const { max_block_size, max_block_records, quota_type, quota_size } = data;
     return {
-      maxBlockSize: max_block_size,
-      maxBlockRecords: max_block_records,
+      maxBlockSize:
+        max_block_size !== undefined ? BigInt(max_block_size) : undefined,
+      maxBlockRecords:
+        max_block_records !== undefined ? BigInt(max_block_records) : undefined,
       // @ts-ignore
       quotaType: quota_type !== undefined ? QuotaType[quota_type] : undefined,
-      quotaSize: quota_size,
+      quotaSize: quota_size !== undefined ? BigInt(quota_size) : undefined,
     };
   }
 
