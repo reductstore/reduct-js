@@ -31,32 +31,36 @@ Then, you can use the following example code to start interacting with your Redu
 application:
 
 ```js
-const { Client } = require("reduct-js");
+const { Client, QuotaType } = require("reduct-js");
 
-const client = new Client("http://127.0.0.1:8383");
+// 1. Create a ReductStore client
+const client = new Client("http://127.0.0.1:8383", {
+  apiToken: "my-token",
+});
 
-const main = async () => {
-  // Get or create a bucket in the database
-  const bucket = await client.getOrCreateBucket("bucket");
+// 2. Get or create a bucket with 1Gb quota
+const bucket = await client.getOrCreateBucket("my-bucket", {
+  quotaType: QuotaType.FIFO,
+  quotaSize: BigInt(1e9),
+});
 
-  // Write a record to the bucket
-  const timestamp = Date.now() * 1000;
-  let record = await bucket.beginWrite("entry-1", timestamp);
-  await record.write("Hello, World!");
+// 3. Write some data with timestamps in the 'sensor-1' entry
+const us = (dateString) => BigInt(Date.parse(dateString) * 1000);
+let record = await bucket.beginWrite("sensor-1", us("2021-01-01T00:00:00Z"));
+await record.write("Record #1");
+record = await bucket.beginWrite("sensor-1", us("2021-01-01T00:00:01Z"));
+await record.write("Record #2");
 
-  // Read the record back from the bucket
-  record = await bucket.beginRead("entry-1", timestamp);
-  console.log((await record.read()).toString());
-};
-
-main()
-  .then(() => console.log("done"))
-  .catch((err) => console.error("oops: ", err));
+// 4. Query the data by time range
+for await (const record of bucket.query(
+  "sensor-1",
+  us("2021-01-01T00:00:00Z"),
+  us("2021-01-01T00:00:02Z"),
+)) {
+  console.log(`Record timestamp: ${record.timestamp}`);
+  console.log(`Record size: ${record.size}`);
+  console.log(await record.readAsString());
+}
 ```
 
-For more examples, see the [Quick Start](https://js.reduct.store/en/latest/docs/quick-start/).
-
-## References
-
-- [Documentation](https://js.reduct.store/)
-- [ReductStore HTTP API](https://www.reduct.store/docs/http-api)
+For more examples, see the [Guides](https://reduct.store/docs/guides) section in the ReductStore documentation.
