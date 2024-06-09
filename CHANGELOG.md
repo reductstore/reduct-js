@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed:
 
 - RS-234: Integrate prettier to CI and reformat code, [PR-84](https://github.com/reductstore/reduct-js/pull/84)
+- RS-269: move documentation to main website, [PR-87](https://github.com/reductstore/reduct-js/pull/87)
 
 ## [1.9.3] - 2024-04-26
 
