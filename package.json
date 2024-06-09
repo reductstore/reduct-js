@@ -48,8 +48,6 @@
     "it-all": "^1.0.6",
     "jest": "^27.5.1",
     "jest-config": "^27.5.1",
-    "jsdoc": "^4.0.2",
-    "jsdoc-to-markdown": "^7.1.1",
     "md5": "^2.3.0",
     "prettier": "^3.2.5",
     "sync-request": "^6.1.0",
