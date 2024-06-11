@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2024-06-11
+
 ### Added:
 
 - RS-261: add `each_n` and `each_s` query parameters, [PR-85](https://github.com/reductstore/reduct-js/pull/85)
@@ -247,7 +249,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.9.3...HEAD
+[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/reduct-storage/reduct-js/compare/v1.9.3...v1.10.0
 [1.9.3]: https://github.com/reduct-storage/reduct-js/compare/v1.9.2...v1.9.3
 [1.9.2]: https://github.com/reduct-storage/reduct-js/compare/v1.9.1...v1.9.2
 [1.9.1]: https://github.com/reduct-storage/reduct-js/compare/v1.9.0...v1.9.1
