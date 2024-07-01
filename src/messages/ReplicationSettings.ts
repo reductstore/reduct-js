@@ -58,12 +58,12 @@ export class ReplicationSettings {
   /**
    * Replicate a record every S seconds
    */
-  readonly each_s?: number;
+  readonly eachS?: number;
 
   /**
    * Replicate every Nth record
    */
-  readonly each_n?: bigint;
+  readonly eachN?: bigint;
 
   static parse(data: OriginalReplicationSettings): ReplicationSettings {
     return {
@@ -74,8 +74,8 @@ export class ReplicationSettings {
       include: data.include,
       exclude: data.exclude,
       entries: data.entries,
-      each_s: data.each_s,
-      each_n: data.each_n ? BigInt(data.each_n) : data.each_n,
+      eachS: data.each_s,
+      eachN: data.each_n ? BigInt(data.each_n) : data.each_n,
     };
   }
 
@@ -85,6 +85,8 @@ export class ReplicationSettings {
       dst_bucket: data.dstBucket,
       dst_host: data.dstHost,
       dst_token: data.dstToken,
+      each_s: data.eachS,
+      each_n: data.eachN,
       ...data,
     };
   }

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed:
+
+- RS-319: fix name convention for replication settings, [PR-88](https://github.com/reductstore/reduct-js/pull/88)
+
 ## [1.10.0] - 2024-06-11
 
 ### Added:
