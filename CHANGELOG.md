@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added:
+
+- RS-31: `Bucket.update` and `Bucket.beginUpdateBatch` methods for changing labels, [PR-89](https://github.com/reductstore/reduct-js/pull/89)
+
 ## [1.10.1] - 2024-07-01
 
 ### Fixed:
