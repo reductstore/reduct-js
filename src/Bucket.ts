@@ -7,7 +7,7 @@ import { LabelMap, ReadableRecord, WritableRecord } from "./Record";
 import { APIError } from "./APIError";
 import { Readable } from "stream";
 import { Buffer } from "buffer";
-import { Batch } from "./Batch";
+import { Batch, BatchType } from "./Batch";
 import { isCompatibale } from "./Client";
 
 /**
@@ -476,7 +476,15 @@ export class Bucket {
    * @param entry
    */
   async beginWriteBatch(entry: string): Promise<Batch> {
-    return new Batch(this.name, entry, this.httpClient);
+    return new Batch(this.name, entry, this.httpClient, BatchType.WRITE);
+  }
+
+  /**
+   * Create a new batch for updating records in the database.
+   * @param entry
+   */
+  async beginUpdateBatch(entry: string): Promise<Batch> {
+    return new Batch(this.name, entry, this.httpClient, BatchType.UPDATE);
   }
 }
 

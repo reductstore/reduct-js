@@ -208,7 +208,7 @@ describe("Bucket", () => {
     expect(readRecord.contentType).toEqual("text/plain");
   });
 
-  it("should update labels", async () => {
+  it_api("1.11")("should update labels", async () => {
     const bucket: Bucket = await client.getBucket("bucket");
     const ts = 1000_000n;
 
@@ -381,6 +381,19 @@ describe("Bucket", () => {
     expect(errors.size).toEqual(1);
     expect(errors.get(1000_000n)).toEqual(
       new APIError("A record with timestamp 1000000 already exists", 409),
+    );
+  });
+
+  it_api("1.11")("should update labels in a batch", async () => {
+    const bucket: Bucket = await client.getBucket("bucket");
+
+    const batch = await bucket.beginUpdateBatch("entry-1");
+    batch.addOnlyLabels(1000_000n, { label1: "value1", label2: "" });
+    batch.addOnlyLabels(20_000_000n, {});
+    const errors = await batch.write();
+    expect(errors.size).toEqual(1);
+    expect(errors.get(20_000_000n)).toEqual(
+      new APIError("No record with timestamp 20000000", 404),
     );
   });
 });

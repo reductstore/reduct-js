@@ -8,10 +8,16 @@ import Stream from "stream";
  * Represents a batch of records for writing
  */
 
+export enum BatchType {
+  WRITE,
+  UPDATE,
+}
+
 export class Batch {
   private readonly bucketName: string;
   private readonly entryName: string;
   private readonly httpClient: AxiosInstance;
+  private readonly type: BatchType;
 
   private readonly records: Map<
     bigint,
@@ -26,11 +32,13 @@ export class Batch {
     bucketName: string,
     entryName: string,
     httpClient: AxiosInstance,
+    type: BatchType,
   ) {
     this.bucketName = bucketName;
     this.entryName = entryName;
     this.httpClient = httpClient;
     this.records = new Map();
+    this.type = type;
   }
 
   /**
@@ -57,8 +65,23 @@ export class Batch {
   }
 
   /**
+   * Add only labels to batch
+   * Use for updating labels
+   * @param ts
+   * @param labels
+   */
+  public addOnlyLabels(ts: bigint, labels: LabelMap): void {
+    this.records.set(ts, {
+      data: Buffer.from(""),
+      contentType: "",
+      labels: labels,
+    });
+  }
+
+  /**
    * Write batch to entry
    */
+
   public async write(): Promise<Map<bigint, APIError>> {
     const headers: Record<string, string> = {};
     const chunks: Buffer[] = [];
@@ -67,7 +90,11 @@ export class Batch {
       contentLength += data.length;
       chunks.push(data);
       const headerName = `x-reduct-time-${ts}`;
-      let headerValue = `${data.length},${contentType}`;
+
+      let headerValue = "0,";
+      if (this.type == BatchType.WRITE) {
+        headerValue = `${data.length},${contentType}`;
+      }
 
       for (const [key, value] of Object.entries(labels)) {
         if (value.toString().includes(",")) {
@@ -80,17 +107,29 @@ export class Batch {
       headers[headerName] = headerValue;
     }
 
-    headers["Content-Length"] = contentLength.toString();
-    headers["Content-Type"] = "application/octet-stream";
+    let response;
+    if (this.type == BatchType.UPDATE) {
+      headers["Content-Length"] = "0";
+      response = await this.httpClient.patch(
+        `/b/${this.bucketName}/${this.entryName}/batch`,
+        "",
+        {
+          headers,
+        },
+      );
+    } else {
+      headers["Content-Length"] = contentLength.toString();
+      headers["Content-Type"] = "application/octet-stream";
 
-    const stream = Stream.Readable.from(chunks);
-    const response = await this.httpClient.post(
-      `/b/${this.bucketName}/${this.entryName}/batch`,
-      stream,
-      {
-        headers: headers,
-      },
-    );
+      const stream = Stream.Readable.from(chunks);
+      response = await this.httpClient.post(
+        `/b/${this.bucketName}/${this.entryName}/batch`,
+        stream,
+        {
+          headers,
+        },
+      );
+    }
 
     const errors = new Map<bigint, APIError>();
     for (const [key, value] of Object.entries(
