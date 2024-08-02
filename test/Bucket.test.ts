@@ -27,7 +27,10 @@ describe("Bucket", () => {
             quotaType: QuotaType.NONE,
           })
           .then(async (bucket: Bucket) => {
-            let rec = await bucket.beginWrite("entry-1", 1000_000n);
+            let rec = await bucket.beginWrite("entry-1", {
+              ts: 1000_000n,
+              labels: { label1: "label1", label2: 100n, label3: true },
+            });
             await rec.write("somedata1");
 
             rec = await bucket.beginWrite("entry-2", 2000_000n);
@@ -48,7 +51,7 @@ describe("Bucket", () => {
     const info: BucketInfo = await bucket.getInfo();
 
     expect(info.name).toEqual("bucket");
-    expect(info.size).toEqual(202n);
+    expect(info.size).toEqual(251n);
     expect(info.entryCount).toEqual(2n);
     expect(info.oldestRecord).toEqual(1000_000n);
     expect(info.latestRecord).toEqual(4000_000n);
@@ -84,7 +87,7 @@ describe("Bucket", () => {
         name: "entry-1",
         oldestRecord: 1000000n,
         recordCount: 1n,
-        size: 51n,
+        size: 100n,
       },
       {
         blockCount: 1n,
@@ -203,6 +206,18 @@ describe("Bucket", () => {
 
     const readRecord = await bucket.beginRead("entry-1");
     expect(readRecord.contentType).toEqual("text/plain");
+  });
+
+  it("should update labels", async () => {
+    const bucket: Bucket = await client.getBucket("bucket");
+    const ts = 1000_000n;
+
+    await bucket.update("entry-1", ts, { label1: "label1", label2: "" });
+    const readRecord = await bucket.beginRead("entry-1", ts);
+    expect(readRecord.labels).toEqual({
+      label1: "label1",
+      label3: "true",
+    });
   });
 
   it.each([

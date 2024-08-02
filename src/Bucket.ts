@@ -128,7 +128,7 @@ export class Bucket {
    *  labels: {label1: "value1", label2: "value2"}
    *  contentType: "text/plain"
    * );
-   * await record.write("Hello!);
+   * await record.write("Hello!");
    */
   async beginWrite(
     entry: string,
@@ -147,6 +147,29 @@ export class Bucket {
     return Promise.resolve(
       new WritableRecord(this.name, entry, localOptions, this.httpClient),
     );
+  }
+
+  /**
+   * Update labels of an existing record
+   *
+   * If a label has empty string value, it will be removed.
+   *
+   * @param entry {string} name of the entry
+   * @param ts {BigInt} timestamp of record in microseconds
+   * @param labels {LabelMap} labels to update
+   */
+  async update(entry: string, ts: bigint, labels: LabelMap): Promise<void> {
+    const headers: Record<string, string> = {
+      "Content-Length": "0",
+    };
+
+    for (const [key, value] of Object.entries(labels)) {
+      headers[`x-reduct-label-${key}`] = value.toString();
+    }
+
+    await this.httpClient.patch(`/b/${this.name}/${entry}?ts=${ts}`, "", {
+      headers,
+    });
   }
 
   /**
