@@ -40,6 +40,7 @@ export interface WriteOptions {
 export class Bucket {
   readonly name: string;
   private httpClient: AxiosInstance;
+  private isBrowser: boolean;
 
   /**
    * Create a bucket. Use Client.creatBucket or Client.getBucket instead it
@@ -51,6 +52,7 @@ export class Bucket {
   constructor(name: string, httpClient: AxiosInstance) {
     this.name = name;
     this.httpClient = httpClient;
+    this.isBrowser = typeof window !== "undefined";
     this.readRecord = this.readRecord.bind(this);
   }
 
@@ -283,7 +285,7 @@ export class Bucket {
     const { data, headers } = await this.httpClient.get(url);
     const { id } = data;
     const header_api_version = headers["x-reduct-api"];
-    if (isCompatibale("1.5", header_api_version)) {
+    if (isCompatibale("1.5", header_api_version) && !this.isBrowser) {
       yield* this.fetchAndParseBatchedRecords(
         entry,
         id,
@@ -345,7 +347,9 @@ export class Bucket {
     const request = head ? this.httpClient.head : this.httpClient.get;
     const { status, headers, data } = await request(
       `/b/${this.name}/${entry}?${param}`,
-      { responseType: "stream" },
+      {
+        responseType: this.isBrowser ? "arraybuffer" : "stream",
+      },
     );
 
     if (status === 204) {
