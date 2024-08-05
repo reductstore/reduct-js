@@ -1,5 +1,5 @@
 import Stream from "stream";
-import { Buffer } from 'buffer';
+import { Buffer } from "buffer";
 // @ts-ignore`
 import { AxiosInstance } from "axios";
 import { WriteOptions } from "./Bucket";
@@ -45,7 +45,7 @@ export class ReadableRecord {
       const chunks: Buffer[] = [];
       return new Promise((resolve, reject) => {
         (this.stream as Stream).on("data", (chunk: Buffer) =>
-          chunks.push(chunk)
+          chunks.push(chunk),
         );
         (this.stream as Stream).on("error", (err: Error) => reject(err));
         (this.stream as Stream).on("end", () => resolve(Buffer.concat(chunks)));
