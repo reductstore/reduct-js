@@ -136,7 +136,7 @@ describe("Bucket", () => {
     const record = await bucket.beginWrite("big-blob");
     await record.write(Stream.Readable.from(bigBlob), bigBlob.length);
 
-    const readStream: Stream = (await bucket.beginRead("big-blob")).stream;
+    const readStream = (await bucket.beginRead("big-blob")).stream as Stream;
 
     const actual: Buffer = await new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
