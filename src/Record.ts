@@ -1,4 +1,5 @@
 import Stream from "stream";
+import { Buffer } from 'buffer';
 // @ts-ignore`
 import { AxiosInstance } from "axios";
 import { WriteOptions } from "./Bucket";
@@ -12,7 +13,7 @@ export class ReadableRecord {
   public readonly time: bigint;
   public readonly size: bigint;
   public readonly last: boolean;
-  public readonly stream: Stream;
+  public readonly stream: Stream | ArrayBuffer;
   public readonly labels: LabelMap = {};
   public readonly contentType: string | undefined;
 
@@ -24,7 +25,7 @@ export class ReadableRecord {
     time: bigint,
     size: bigint,
     last: boolean,
-    stream: Stream,
+    stream: Stream | ArrayBuffer,
     labels: LabelMap,
     contentType?: string,
   ) {
@@ -40,12 +41,26 @@ export class ReadableRecord {
    * Read content of record
    */
   public async read(): Promise<Buffer> {
-    const chunks: Buffer[] = [];
-    return new Promise((resolve, reject) => {
-      this.stream.on("data", (chunk: Buffer) => chunks.push(chunk));
-      this.stream.on("error", (err: Error) => reject(err));
-      this.stream.on("end", () => resolve(Buffer.concat(chunks)));
-    });
+    if (this.stream instanceof Stream) {
+      const chunks: Buffer[] = [];
+      return new Promise((resolve, reject) => {
+        (this.stream as Stream).on("data", (chunk: Buffer) =>
+          chunks.push(chunk)
+        );
+        (this.stream as Stream).on("error", (err: Error) => reject(err));
+        (this.stream as Stream).on("end", () => resolve(Buffer.concat(chunks)));
+      });
+    } else if (this.stream instanceof ArrayBuffer) {
+      return new Promise((resolve, reject) => {
+        try {
+          resolve(Buffer.from(this.stream as ArrayBuffer));
+        } catch (error) {
+          reject(error);
+        }
+      });
+    } else {
+      throw new Error("Stream is not supported");
+    }
   }
 
   /**
