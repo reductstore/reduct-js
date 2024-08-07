@@ -345,7 +345,7 @@ export class Bucket {
     const request = head ? this.httpClient.head : this.httpClient.get;
     const { status, headers, data } = await request(
       `/b/${this.name}/${entry}?${param}`,
-      { responseType: "stream" },
+      head ? undefined : { responseType: "stream" },
     );
 
     if (status === 204) {
@@ -410,7 +410,7 @@ export class Bucket {
     const request = head ? this.httpClient.head : this.httpClient.get;
     const { status, headers, data } = await request(
       `/b/${this.name}/${entry}/batch?q=${id}`,
-      { responseType: "stream" },
+      head ? undefined : { responseType: "stream" },
     );
 
     if (status === 204) {
