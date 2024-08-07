@@ -5,15 +5,15 @@ import { QuotaType } from "../src/messages/BucketSettings";
 import { cleanStorage, it_env, makeClient } from "./Helpers";
 
 test("Client should raise network error", async () => {
-  const client: Client = new Client("http://127.0.0.2:80");
+  const client: Client = new Client("http://127.0.0.1:9999");
 
   await expect(client.getInfo()).rejects.toMatchObject({
-    message: "connect ECONNREFUSED 127.0.0.2:80",
+    message: "connect ECONNREFUSED 127.0.0.1:9999",
   });
 });
 
 test("Client should raise timeout error", async () => {
-  const client: Client = new Client("http://somedomain.xxx", { timeout: 10 });
+  const client: Client = new Client("http://somedomain.com", { timeout: 10 });
 
   await expect(client.getInfo()).rejects.toMatchObject({
     message: "timeout of 10ms exceeded",
