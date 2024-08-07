@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RS-31: `Bucket.update` and `Bucket.beginUpdateBatch` methods for changing labels, [PR-89](https://github.com/reductstore/reduct-js/pull/89)
 - RS-394: Add query support for browser, [PR-90](https://github.com/reductstore/reduct-js/pull/90)
 
+### Fixed:
+
+- Hanging HEAD requests, [PR-91](https://github.com/reductstore/reduct-js/pull/91)
+
 ## [1.10.1] - 2024-07-01
 
 ### Fixed:
