@@ -348,9 +348,11 @@ export class Bucket {
     const request = head ? this.httpClient.head : this.httpClient.get;
     const { status, headers, data } = await request(
       `/b/${this.name}/${entry}?${param}`,
-      {
-        responseType: this.isBrowser ? "arraybuffer" : "stream",
-      },
+      head
+        ? undefined
+        : {
+            responseType: this.isBrowser ? "arraybuffer" : "stream",
+          },
     );
 
     if (status === 204) {
@@ -365,6 +367,7 @@ export class Bucket {
         labels[key.substring(15)] = value;
       }
     }
+
     if (this.isBrowser) {
       // Pass a dummy Stream object and use ArrayBuffer
       const arrayBuffer = data as ArrayBuffer;
@@ -372,6 +375,7 @@ export class Bucket {
         BigInt(headers["x-reduct-time"] ?? 0),
         BigInt(headers["content-length"] ?? 0),
         headers["x-reduct-last"] == "1",
+        head,
         new Stream.Readable(),
         labels,
         headers["content-type"] ?? "application/octet-stream",
@@ -384,6 +388,7 @@ export class Bucket {
         BigInt(headers["x-reduct-time"] ?? 0),
         BigInt(headers["content-length"] ?? 0),
         headers["x-reduct-last"] == "1",
+        head,
         stream,
         labels,
         headers["content-type"] ?? "application/octet-stream",
@@ -430,7 +435,7 @@ export class Bucket {
     const request = head ? this.httpClient.head : this.httpClient.get;
     const { status, headers, data } = await request(
       `/b/${this.name}/${entry}/batch?q=${id}`,
-      { responseType: "stream" },
+      head ? undefined : { responseType: "stream" },
     );
 
     if (status === 204) {
@@ -484,6 +489,7 @@ export class Bucket {
         BigInt(ts),
         size,
         last,
+        head,
         stream,
         labels,
         contentType,

@@ -26,6 +26,7 @@ export class ReadableRecord {
     time: bigint,
     size: bigint,
     last: boolean,
+    head: boolean,
     stream: Stream,
     labels: LabelMap,
     contentType?: string,
@@ -38,6 +39,10 @@ export class ReadableRecord {
     this.labels = labels;
     this.contentType = contentType;
     this.arrayBuffer = arrayBuffer;
+
+    if (head) {
+      (this.arrayBuffer as ArrayBuffer) = new ArrayBuffer(0);
+    }
   }
 
   /**
