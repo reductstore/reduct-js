@@ -51,7 +51,7 @@ describe("Bucket", () => {
     const info: BucketInfo = await bucket.getInfo();
 
     expect(info.name).toEqual("bucket");
-    expect(info.size).toEqual(251n);
+    expect(info.size).toEqual(217n);
     expect(info.entryCount).toEqual(2n);
     expect(info.oldestRecord).toEqual(1000_000n);
     expect(info.latestRecord).toEqual(4000_000n);
@@ -87,7 +87,7 @@ describe("Bucket", () => {
         name: "entry-1",
         oldestRecord: 1000000n,
         recordCount: 1n,
-        size: 100n,
+        size: 90n,
       },
       {
         blockCount: 1n,
@@ -95,7 +95,7 @@ describe("Bucket", () => {
         name: "entry-2",
         oldestRecord: 2000000n,
         recordCount: 3n,
-        size: 151n,
+        size: 127n,
       },
     ]);
   });

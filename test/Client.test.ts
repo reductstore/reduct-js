@@ -52,7 +52,7 @@ describe("Client", () => {
     expect(info.version >= "1.10.0").toBeTruthy();
 
     expect(info.bucketCount).toEqual(2n);
-    expect(info.usage).toEqual(102n);
+    expect(info.usage).toEqual(82n);
     expect(info.uptime).toBeGreaterThanOrEqual(0);
     expect(info.oldestRecord).toEqual(1000_000n);
     expect(info.latestRecord).toEqual(2000_000n);
