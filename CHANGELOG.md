@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added:
+
+- RS-418: `Bucket.reomveRecord`, `Bucket.beginRemoveBatch` and `Bucket.removeQuery` methods to remove records, [PR-92](https://github.com/reductstore/reduct-js/pull/92)
+
 ## [1.11.0] - 2024-08-20
 
 ### Added:

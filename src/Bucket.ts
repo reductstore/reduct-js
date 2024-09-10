@@ -5,11 +5,10 @@ import { BucketInfo } from "./messages/BucketInfo";
 import { EntryInfo } from "./messages/EntryInfo";
 import { LabelMap, ReadableRecord, WritableRecord } from "./Record";
 import { APIError } from "./APIError";
-import { Readable } from "stream";
+import Stream, { Readable } from "stream";
 import { Buffer } from "buffer";
 import { Batch, BatchType } from "./Batch";
 import { isCompatibale } from "./Client";
-import Stream from "stream";
 
 /**
  * Options for querying records
@@ -22,7 +21,7 @@ export interface QueryOptions {
   eachN?: number; //  return each N-th record
   limit?: number; //  limit number of records
   continuous?: boolean; //  await for new records
-  poolInterval?: number; //  interval for pooling new records (only for continue=true)
+  pollInterval?: number; //  interval for polling new records (only for continue=true)
   head?: boolean; //  return only head of the record
 }
 
@@ -118,6 +117,45 @@ export class Bucket {
    */
   async removeEntry(entry: string): Promise<void> {
     await this.httpClient.delete(`/b/${this.name}/${entry}`);
+  }
+
+  /**
+   * Remove a record
+   * @param entry {string} name of the entry
+   * @param ts {BigInt} timestamp of record in microseconds
+   */
+  async removeRecord(entry: string, ts: bigint): Promise<void> {
+    await this.httpClient.delete(`/b/${this.name}/${entry}?ts=${ts}`);
+  }
+
+  /**
+   * Remove a batch of records
+   * @param entry {string} name of the entry
+   * @param tsList {BigInt[]} list of timestamps of records in microseconds
+   */
+  async beginRemoveBatch(entry: string): Promise<Batch> {
+    return new Batch(this.name, entry, this.httpClient, BatchType.REMOVE);
+  }
+
+  /**
+   * Remove records by query
+   * @param entry {string} name of the entry
+   * @param start {BigInt} start point of the time period, if undefined, the query starts from the first record
+   * @param stop  {BigInt} stop point of the time period. If undefined, the query stops at the last record
+   * @param QueryOptions {QueryOptions} options for query. You can use only include, exclude, eachS, eachN other options are ignored
+   */
+  async removeQuery(
+    entry: string,
+    start?: bigint,
+    stop?: bigint,
+    QueryOptions?: QueryOptions,
+  ): Promise<void> {
+    const ret = this.parse_query_params(start, stop, QueryOptions);
+
+    const { data } = await this.httpClient.delete(
+      `/b/${this.name}/${entry}/q?${ret.query}`,
+    );
+    return Promise.resolve(data["removed_records"]);
   }
 
   /**
@@ -217,9 +255,39 @@ export class Bucket {
     stop?: bigint,
     options?: number | QueryOptions,
   ): AsyncGenerator<ReadableRecord> {
-    const params: string[] = [];
+    const ret = this.parse_query_params(start, stop, options);
+
+    const url = `/b/${this.name}/${entry}/q?` + ret.query;
+    const { data, headers } = await this.httpClient.get(url);
+    const { id } = data;
+    const header_api_version = headers["x-reduct-api"];
+    if (isCompatibale("1.5", header_api_version) && !this.isBrowser) {
+      yield* this.fetchAndParseBatchedRecords(
+        entry,
+        id,
+        ret.continuous,
+        ret.pollInterval,
+        ret.head,
+      );
+    } else {
+      yield* this.fetchAndParseSingleRecord(
+        entry,
+        id,
+        ret.continuous,
+        ret.pollInterval,
+        ret.head,
+      );
+    }
+  }
+
+  private parse_query_params(
+    start?: bigint,
+    stop?: bigint,
+    options?: QueryOptions | number,
+  ) {
     let continueQuery = false;
     let poolInterval = 1;
+    const params: string[] = [];
     let head = false;
 
     if (start !== undefined) {
@@ -267,9 +335,9 @@ export class Bucket {
           params.push(`continuous=${options.continuous ? "true" : "false"}`);
           continueQuery = options.continuous;
 
-          if (options.poolInterval !== undefined) {
+          if (options.pollInterval !== undefined) {
             // eslint-disable-next-line prefer-destructuring
-            poolInterval = options.poolInterval;
+            poolInterval = options.pollInterval;
           }
 
           // Set default TTL for continue query as 2 * poolInterval
@@ -277,39 +345,25 @@ export class Bucket {
             params.push(`ttl=${poolInterval * 2}`);
           }
         }
-
+        continueQuery = options.continuous ?? false;
+        poolInterval = options.pollInterval ?? 1;
         head = options.head ?? false;
       }
     }
 
-    const url = `/b/${this.name}/${entry}/q?` + params.join("&");
-    const { data, headers } = await this.httpClient.get(url);
-    const { id } = data;
-    const header_api_version = headers["x-reduct-api"];
-    if (isCompatibale("1.5", header_api_version) && !this.isBrowser) {
-      yield* this.fetchAndParseBatchedRecords(
-        entry,
-        id,
-        continueQuery,
-        poolInterval,
-        head,
-      );
-    } else {
-      yield* this.fetchAndParseSingleRecord(
-        entry,
-        id,
-        continueQuery,
-        poolInterval,
-        head,
-      );
-    }
+    return {
+      continuous: continueQuery,
+      pollInterval: poolInterval,
+      head: head,
+      query: params.join("&"),
+    };
   }
 
   private async *fetchAndParseSingleRecord(
     entry: string,
     id: string,
     continueQuery: boolean,
-    poolInterval: number,
+    pollInterval: number,
     head: boolean,
   ) {
     while (true) {
@@ -320,7 +374,7 @@ export class Bucket {
         if (e instanceof APIError && e.status === 204) {
           if (continueQuery) {
             await new Promise((resolve) =>
-              setTimeout(resolve, poolInterval * 1000),
+              setTimeout(resolve, pollInterval * 1000),
             );
             continue;
           }

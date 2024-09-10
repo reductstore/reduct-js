@@ -11,6 +11,7 @@ import Stream from "stream";
 export enum BatchType {
   WRITE,
   UPDATE,
+  REMOVE,
 }
 
 export class Batch {
@@ -67,7 +68,7 @@ export class Batch {
   /**
    * Add only labels to batch
    * Use for updating labels
-   * @param ts
+   * @param ts timestamp of record as a UNIX timestamp in microseconds
    * @param labels
    */
   public addOnlyLabels(ts: bigint, labels: LabelMap): void {
@@ -75,6 +76,19 @@ export class Batch {
       data: Buffer.from(""),
       contentType: "",
       labels: labels,
+    });
+  }
+
+  /**
+   * Add only timestamp to batch
+   * Use for removing records
+   * @param ts timestamp of record as a UNIX timestamp in microseconds
+   */
+  public addOnlyTimestamp(ts: bigint): void {
+    this.records.set(ts, {
+      data: Buffer.from(""),
+      contentType: "",
+      labels: {},
     });
   }
 
@@ -108,27 +122,40 @@ export class Batch {
     }
 
     let response;
-    if (this.type == BatchType.UPDATE) {
-      headers["Content-Length"] = "0";
-      response = await this.httpClient.patch(
-        `/b/${this.bucketName}/${this.entryName}/batch`,
-        "",
-        {
-          headers,
-        },
-      );
-    } else {
-      headers["Content-Length"] = contentLength.toString();
-      headers["Content-Type"] = "application/octet-stream";
+    switch (this.type) {
+      case BatchType.WRITE: {
+        headers["Content-Length"] = contentLength.toString();
+        headers["Content-Type"] = "application/octet-stream";
 
-      const stream = Stream.Readable.from(chunks);
-      response = await this.httpClient.post(
-        `/b/${this.bucketName}/${this.entryName}/batch`,
-        stream,
-        {
-          headers,
-        },
-      );
+        const stream = Stream.Readable.from(chunks);
+        response = await this.httpClient.post(
+          `/b/${this.bucketName}/${this.entryName}/batch`,
+          stream,
+          {
+            headers,
+          },
+        );
+        break;
+      }
+      case BatchType.UPDATE:
+        headers["Content-Length"] = "0";
+        response = await this.httpClient.patch(
+          `/b/${this.bucketName}/${this.entryName}/batch`,
+          "",
+          {
+            headers,
+          },
+        );
+        break;
+      case BatchType.REMOVE:
+        headers["Content-Length"] = "0";
+        response = await this.httpClient.delete(
+          `/b/${this.bucketName}/${this.entryName}/batch`,
+          {
+            headers,
+          },
+        );
+        break;
     }
 
     const errors = new Map<bigint, APIError>();
