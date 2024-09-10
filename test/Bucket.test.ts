@@ -408,6 +408,27 @@ describe("Bucket", () => {
         new APIError("No record with timestamp 5000000", 404),
       );
     });
+
+    it_api("1.12")("should remove records by query", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      const removed = await bucket.removeQuery(
+        "entry-2",
+        1_000_000n,
+        3_000_000n,
+        { eachN: 2 },
+      );
+      expect(removed).toEqual(1);
+      await expect(
+        bucket.beginRead("entry-2", 2000_000n),
+      ).rejects.toMatchObject({
+        status: 404,
+      });
+
+      const records: ReadableRecord[] = await all(bucket.query("entry-2"));
+      expect(records.length).toEqual(2);
+      expect(records[0].time).toEqual(3000000n);
+      expect(records[1].time).toEqual(4000000n);
+    });
   });
 
   describe("update", () => {
