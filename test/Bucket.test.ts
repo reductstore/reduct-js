@@ -394,6 +394,20 @@ describe("Bucket", () => {
         status: 404,
       });
     });
+
+    it_api("1.12")("should remove a batch of records", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      const batch = await bucket.beginRemoveBatch("entry-2");
+      batch.addOnlyTimestamp(2000_000n);
+      batch.addOnlyTimestamp(3000_000n);
+      batch.addOnlyTimestamp(5000_000n);
+
+      const errors = await batch.write();
+      expect(errors.size).toEqual(1);
+      expect(errors.get(5000_000n)).toEqual(
+        new APIError("No record with timestamp 5000000", 404),
+      );
+    });
   });
 
   describe("update", () => {
@@ -403,6 +417,7 @@ describe("Bucket", () => {
       const batch = await bucket.beginUpdateBatch("entry-1");
       batch.addOnlyLabels(1000_000n, { label1: "value1", label2: "" });
       batch.addOnlyLabels(20_000_000n, {});
+
       const errors = await batch.write();
       expect(errors.size).toEqual(1);
       expect(errors.get(20_000_000n)).toEqual(

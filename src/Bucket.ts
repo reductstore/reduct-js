@@ -5,11 +5,10 @@ import { BucketInfo } from "./messages/BucketInfo";
 import { EntryInfo } from "./messages/EntryInfo";
 import { LabelMap, ReadableRecord, WritableRecord } from "./Record";
 import { APIError } from "./APIError";
-import { Readable } from "stream";
+import Stream, { Readable } from "stream";
 import { Buffer } from "buffer";
 import { Batch, BatchType } from "./Batch";
 import { isCompatibale } from "./Client";
-import Stream from "stream";
 
 /**
  * Options for querying records
@@ -127,6 +126,15 @@ export class Bucket {
    */
   async removeRecord(entry: string, ts: bigint): Promise<void> {
     await this.httpClient.delete(`/b/${this.name}/${entry}?ts=${ts}`);
+  }
+
+  /**
+   * Remove a batch of records
+   * @param entry {string} name of the entry
+   * @param tsList {BigInt[]} list of timestamps of records in microseconds
+   */
+  async beginRemoveBatch(entry: string): Promise<Batch> {
+    return new Batch(this.name, entry, this.httpClient, BatchType.REMOVE);
   }
 
   /**
