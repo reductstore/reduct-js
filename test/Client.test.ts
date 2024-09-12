@@ -2,7 +2,7 @@ import { Client } from "../src/Client";
 import { ServerInfo } from "../src/messages/ServerInfo";
 import { Bucket } from "../src/Bucket";
 import { QuotaType } from "../src/messages/BucketSettings";
-import { cleanStorage, it_env, makeClient } from "./Helpers";
+import { cleanStorage, it_api, it_env, makeClient } from "./Helpers";
 
 test("Client should raise network error", async () => {
   const client: Client = new Client("http://127.0.0.1:9999");
@@ -127,6 +127,19 @@ describe("Client", () => {
       quotaType: QuotaType.FIFO,
     });
   });
+
+  it_api("1.12").each([QuotaType.NONE, QuotaType.FIFO, QuotaType.HARD])(
+    "should create a bucket with quota type %s",
+    async (quotaType) => {
+      const bucket = await client.createBucket("bucket", {
+        quotaType,
+        quotaSize: 1024n,
+      });
+      await expect(bucket.getSettings()).resolves.toMatchObject({
+        quotaType,
+      });
+    },
+  );
 
   it("should create a bucket with error", async () => {
     await client.createBucket("bucket");
