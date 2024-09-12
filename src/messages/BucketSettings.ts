@@ -1,6 +1,7 @@
 export enum QuotaType {
   NONE,
   FIFO,
+  HARD,
 }
 
 /**
