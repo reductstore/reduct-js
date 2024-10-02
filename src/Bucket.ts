@@ -251,10 +251,10 @@ export class Bucket {
     );
   }
 
-    /**
-     * Rename a bucket
-     * @param newName new name of the bucket
-     */
+  /**
+   * Rename a bucket
+   * @param newName new name of the bucket
+   */
   async rename(newName: string): Promise<void> {
     await this.httpClient.put(
       `/b/${this.name}/rename`,
