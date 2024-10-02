@@ -473,5 +473,17 @@ describe("Bucket", () => {
         last: true,
       });
     });
+
+    it_api("1.12")("should rename bucket", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      await bucket.rename("bucket-renamed");
+
+      await expect(client.getBucket("bucket")).rejects.toMatchObject({
+        status: 404,
+      });
+      await expect(client.getBucket("bucket-renamed")).resolves.toMatchObject({
+        name: "bucket-renamed",
+      });
+    });
   });
 });

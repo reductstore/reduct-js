@@ -38,9 +38,9 @@ export interface WriteOptions {
  * Represents a bucket in ReductStore
  */
 export class Bucket {
-  readonly name: string;
-  private httpClient: AxiosInstance;
-  private isBrowser: boolean;
+  private name: string;
+  private readonly httpClient: AxiosInstance;
+  private readonly isBrowser: boolean;
 
   /**
    * Create a bucket. Use Client.creatBucket or Client.getBucket instead it
@@ -252,6 +252,26 @@ export class Bucket {
   }
 
   /**
+   * Rename a bucket
+   * @param newName new name of the bucket
+   */
+  async rename(newName: string): Promise<void> {
+    await this.httpClient.put(
+      `/b/${this.name}/rename`,
+      {
+        new_name: newName,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    this.name = newName;
+  }
+
+  /**
    * Query records for a time interval as generator
    * @param entry entry name
    * @param entry {string} name of the entry
@@ -297,6 +317,10 @@ export class Bucket {
         ret.head,
       );
     }
+  }
+
+  getName(): string {
+    return this.name;
   }
 
   private parse_query_params(

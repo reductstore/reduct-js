@@ -95,7 +95,7 @@ describe("Client", () => {
     await client.createBucket("bucket_1");
 
     const bucket: Bucket = await client.getBucket("bucket_1");
-    expect(bucket.name).toEqual("bucket_1");
+    expect(bucket.getName()).toEqual("bucket_1");
   });
 
   it("should get bucket with error", async () => {
@@ -166,6 +166,6 @@ describe("Client", () => {
   it("should try to create a bucket and get when it exists", async () => {
     await client.getOrCreateBucket("bucket");
     const bucket = await client.getOrCreateBucket("bucket");
-    expect(bucket.name).toBe("bucket");
+    expect(bucket.getName()).toBe("bucket");
   });
 });
