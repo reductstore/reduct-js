@@ -458,4 +458,20 @@ describe("Bucket", () => {
       });
     });
   });
+
+  describe("rename", () => {
+    it_api("1.12")("should rename entry", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      await bucket.renameEntry("entry-1", "entry-1-renamed");
+
+      await expect(bucket.beginRead("entry-1")).rejects.toMatchObject({
+        status: 404,
+      });
+      await expect(bucket.beginRead("entry-1-renamed")).resolves.toMatchObject({
+        size: 9n,
+        time: 1000_000n,
+        last: true,
+      });
+    });
+  });
 });
