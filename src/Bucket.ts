@@ -233,6 +233,25 @@ export class Bucket {
   }
 
   /**
+   * Rename an entry
+   * @param entry entry name to rename
+   * @param newEntry new entry name
+   */
+  async renameEntry(entry: string, newEntry: string): Promise<void> {
+    await this.httpClient.put(
+      `/b/${this.name}/${entry}/rename`,
+      {
+        new_name: newEntry,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  }
+
+  /**
    * Query records for a time interval as generator
    * @param entry entry name
    * @param entry {string} name of the entry
