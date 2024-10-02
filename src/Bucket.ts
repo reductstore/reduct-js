@@ -319,6 +319,10 @@ export class Bucket {
     }
   }
 
+  getName(): string {
+    return this.name;
+  }
+
   private parse_query_params(
     start?: bigint,
     stop?: bigint,
