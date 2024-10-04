@@ -202,6 +202,10 @@ describe("Bucket", () => {
         label1: "value1",
         label2: "value2",
       });
+
+      expect(batch.size()).toEqual(27n);
+      expect(batch.recordCount()).toEqual(3);
+      expect(batch.lastAccessTime()).toBeGreaterThan(0);
       await batch.write();
 
       const records: ReadableRecord[] = await all(bucket.query("entry-10"));
@@ -236,6 +240,11 @@ describe("Bucket", () => {
       expect(await records[2].read()).toEqual(
         Buffer.from("somedata3", "ascii"),
       );
+
+      batch.clear();
+      expect(batch.size()).toEqual(0n);
+      expect(batch.recordCount()).toEqual(0);
+      expect(batch.lastAccessTime()).toEqual(0);
     });
 
     it_api("1.7")("should write a batch of records with errors", async () => {
