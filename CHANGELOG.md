@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RS-389: Support QuotaType.HARD for bucket quotas, [PR-93](https://github.com/reductstore/reduct-js/pull/93)
 - RS-388: Add `Bucket.renameEntry` method to rename entry, [PR-94](https://github.com/reductstore/reduct-js/pull/94)
 - RS-419: Add `Bucket.rename` method to rename bucket, [PR-95](https://github.com/reductstore/reduct-js/pull/95)
+- RS-462: Improve batching, [PR-96](https://github.com/reductstore/reduct-js/pull/96)
 
 ## [1.11.0] - 2024-08-20
 
