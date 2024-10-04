@@ -29,6 +29,9 @@ export class Batch {
     }
   >;
 
+  private totalSize: bigint;
+  private lastAccess: number;
+
   public constructor(
     bucketName: string,
     entryName: string,
@@ -40,6 +43,8 @@ export class Batch {
     this.httpClient = httpClient;
     this.records = new Map();
     this.type = type;
+    this.totalSize = BigInt(0);
+    this.lastAccess = 0;
   }
 
   /**
@@ -58,6 +63,10 @@ export class Batch {
     const _contentType = contentType ?? "application/octet-stream";
     const _labels = labels ?? {};
     const _data: Buffer = data instanceof Buffer ? data : Buffer.from(data);
+
+    this.totalSize += BigInt(_data.length);
+    this.lastAccess = Date.now();
+
     this.records.set(ts, {
       data: _data,
       contentType: _contentType,
@@ -179,5 +188,35 @@ export class Batch {
     [bigint, { data: Buffer; contentType: string; labels: LabelMap }]
   > {
     return new Map([...this.records.entries()].sort()).entries();
+  }
+
+  /**
+   * Get total size of batch
+   */
+  public size(): bigint {
+    return this.totalSize;
+  }
+
+  /**
+   * Get last access time of batch
+   */
+  public lastAccessTime(): number {
+    return this.lastAccess;
+  }
+
+  /**
+   * Get number of records in batch
+   */
+  public recordCount(): number {
+    return this.records.size;
+  }
+
+  /**
+   * Clear batch
+   */
+  public clear(): void {
+    this.records.clear();
+    this.totalSize = BigInt(0);
+    this.lastAccess = 0;
   }
 }
