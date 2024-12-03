@@ -1,5 +1,5 @@
 import { Client } from "./Client";
-import { Bucket, QueryOptions, WriteOptions } from "./Bucket";
+import { Bucket, WriteOptions } from "./Bucket";
 import { APIError } from "./APIError";
 import { ServerInfo, LicenseInfo } from "./messages/ServerInfo";
 import { BucketSettings, QuotaType } from "./messages/BucketSettings";
@@ -10,6 +10,7 @@ import { ReplicationInfo } from "./messages/ReplicationInfo";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
 import { FullReplicationInfo } from "./messages/ReplicationInfo";
 import { Batch } from "./Batch";
+import { QueryOptions } from "./messages/QueryEntry";
 
 export {
   Client,

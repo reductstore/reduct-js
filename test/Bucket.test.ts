@@ -438,6 +438,38 @@ describe("Bucket", () => {
       expect(records[0].time).toEqual(3000000n);
       expect(records[1].time).toEqual(4000000n);
     });
+
+    it_api("1.13")("should remove records by condition", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      const removed = await bucket.removeQuery(
+        "entry-1",
+        1_000_000n,
+        3_000_000n,
+        { when: { "&label3": { $eq: true } } },
+      );
+      expect(removed).toEqual(1);
+    });
+
+    it_api("1.13")(
+      "should remove records by strict and non-strict condition",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const removed = await bucket.removeQuery(
+          "entry-1",
+          1_000_000n,
+          3_000_000n,
+          { when: { "&NOT_EXIST": { $eq: true } } },
+        );
+        expect(removed).toEqual(0);
+
+        await expect(
+          bucket.removeQuery("entry-1", 1_000_000n, 3_000_000n, {
+            when: { "&NOT_EXIST": { $eq: true } },
+            strict: true,
+          }),
+        ).rejects.toMatchObject({ status: 404 });
+      },
+    );
   });
 
   describe("update", () => {
