@@ -43,17 +43,32 @@ export interface QueryEntry {
  * Options for querying records
  */
 export class QueryOptions {
-  ttl?: number; // Time to live in seconds
-  include?: LabelMap; //  include only record which have all these labels with the same value
-  exclude?: LabelMap; //  exclude record which have all these labels with the same value
-  eachS?: number; //  return only one record per S second
-  eachN?: number; //  return each N-th record
-  limit?: number; //  limit number of records
-  continuous?: boolean; //  await for new records
-  pollInterval?: number; //  interval for polling new records (only for continue=true)
-  head?: boolean; //  return only head of the record
-  when?: Record<string, any>; //  conditional query
-  strict?: boolean; //  strict conditional query
+  /** Time to live in seconds */
+  ttl?: number;
+  /** Include records with label
+   *  @deprecated: use when instead
+   * */
+  include?: LabelMap;
+  /** Exclude records with label
+   *  @deprecated: use when instead
+   * */
+  exclude?: LabelMap;
+  /** Return only one record per S second */
+  eachS?: number;
+  /** Return only one record per N records */
+  eachN?: number;
+  /** Limit number of records */
+  limit?: number;
+  /** Don't stop query until TTL is reached */
+  continuous?: boolean;
+  /** Poll interval for new records only for continue=true */
+  pollInterval?: number;
+  /** Return only metadata */
+  head?: boolean;
+  /** Conditional query */
+  when?: Record<string, any>;
+  /**  strict conditional query */
+  strict?: boolean;
 
   static serialize(queryType: QueryType, data: QueryOptions): QueryEntry {
     return {

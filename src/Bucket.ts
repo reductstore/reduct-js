@@ -288,27 +288,51 @@ export class Bucket {
     stop?: bigint,
     options?: number | QueryOptions,
   ): AsyncGenerator<ReadableRecord> {
-    const ret = this.parse_query_params(start, stop, options);
+    let id;
+    let header_api_version;
+    let continuous = false;
+    let pollInterval = 1;
+    let head = false;
+    if (
+      options !== undefined &&
+      typeof options === "object" &&
+      "when" in options
+    ) {
+      const { data, headers } = await this.httpClient.post(
+        `/b/${this.name}/${entry}/q`,
+        QueryOptions.serialize(QueryType.QUERY, options),
+      );
+      ({ id } = data);
+      header_api_version = headers["x-reduct-api"];
+      continuous = options.continuous ?? false;
+      pollInterval = options.pollInterval ?? 1;
+      head = options.head ?? false;
+    } else {
+      // TODO: remove this block after 1.xx
+      const ret = this.parse_query_params(start, stop, options);
 
-    const url = `/b/${this.name}/${entry}/q?` + ret.query;
-    const { data, headers } = await this.httpClient.get(url);
-    const { id } = data;
-    const header_api_version = headers["x-reduct-api"];
+      const url = `/b/${this.name}/${entry}/q?` + ret.query;
+      const { data, headers } = await this.httpClient.get(url);
+      ({ id } = data);
+      header_api_version = headers["x-reduct-api"];
+      ({ continuous, pollInterval, head } = ret);
+    }
+
     if (isCompatibale("1.5", header_api_version) && !this.isBrowser) {
       yield* this.fetchAndParseBatchedRecords(
         entry,
         id,
-        ret.continuous,
-        ret.pollInterval,
-        ret.head,
+        continuous,
+        pollInterval,
+        head,
       );
     } else {
       yield* this.fetchAndParseSingleRecord(
         entry,
         id,
-        ret.continuous,
-        ret.pollInterval,
-        ret.head,
+        continuous,
+        pollInterval,
+        head,
       );
     }
   }
