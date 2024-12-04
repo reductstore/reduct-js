@@ -355,34 +355,48 @@ describe("Bucket", () => {
       expect(records[0].time).toEqual(2_000_000n);
     });
 
-    it("should query records with labels", async () => {
+    it_api("1.13")("should query records with condition", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
 
       let record = await bucket.beginWrite("entry-labels", {
-        labels: { label1: "value1", label2: "value2" },
+        labels: { score: 10, class: "cat" },
       });
       await record.write("somedata1");
       record = await bucket.beginWrite("entry-labels", {
-        labels: { label1: "value1", label2: "value3" },
+        labels: { score: 20, class: "dog" },
       });
       await record.write("somedata1");
 
-      let records: ReadableRecord[] = await all(
+      const records: ReadableRecord[] = await all(
         bucket.query("entry-labels", undefined, undefined, {
-          include: { label1: "value1", label2: "value2" },
+          when: { "&score": { $gt: 10 } },
         }),
       );
       expect(records.length).toEqual(1);
-      expect(records[0].labels).toEqual({ label1: "value1", label2: "value2" });
-
-      records = await all(
-        bucket.query("entry-labels", undefined, undefined, {
-          exclude: { label1: "value1", label2: "value2" },
-        }),
-      );
-      expect(records.length).toEqual(1);
-      expect(records[0].labels).toEqual({ label1: "value1", label2: "value3" });
+      expect(records[0].labels).toEqual({ score: "20", class: "dog" });
     });
+
+    it_api("1.13")(
+      "should query records with strict or non-strict condition",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        await expect(
+          all(
+            bucket.query("entry-1", undefined, undefined, {
+              when: { "&NOT_EXIST": { $gt: 10 } },
+              strict: true,
+            }),
+          ),
+        ).rejects.toMatchObject({ status: 404 });
+
+        const records: ReadableRecord[] = await all(
+          bucket.query("entry-1", undefined, undefined, {
+            when: { "&NOT_EXIST": { $gt: 10 } },
+          }),
+        );
+        expect(records.length).toEqual(0);
+      },
+    );
   });
 
   describe("remove", () => {
@@ -438,6 +452,38 @@ describe("Bucket", () => {
       expect(records[0].time).toEqual(3000000n);
       expect(records[1].time).toEqual(4000000n);
     });
+
+    it_api("1.13")("should remove records by condition", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      const removed = await bucket.removeQuery(
+        "entry-1",
+        1_000_000n,
+        3_000_000n,
+        { when: { "&label3": { $eq: true } } },
+      );
+      expect(removed).toEqual(1);
+    });
+
+    it_api("1.13")(
+      "should remove records by strict and non-strict condition",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const removed = await bucket.removeQuery(
+          "entry-1",
+          1_000_000n,
+          3_000_000n,
+          { when: { "&NOT_EXIST": { $eq: true } } },
+        );
+        expect(removed).toEqual(0);
+
+        await expect(
+          bucket.removeQuery("entry-1", 1_000_000n, 3_000_000n, {
+            when: { "&NOT_EXIST": { $eq: true } },
+            strict: true,
+          }),
+        ).rejects.toMatchObject({ status: 404 });
+      },
+    );
   });
 
   describe("update", () => {

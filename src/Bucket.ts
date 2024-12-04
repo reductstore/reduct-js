@@ -9,21 +9,7 @@ import Stream, { Readable } from "stream";
 import { Buffer } from "buffer";
 import { Batch, BatchType } from "./Batch";
 import { isCompatibale } from "./Client";
-
-/**
- * Options for querying records
- */
-export interface QueryOptions {
-  ttl?: number; // Time to live in seconds
-  include?: LabelMap; //  include only record which have all these labels with the same value
-  exclude?: LabelMap; //  exclude record which have all these labels with the same value
-  eachS?: number; //  return only one record per S second
-  eachN?: number; //  return each N-th record
-  limit?: number; //  limit number of records
-  continuous?: boolean; //  await for new records
-  pollInterval?: number; //  interval for polling new records (only for continue=true)
-  head?: boolean; //  return only head of the record
-}
+import { QueryOptions, QueryType } from "./messages/QueryEntry";
 
 /**
  * Options for writing records
@@ -142,20 +128,28 @@ export class Bucket {
    * @param entry {string} name of the entry
    * @param start {BigInt} start point of the time period, if undefined, the query starts from the first record
    * @param stop  {BigInt} stop point of the time period. If undefined, the query stops at the last record
-   * @param QueryOptions {QueryOptions} options for query. You can use only include, exclude, eachS, eachN other options are ignored
+   * @param options {QueryOptions} options for query. You can use only include, exclude, eachS, eachN other options are ignored
    */
   async removeQuery(
     entry: string,
     start?: bigint,
     stop?: bigint,
-    QueryOptions?: QueryOptions,
+    options?: QueryOptions,
   ): Promise<void> {
-    const ret = this.parse_query_params(start, stop, QueryOptions);
+    if (options !== undefined && options.when !== undefined) {
+      const { data } = await this.httpClient.post(
+        `/b/${this.name}/${entry}/q`,
+        QueryOptions.serialize(QueryType.REMOVE, options),
+      );
+      return Promise.resolve(data["removed_records"]);
+    } else {
+      const ret = this.parse_query_params(start, stop, options);
 
-    const { data } = await this.httpClient.delete(
-      `/b/${this.name}/${entry}/q?${ret.query}`,
-    );
-    return Promise.resolve(data["removed_records"]);
+      const { data } = await this.httpClient.delete(
+        `/b/${this.name}/${entry}/q?${ret.query}`,
+      );
+      return Promise.resolve(data["removed_records"]);
+    }
   }
 
   /**
@@ -294,27 +288,51 @@ export class Bucket {
     stop?: bigint,
     options?: number | QueryOptions,
   ): AsyncGenerator<ReadableRecord> {
-    const ret = this.parse_query_params(start, stop, options);
+    let id;
+    let header_api_version;
+    let continuous = false;
+    let pollInterval = 1;
+    let head = false;
+    if (
+      options !== undefined &&
+      typeof options === "object" &&
+      "when" in options
+    ) {
+      const { data, headers } = await this.httpClient.post(
+        `/b/${this.name}/${entry}/q`,
+        QueryOptions.serialize(QueryType.QUERY, options),
+      );
+      ({ id } = data);
+      header_api_version = headers["x-reduct-api"];
+      continuous = options.continuous ?? false;
+      pollInterval = options.pollInterval ?? 1;
+      head = options.head ?? false;
+    } else {
+      // TODO: remove this block after 1.xx
+      const ret = this.parse_query_params(start, stop, options);
 
-    const url = `/b/${this.name}/${entry}/q?` + ret.query;
-    const { data, headers } = await this.httpClient.get(url);
-    const { id } = data;
-    const header_api_version = headers["x-reduct-api"];
+      const url = `/b/${this.name}/${entry}/q?` + ret.query;
+      const { data, headers } = await this.httpClient.get(url);
+      ({ id } = data);
+      header_api_version = headers["x-reduct-api"];
+      ({ continuous, pollInterval, head } = ret);
+    }
+
     if (isCompatibale("1.5", header_api_version) && !this.isBrowser) {
       yield* this.fetchAndParseBatchedRecords(
         entry,
         id,
-        ret.continuous,
-        ret.pollInterval,
-        ret.head,
+        continuous,
+        pollInterval,
+        head,
       );
     } else {
       yield* this.fetchAndParseSingleRecord(
         entry,
         id,
-        ret.continuous,
-        ret.pollInterval,
-        ret.head,
+        continuous,
+        pollInterval,
+        head,
       );
     }
   }
