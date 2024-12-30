@@ -8,10 +8,11 @@ export class OriginalReplicationSettings {
   dst_host = "";
   dst_token = "";
   entries: string[] = [];
-  include: Record<string, string> = {};
-  exclude: Record<string, string> = {};
+  include?: Record<string, string>;
+  exclude?: Record<string, string>;
   each_s?: number;
   each_n?: bigint;
+  when?: any;
 }
 
 /**
@@ -46,14 +47,16 @@ export class ReplicationSettings {
   /**
    * List of labels a records must include. If empty, all records are replicated.
    * If a few labels are specified, a record must include all of them.
+   * @deprecated: use when instead
    */
-  readonly include: Record<string, string> = {};
+  readonly include?: Record<string, string>;
 
   /**
    * List of labels a records must not include. If empty, all records are replicated.
    * If a few labels are specified, a record must not include any of them.
+   * @deprecated: use when instead
    */
-  readonly exclude: Record<string, string> = {};
+  readonly exclude?: Record<string, string>;
 
   /**
    * Replicate a record every S seconds
@@ -64,6 +67,11 @@ export class ReplicationSettings {
    * Replicate every Nth record
    */
   readonly eachN?: bigint;
+
+  /**
+   * Conditional query
+   */
+  readonly when?: any;
 
   static parse(data: OriginalReplicationSettings): ReplicationSettings {
     return {
@@ -76,6 +84,7 @@ export class ReplicationSettings {
       entries: data.entries,
       eachS: data.each_s,
       eachN: data.each_n ? BigInt(data.each_n) : data.each_n,
+      when: data.when,
     };
   }
 
