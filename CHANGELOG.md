@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added:
+
+- RS-550: Add when condition to replication settings, [PR-98](https://github.com/reductstore/reduct-js/pull/98)
+
 ## [1.13.0] - 2024-12-04
 
 ### Added:
