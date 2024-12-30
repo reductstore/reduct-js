@@ -65,7 +65,7 @@ describe("Replication", () => {
     expect(replications).toHaveLength(0);
   });
 
-  it_api("1.8")("should update a replication", async () => {
+  it_api("1.14")("should update a replication", async () => {
     await client.createReplication("test-replication", settings);
 
     const newSettings = {
@@ -74,12 +74,7 @@ describe("Replication", () => {
       dstHost: "http://localhost:8383",
       dstToken: "***",
       entries: ["entry-1", "entry-2"],
-      include: {
-        label: "value",
-      },
-      exclude: {
-        label: "value",
-      },
+      when: { "&label": { $eq: "value" } },
     };
     await client.updateReplication("test-replication", newSettings);
 
