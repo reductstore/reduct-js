@@ -103,7 +103,7 @@ type OriginalLicenseInfo = {
   fingerprint: string;
 };
 
-type Original = {
+export type Original = {
   version: string;
   bucket_count: string;
   uptime: string;

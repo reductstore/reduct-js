@@ -2,7 +2,7 @@
  * Represents HTTP Client for ReductStore API
  * @class
  */
-import { ServerInfo } from "./messages/ServerInfo";
+import { ServerInfo, Original } from "./messages/ServerInfo";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from "axios";
@@ -22,6 +22,7 @@ import { ReplicationSettings } from "./messages/ReplicationSettings";
 import { AxiosError, AxiosInstance, AxiosResponse } from "axios";
 import { AxiosRequestConfig } from "../node_modules/axios/index";
 import * as https from "https";
+import { HttpClient } from "./http/HttpClient";
 
 /**
  * Options
@@ -34,6 +35,7 @@ export type ClientOptions = {
 
 export class Client {
   private readonly httpClient: AxiosInstance;
+  private readonly httpClientWrapper: HttpClient;
 
   /**
    * HTTP Client for ReductStore
@@ -51,7 +53,6 @@ export class Client {
     const axiosConfig: AxiosRequestConfig = {
       baseURL: `${url}/api/v1`,
       timeout: options.timeout,
-
       headers: {
         Authorization: `Bearer ${options.apiToken}`,
       },
@@ -90,6 +91,7 @@ export class Client {
       });
     }
     this.httpClient = axios.create(axiosConfig);
+    this.httpClientWrapper = new HttpClient(this.httpClient);
 
     this.httpClient.interceptors.response.use(
       (response: AxiosResponse) => response,
@@ -109,7 +111,7 @@ export class Client {
    * @return {Promise<ServerInfo>} the data about the server
    */
   async getInfo(): Promise<ServerInfo> {
-    const { data } = await this.httpClient.get("/info");
+    const { data } = await this.httpClientWrapper.get<Original>("/info");
     return ServerInfo.parse(data);
   }
 
