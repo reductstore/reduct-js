@@ -1,7 +1,7 @@
 /**
  * Token Permissions with server-side names
  */
-class OriginalTokenPermission {
+export class OriginalTokenPermission {
   full_access = false;
   read?: string[] = [];
   write?: string[] = [];

@@ -30,7 +30,7 @@ export class BucketSettings {
    */
   readonly quotaSize?: bigint;
 
-  static parse(data: Original): BucketSettings {
+  static parse(data: OriginalBucketSettings): BucketSettings {
     const { max_block_size, max_block_records, quota_type, quota_size } = data;
     return {
       maxBlockSize:
@@ -43,7 +43,7 @@ export class BucketSettings {
     };
   }
 
-  static serialize(settings: BucketSettings): Original {
+  static serialize(settings: BucketSettings): OriginalBucketSettings {
     const { maxBlockSize, maxBlockRecords, quotaType, quotaSize } = settings;
     return {
       max_block_size: maxBlockSize,
@@ -54,7 +54,7 @@ export class BucketSettings {
   }
 }
 
-type Original = {
+export type OriginalBucketSettings = {
   quota_size?: bigint;
   max_block_size?: bigint;
   quota_type?: string;

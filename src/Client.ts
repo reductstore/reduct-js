@@ -130,7 +130,7 @@ export class Client {
    * @return {Promise<Bucket>}
    */
   async createBucket(name: string, settings?: BucketSettings): Promise<Bucket> {
-    await this.httpClient.post(
+    await this.httpClientWrapper.post(
       `/b/${name}`,
       settings ? BucketSettings.serialize(settings) : undefined,
     );
@@ -183,7 +183,7 @@ export class Client {
     name: string,
     permissions: TokenPermissions,
   ): Promise<string> {
-    const { data } = await this.httpClient.post(
+    const { data } = await this.httpClientWrapper.post(
       `/tokens/${name}`,
       TokenPermissions.serialize(permissions),
     );
@@ -257,7 +257,7 @@ export class Client {
     name: string,
     settings: ReplicationSettings,
   ): Promise<void> {
-    await this.httpClient.post(
+    await this.httpClientWrapper.post(
       `/replications/${name}`,
       ReplicationSettings.serialize(settings),
     );
