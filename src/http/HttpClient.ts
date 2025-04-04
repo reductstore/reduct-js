@@ -28,6 +28,11 @@ export interface ApiRequestTypes {
   [key: `/replications/${string}`]: OriginalReplicationSettings;
 }
 
+export interface ApiDeleteEndpoints {
+  [key: `/tokens/${string}`]: void;
+  [key: `/replications/${string}`]: void;
+}
+
 export class HttpClient {
   constructor(private readonly axiosInstance: AxiosInstance) {}
 
@@ -49,5 +54,11 @@ export class HttpClient {
     data: ApiRequestTypes[Path],
   ): Promise<any> {
     return this.axiosInstance.put(url, data);
+  }
+
+  async delete<Path extends keyof ApiDeleteEndpoints>(
+    url: Path,
+  ): Promise<void> {
+    return this.axiosInstance.delete(url);
   }
 }

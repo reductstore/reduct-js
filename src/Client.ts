@@ -214,7 +214,7 @@ export class Client {
    * @param name name of the token
    */
   async deleteToken(name: string): Promise<void> {
-    await this.httpClient.delete(`/tokens/${name}`);
+    await this.httpClientWrapper.delete(`/tokens/${name}`);
   }
 
   /**
@@ -285,7 +285,7 @@ export class Client {
    * @return {Promise<void>}
    */
   async deleteReplication(name: string): Promise<void> {
-    await this.httpClient.delete(`/replications/${name}`);
+    await this.httpClientWrapper.delete(`/replications/${name}`);
   }
 }
 
