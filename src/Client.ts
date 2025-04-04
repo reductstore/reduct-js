@@ -119,8 +119,8 @@ export class Client {
    * @see BucketInfo
    */
   async getBucketList(): Promise<BucketInfo[]> {
-    const { data } = await this.httpClient.get("/list");
-    return data.buckets.map((bucket: any) => BucketInfo.parse(bucket));
+    const { data } = await this.httpClientWrapper.get("/list");
+    return data.buckets.map((bucket) => BucketInfo.parse(bucket));
   }
 
   /**
@@ -196,7 +196,7 @@ export class Client {
    * @return {Promise<Token>} the token
    */
   async getToken(name: string): Promise<Token> {
-    const { data } = await this.httpClient.get(`/tokens/${name}`);
+    const { data } = await this.httpClientWrapper.get(`/tokens/${name}`);
     return Token.parse(data);
   }
 
@@ -205,8 +205,8 @@ export class Client {
    * @return {Promise<Token[]>} the list of tokens
    */
   async getTokenList(): Promise<Token[]> {
-    const { data } = await this.httpClient.get("/tokens");
-    return data.tokens.map((token: any) => Token.parse(token));
+    const { data } = await this.httpClientWrapper.get("/tokens");
+    return data.tokens.map((token) => Token.parse(token));
   }
 
   /**
@@ -222,7 +222,7 @@ export class Client {
    * @return {Promise<Token>} the token
    */
   async me(): Promise<Token> {
-    const { data } = await this.httpClient.get("/me");
+    const { data } = await this.httpClientWrapper.get("/me");
     return Token.parse(data);
   }
 
@@ -231,10 +231,8 @@ export class Client {
    * @return {Promise<ReplicationInfo[]>} the list of replications
    */
   async getReplicationList(): Promise<ReplicationInfo[]> {
-    const { data } = (await this.httpClient.get("/replications")) as {
-      data: { replications: ReplicationInfo[] };
-    };
-    return data.replications.map((replication: any) =>
+    const { data } = await this.httpClientWrapper.get("/replications");
+    return data.replications.map((replication) =>
       ReplicationInfo.parse(replication),
     );
   }
@@ -245,7 +243,7 @@ export class Client {
    * @return {Promise<FullReplicationInfo>} the replication
    */
   async getReplication(name: string): Promise<FullReplicationInfo> {
-    const { data } = await this.httpClient.get(`/replications/${name}`);
+    const { data } = await this.httpClientWrapper.get(`/replications/${name}`);
     return FullReplicationInfo.parse(data);
   }
 

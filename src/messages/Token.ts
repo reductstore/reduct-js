@@ -49,7 +49,7 @@ export class TokenPermissions {
 /**
  * Token Info with server-side names
  */
-class OriginalTokenInfo {
+export class OriginalTokenInfo {
   name = "";
   created_at = "";
   is_provisioned? = false;
