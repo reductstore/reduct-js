@@ -273,7 +273,7 @@ export class Client {
     name: string,
     settings: ReplicationSettings,
   ): Promise<void> {
-    await this.httpClient.put(
+    await this.httpClientWrapper.put(
       `/replications/${name}`,
       ReplicationSettings.serialize(settings),
     );

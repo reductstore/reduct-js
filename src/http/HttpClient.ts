@@ -43,4 +43,11 @@ export class HttpClient {
   ): Promise<any> {
     return this.axiosInstance.post(url, data);
   }
+
+  async put<Path extends keyof ApiRequestTypes>(
+    url: Path,
+    data: ApiRequestTypes[Path],
+  ): Promise<any> {
+    return this.axiosInstance.put(url, data);
+  }
 }
