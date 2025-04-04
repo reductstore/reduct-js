@@ -10,6 +10,7 @@ import { Buffer } from "buffer";
 import { Batch, BatchType } from "./Batch";
 import { isCompatibale } from "./Client";
 import { QueryOptions, QueryType } from "./messages/QueryEntry";
+import { HttpClient } from "./http/HttpClient";
 
 /**
  * Options for writing records
@@ -35,9 +36,9 @@ export class Bucket {
    * @param httpClient
    * @see {Client}
    */
-  constructor(name: string, httpClient: AxiosInstance) {
+  constructor(name: string, httpClient: HttpClient) {
     this.name = name;
-    this.httpClient = httpClient;
+    this.httpClient = httpClient.httpClient;
     this.isBrowser = typeof window !== "undefined";
     this.readRecord = this.readRecord.bind(this);
   }
