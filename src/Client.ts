@@ -8,17 +8,11 @@ import { BucketInfo } from "./messages/BucketInfo";
 import { BucketSettings } from "./messages/BucketSettings";
 import { Bucket } from "./Bucket";
 import { Token, TokenPermissions } from "./messages/Token";
-import { Readable } from "stream";
-import { Buffer } from "buffer";
 import {
   FullReplicationInfo,
   ReplicationInfo,
 } from "./messages/ReplicationInfo";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
-// @ts-ignore
-import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
-import { AxiosRequestConfig } from "../node_modules/axios/index";
-import * as https from "https";
 import { HttpClient } from "./http/HttpClient";
 
 /**
@@ -31,7 +25,6 @@ export type ClientOptions = {
 };
 
 export class Client {
-  private readonly httpClient: AxiosInstance;
   private readonly httpClientWrapper: HttpClient;
 
   /**
@@ -40,66 +33,7 @@ export class Client {
    * @param options
    */
   constructor(url: string, options: ClientOptions = {}) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const bigJson = require("json-bigint")({
-      alwaysParseAsBig: false,
-      useNativeBigInt: true,
-    });
-
-    // http client with big int support in JSON
-    const axiosConfig: AxiosRequestConfig = {
-      baseURL: `${url}/api/v1`,
-      timeout: options.timeout,
-      headers: {
-        Authorization: `Bearer ${options.apiToken}`,
-      },
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-      transformRequest: [
-        (data: any) => {
-          // very ugly hack to support big int in JSON
-          if (
-            typeof data !== "object" ||
-            data instanceof Readable ||
-            data instanceof Buffer
-          ) {
-            return data;
-          }
-          return bigJson.stringify(data);
-        },
-      ],
-      transformResponse: [
-        (data: any) => {
-          // very ugly hack to support big int in JSON
-          if (typeof data !== "string") {
-            return data;
-          }
-
-          if (data.length == 0) {
-            return {};
-          }
-          return bigJson.parse(data);
-        },
-      ],
-    };
-    if (typeof window === "undefined") {
-      axiosConfig.httpsAgent = new https.Agent({
-        rejectUnauthorized: options.verifySSL !== false,
-      });
-    }
-    this.httpClient = axios.create(axiosConfig);
-    this.httpClientWrapper = new HttpClient(this.httpClient);
-
-    this.httpClient.interceptors.response.use(
-      (response: AxiosResponse) => response,
-      async (error: AxiosError) => {
-        if (error instanceof AxiosError) {
-          throw APIError.from(error);
-        }
-
-        throw error;
-      },
-    );
+    this.httpClientWrapper = new HttpClient(url, options);
   }
 
   /**
@@ -134,7 +68,7 @@ export class Client {
       `/b/${name}`,
       settings ? BucketSettings.serialize(settings) : undefined,
     );
-    return new Bucket(name, this.httpClient);
+    return new Bucket(name, this.httpClientWrapper.httpClient);
   }
 
   /**
@@ -143,8 +77,8 @@ export class Client {
    * @return {Promise<Bucket>}
    */
   async getBucket(name: string): Promise<Bucket> {
-    await this.httpClient.get(`/b/${name}`);
-    return new Bucket(name, this.httpClient);
+    await this.httpClientWrapper.httpClient.get(`/b/${name}`);
+    return new Bucket(name, this.httpClientWrapper.httpClient);
   }
 
   /**
