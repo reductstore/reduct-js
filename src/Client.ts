@@ -2,10 +2,7 @@
  * Represents HTTP Client for ReductStore API
  * @class
  */
-import { ServerInfo, Original } from "./messages/ServerInfo";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import axios, { AxiosInstance, AxiosResponse, AxiosError } from "axios";
+import { ServerInfo } from "./messages/ServerInfo";
 import { APIError } from "./APIError";
 import { BucketInfo } from "./messages/BucketInfo";
 import { BucketSettings } from "./messages/BucketSettings";
@@ -19,7 +16,7 @@ import {
 } from "./messages/ReplicationInfo";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
 // @ts-ignore
-import { AxiosError, AxiosInstance, AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
 import { AxiosRequestConfig } from "../node_modules/axios/index";
 import * as https from "https";
 import { HttpClient } from "./http/HttpClient";
@@ -111,7 +108,7 @@ export class Client {
    * @return {Promise<ServerInfo>} the data about the server
    */
   async getInfo(): Promise<ServerInfo> {
-    const { data } = await this.httpClientWrapper.get<Original>("/info");
+    const { data } = await this.httpClientWrapper.get("/info");
     return ServerInfo.parse(data);
   }
 
