@@ -27,6 +27,7 @@ export interface WriteOptions {
 export class Bucket {
   private name: string;
   private readonly httpClient: AxiosInstance;
+  private readonly httpClientWrapper: HttpClient;
   private readonly isBrowser: boolean;
 
   /**
@@ -36,9 +37,10 @@ export class Bucket {
    * @param httpClient
    * @see {Client}
    */
-  constructor(name: string, httpClient: HttpClient) {
+  constructor(name: string, httpClientWrapper: HttpClient) {
     this.name = name;
-    this.httpClient = httpClient.httpClient;
+    this.httpClientWrapper = httpClientWrapper;
+    this.httpClient = this.httpClientWrapper.httpClient;
     this.isBrowser = typeof window !== "undefined";
     this.readRecord = this.readRecord.bind(this);
   }
