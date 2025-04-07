@@ -1,5 +1,4 @@
 // @ts-ignore`
-import { AxiosInstance } from "axios";
 import { BucketSettings } from "./messages/BucketSettings";
 import { BucketInfo } from "./messages/BucketInfo";
 import { EntryInfo } from "./messages/EntryInfo";
@@ -26,7 +25,6 @@ export interface WriteOptions {
  */
 export class Bucket {
   private name: string;
-  private readonly httpClient: AxiosInstance;
   private readonly httpClientWrapper: HttpClient;
   private readonly isBrowser: boolean;
 
@@ -40,7 +38,6 @@ export class Bucket {
   constructor(name: string, httpClientWrapper: HttpClient) {
     this.name = name;
     this.httpClientWrapper = httpClientWrapper;
-    this.httpClient = this.httpClientWrapper.httpClient;
     this.isBrowser = typeof window !== "undefined";
     this.readRecord = this.readRecord.bind(this);
   }
@@ -123,7 +120,12 @@ export class Bucket {
    * @param tsList {BigInt[]} list of timestamps of records in microseconds
    */
   async beginRemoveBatch(entry: string): Promise<Batch> {
-    return new Batch(this.name, entry, this.httpClient, BatchType.REMOVE);
+    return new Batch(
+      this.name,
+      entry,
+      this.httpClientWrapper.httpClient,
+      BatchType.REMOVE,
+    );
   }
 
   /**
@@ -308,7 +310,7 @@ export class Bucket {
       typeof options === "object" &&
       "when" in options
     ) {
-      const { data, headers } = await this.httpClient.post(
+      const { data, headers } = await this.httpClientWrapper.httpClient.post(
         `/b/${this.name}/${entry}/q`,
         QueryOptions.serialize(QueryType.QUERY, options),
       );
@@ -322,7 +324,8 @@ export class Bucket {
       const ret = this.parse_query_params(start, stop, options);
 
       const url = `/b/${this.name}/${entry}/q?` + ret.query;
-      const { data, headers } = await this.httpClient.get(url);
+      const { data, headers } =
+        await this.httpClientWrapper.httpClient.get(url);
       ({ id } = data);
       header_api_version = headers["x-reduct-api"];
       ({ continuous, pollInterval, head } = ret);
@@ -561,7 +564,9 @@ export class Bucket {
     head: boolean,
     id: string,
   ): AsyncGenerator<ReadableRecord> {
-    const request = head ? this.httpClient.head : this.httpClient.get;
+    const request = head
+      ? this.httpClientWrapper.httpClient.head
+      : this.httpClientWrapper.httpClient.get;
     const { status, headers, data } = await request(
       `/b/${this.name}/${entry}/batch?q=${id}`,
       head ? undefined : { responseType: "stream" },
@@ -631,7 +636,12 @@ export class Bucket {
    * @param entry
    */
   async beginWriteBatch(entry: string): Promise<Batch> {
-    return new Batch(this.name, entry, this.httpClient, BatchType.WRITE);
+    return new Batch(
+      this.name,
+      entry,
+      this.httpClientWrapper.httpClient,
+      BatchType.WRITE,
+    );
   }
 
   /**
@@ -639,7 +649,12 @@ export class Bucket {
    * @param entry
    */
   async beginUpdateBatch(entry: string): Promise<Batch> {
-    return new Batch(this.name, entry, this.httpClient, BatchType.UPDATE);
+    return new Batch(
+      this.name,
+      entry,
+      this.httpClientWrapper.httpClient,
+      BatchType.UPDATE,
+    );
   }
 }
 
