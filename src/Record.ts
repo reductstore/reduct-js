@@ -1,8 +1,7 @@
 import Stream from "stream";
 import { Buffer } from "buffer";
-// @ts-ignore`
-import { AxiosInstance } from "axios";
 import { WriteOptions } from "./Bucket";
+import { HttpClient } from "./http/HttpClient";
 
 export type LabelMap = Record<string, string | number | boolean | bigint>;
 
@@ -80,7 +79,7 @@ export class ReadableRecord {
 export class WritableRecord {
   private readonly bucketName: string;
   private readonly entryName: string;
-  private readonly httpClient: AxiosInstance;
+  private readonly httpClient: HttpClient;
   private readonly options: WriteOptions;
 
   /**
@@ -91,7 +90,7 @@ export class WritableRecord {
     bucketName: string,
     entryName: string,
     options: WriteOptions,
-    httpClient: AxiosInstance,
+    httpClient: HttpClient,
   ) {
     this.bucketName = bucketName;
     this.entryName = entryName;

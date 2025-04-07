@@ -182,7 +182,12 @@ export class Bucket {
     localOptions.ts = localOptions.ts ?? BigInt(Date.now()) * 1000n;
 
     return Promise.resolve(
-      new WritableRecord(this.name, entry, localOptions, this.httpClient),
+      new WritableRecord(
+        this.name,
+        entry,
+        localOptions,
+        this.httpClientWrapper,
+      ),
     );
   }
 
