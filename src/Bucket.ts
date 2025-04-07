@@ -469,8 +469,8 @@ export class Bucket {
       head
         ? undefined
         : {
-          responseType: this.isBrowser ? "arraybuffer" : "stream",
-        },
+            responseType: this.isBrowser ? "arraybuffer" : "stream",
+          },
     );
 
     if (status === 204) {
