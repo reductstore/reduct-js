@@ -1,8 +1,7 @@
-// @ts-ignore
-import { AxiosInstance } from "axios";
 import { LabelMap } from "./Record";
 import { APIError } from "./APIError";
 import Stream from "stream";
+import { HttpClient } from "./http/HttpClient";
 
 /**
  * Represents a batch of records for writing
@@ -17,7 +16,7 @@ export enum BatchType {
 export class Batch {
   private readonly bucketName: string;
   private readonly entryName: string;
-  private readonly httpClient: AxiosInstance;
+  private readonly httpClient: HttpClient;
   private readonly type: BatchType;
 
   private readonly records: Map<
@@ -35,7 +34,7 @@ export class Batch {
   public constructor(
     bucketName: string,
     entryName: string,
-    httpClient: AxiosInstance,
+    httpClient: HttpClient,
     type: BatchType,
   ) {
     this.bucketName = bucketName;
@@ -137,7 +136,7 @@ export class Batch {
         headers["Content-Type"] = "application/octet-stream";
 
         const stream = Stream.Readable.from(chunks);
-        response = await this.httpClient.post(
+        response = await this.httpClient.postResponse(
           `/b/${this.bucketName}/${this.entryName}/batch`,
           stream,
           {
@@ -148,7 +147,7 @@ export class Batch {
       }
       case BatchType.UPDATE:
         headers["Content-Length"] = "0";
-        response = await this.httpClient.patch(
+        response = await this.httpClient.patchResponse(
           `/b/${this.bucketName}/${this.entryName}/batch`,
           "",
           {
@@ -158,7 +157,7 @@ export class Batch {
         break;
       case BatchType.REMOVE:
         headers["Content-Length"] = "0";
-        response = await this.httpClient.delete(
+        response = await this.httpClient.deleteResponse(
           `/b/${this.bucketName}/${this.entryName}/batch`,
           {
             headers,

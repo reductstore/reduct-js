@@ -123,7 +123,7 @@ export class Bucket {
     return new Batch(
       this.name,
       entry,
-      this.httpClientWrapper.httpClient,
+      this.httpClientWrapper,
       BatchType.REMOVE,
     );
   }
@@ -636,12 +636,7 @@ export class Bucket {
    * @param entry
    */
   async beginWriteBatch(entry: string): Promise<Batch> {
-    return new Batch(
-      this.name,
-      entry,
-      this.httpClientWrapper.httpClient,
-      BatchType.WRITE,
-    );
+    return new Batch(this.name, entry, this.httpClientWrapper, BatchType.WRITE);
   }
 
   /**
@@ -652,7 +647,7 @@ export class Bucket {
     return new Batch(
       this.name,
       entry,
-      this.httpClientWrapper.httpClient,
+      this.httpClientWrapper,
       BatchType.UPDATE,
     );
   }
