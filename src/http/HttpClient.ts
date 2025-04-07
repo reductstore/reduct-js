@@ -1,9 +1,11 @@
-import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
-import { AxiosRequestConfig } from "../../node_modules/axios/index";
-
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+} from "axios";
 import { Readable } from "stream";
 import * as https from "https";
-
 import { ClientOptions } from "../Client";
 import { APIError } from "../APIError";
 
@@ -17,7 +19,7 @@ export class HttpClient {
       useNativeBigInt: true,
     });
 
-    // http client with big int support in JSON
+    // Axios config with BigInt support in JSON
     const axiosConfig: AxiosRequestConfig = {
       baseURL: `${url}/api/v1`,
       timeout: options.timeout,
@@ -28,7 +30,7 @@ export class HttpClient {
       maxBodyLength: Infinity,
       transformRequest: [
         (data: any) => {
-          // very ugly hack to support big int in JSON
+          // Hack to support BigInt in JSON
           if (
             typeof data !== "object" ||
             data instanceof Readable ||
@@ -41,54 +43,165 @@ export class HttpClient {
       ],
       transformResponse: [
         (data: any) => {
-          // very ugly hack to support big int in JSON
+          // Hack to support BigInt in JSON
           if (typeof data !== "string") {
             return data;
           }
-
-          if (data.length == 0) {
+          if (data.length === 0) {
             return {};
           }
           return bigJson.parse(data);
         },
       ],
     };
+
+    // If running in Node, configure httpsAgent (for SSL verification).
     if (typeof window === "undefined") {
       axiosConfig.httpsAgent = new https.Agent({
         rejectUnauthorized: options.verifySSL !== false,
       });
     }
+
     this.httpClient = axios.create(axiosConfig);
 
+    // Convert Axios errors into APIError
     this.httpClient.interceptors.response.use(
       (response: AxiosResponse) => response,
       async (error: AxiosError) => {
         if (error instanceof AxiosError) {
           throw APIError.from(error);
         }
-
         throw error;
       },
     );
   }
 
-  async get<T>(url: string): Promise<T> {
-    const response = await this.httpClient.get<T>(url);
+  /* ------------------------------------------------------------------
+     BASIC "data only" HELPERS
+     ------------------------------------------------------------------ */
+  /**
+   * Convenience: Perform a GET request, return only `response.data`
+   */
+  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.httpClient.get<T>(url, config);
     return response.data;
   }
 
-  async post<T>(url: string, data?: any): Promise<T> {
-    const response = await this.httpClient.post<T>(url, data);
+  /**
+   * Convenience: Perform a POST request, return only `response.data`
+   */
+  async post<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig,
+  ): Promise<T> {
+    const response = await this.httpClient.post<T>(url, data, config);
     return response.data;
   }
 
-  async put<T>(url: string, data: any): Promise<T> {
-    const response = await this.httpClient.put<T>(url, data);
+  /**
+   * Convenience: Perform a PUT request, return only `response.data`
+   */
+  async put<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig,
+  ): Promise<T> {
+    const response = await this.httpClient.put<T>(url, data, config);
     return response.data;
   }
 
-  async delete<T = void>(url: string): Promise<T> {
-    const response = await this.httpClient.delete<T>(url);
+  /**
+   * Convenience: Perform a PATCH request, return only `response.data`
+   */
+  async patch<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig,
+  ): Promise<T> {
+    const response = await this.httpClient.patch<T>(url, data, config);
     return response.data;
+  }
+
+  /**
+   * Convenience: Perform a DELETE request, return only `response.data`
+   */
+  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.httpClient.delete<T>(url, config);
+    return response.data;
+  }
+
+  /**
+   * Convenience: Perform a HEAD request (usually returns no body).
+   * No `response.data` is relevant, so we only resolve success or throw on error.
+   */
+  async head(url: string, config?: AxiosRequestConfig): Promise<void> {
+    await this.httpClient.head(url, config);
+  }
+
+  /* ------------------------------------------------------------------
+     "FULL RESPONSE" HELPERS (if you need headers, status, etc.)
+     ------------------------------------------------------------------ */
+  /**
+   * Perform a GET request, returning the full AxiosResponse<T>
+   */
+  async getResponse<T = any>(
+    url: string,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
+    return this.httpClient.get<T>(url, config);
+  }
+
+  /**
+   * Perform a POST request, returning the full AxiosResponse<T>
+   */
+  async postResponse<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
+    return this.httpClient.post<T>(url, data, config);
+  }
+
+  /**
+   * Perform a PUT request, returning the full AxiosResponse<T>
+   */
+  async putResponse<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
+    return this.httpClient.put<T>(url, data, config);
+  }
+
+  /**
+   * Perform a PATCH request, returning the full AxiosResponse<T>
+   */
+  async patchResponse<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
+    return this.httpClient.patch<T>(url, data, config);
+  }
+
+  /**
+   * Perform a DELETE request, returning the full AxiosResponse<T>
+   */
+  async deleteResponse<T = any>(
+    url: string,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
+    return this.httpClient.delete<T>(url, config);
+  }
+
+  /**
+   * Perform a HEAD request, returning the full AxiosResponse (status, headers, etc.)
+   */
+  async headResponse(
+    url: string,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse> {
+    return this.httpClient.head(url, config);
   }
 }
