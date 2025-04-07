@@ -51,7 +51,7 @@ export class Bucket {
    * @return {Promise<BucketSettings>}
    */
   async getSettings(): Promise<BucketSettings> {
-    const { data } = await this.httpClient.get(`/b/${this.name}`);
+    const data = await this.httpClientWrapper.get<any>(`/b/${this.name}`);
     return Promise.resolve(BucketSettings.parse(data.settings));
   }
 
@@ -73,7 +73,7 @@ export class Bucket {
    * @return {Promise<BucketInfo>}
    */
   async getInfo(): Promise<BucketInfo> {
-    const { data } = await this.httpClient.get(`/b/${this.name}`);
+    const data = await this.httpClientWrapper.get<any>(`/b/${this.name}`);
     return BucketInfo.parse(data.info);
   }
 
@@ -83,7 +83,7 @@ export class Bucket {
    * @return {Promise<EntryInfo>}
    */
   async getEntryList(): Promise<EntryInfo[]> {
-    const { data } = await this.httpClient.get(`/b/${this.name}`);
+    const data = await this.httpClientWrapper.get<any>(`/b/${this.name}`);
     return Promise.resolve(
       data.entries.map((entry: any) => EntryInfo.parse(entry)),
     );
@@ -469,8 +469,8 @@ export class Bucket {
       head
         ? undefined
         : {
-            responseType: this.isBrowser ? "arraybuffer" : "stream",
-          },
+          responseType: this.isBrowser ? "arraybuffer" : "stream",
+        },
     );
 
     if (status === 204) {
