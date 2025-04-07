@@ -140,15 +140,14 @@ export class Bucket {
     options?: QueryOptions,
   ): Promise<void> {
     if (options !== undefined && options.when !== undefined) {
-      const { data } = await this.httpClient.post(
+      const data = await this.httpClientWrapper.post(
         `/b/${this.name}/${entry}/q`,
         QueryOptions.serialize(QueryType.REMOVE, options),
       );
       return Promise.resolve(data["removed_records"]);
     } else {
       const ret = this.parse_query_params(start, stop, options);
-
-      const { data } = await this.httpClient.delete(
+      const data = await this.httpClientWrapper.delete(
         `/b/${this.name}/${entry}/q?${ret.query}`,
       );
       return Promise.resolve(data["removed_records"]);
@@ -239,7 +238,7 @@ export class Bucket {
    * @param newEntry new entry name
    */
   async renameEntry(entry: string, newEntry: string): Promise<void> {
-    await this.httpClient.put(
+    await this.httpClientWrapper.put(
       `/b/${this.name}/${entry}/rename`,
       {
         new_name: newEntry,
@@ -257,7 +256,7 @@ export class Bucket {
    * @param newName new name of the bucket
    */
   async rename(newName: string): Promise<void> {
-    await this.httpClient.put(
+    await this.httpClientWrapper.put(
       `/b/${this.name}/rename`,
       {
         new_name: newName,
@@ -268,7 +267,6 @@ export class Bucket {
         },
       },
     );
-
     this.name = newName;
   }
 
