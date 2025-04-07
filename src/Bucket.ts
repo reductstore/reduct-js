@@ -61,7 +61,7 @@ export class Bucket {
    * @param settings {BucketSettings} new settings (you can set a part of settings)
    */
   async setSettings(settings: BucketSettings): Promise<void> {
-    await this.httpClient.put(
+    await this.httpClientWrapper.put(
       `/b/${this.name}`,
       BucketSettings.serialize(settings),
     );
@@ -95,7 +95,7 @@ export class Bucket {
    * @return {Promise<void>}
    */
   async remove(): Promise<void> {
-    await this.httpClient.delete(`/b/${this.name}`);
+    await this.httpClientWrapper.delete(`/b/${this.name}`);
   }
 
   /**
@@ -105,7 +105,7 @@ export class Bucket {
    * @return {Promise<void>}
    */
   async removeEntry(entry: string): Promise<void> {
-    await this.httpClient.delete(`/b/${this.name}/${entry}`);
+    await this.httpClientWrapper.delete(`/b/${this.name}/${entry}`);
   }
 
   /**
@@ -114,7 +114,7 @@ export class Bucket {
    * @param ts {BigInt} timestamp of record in microseconds
    */
   async removeRecord(entry: string, ts: bigint): Promise<void> {
-    await this.httpClient.delete(`/b/${this.name}/${entry}?ts=${ts}`);
+    await this.httpClientWrapper.delete(`/b/${this.name}/${entry}?ts=${ts}`);
   }
 
   /**
@@ -205,9 +205,13 @@ export class Bucket {
       headers[`x-reduct-label-${key}`] = value.toString();
     }
 
-    await this.httpClient.patch(`/b/${this.name}/${entry}?ts=${ts}`, "", {
-      headers,
-    });
+    await this.httpClientWrapper.patch(
+      `/b/${this.name}/${entry}?ts=${ts}`,
+      "",
+      {
+        headers,
+      },
+    );
   }
 
   /**
@@ -463,15 +467,19 @@ export class Bucket {
       param = `q=${id}`;
     }
 
-    const request = head ? this.httpClient.head : this.httpClient.get;
-    const { status, headers, data } = await request(
-      `/b/${this.name}/${entry}?${param}`,
-      head
-        ? undefined
-        : {
-            responseType: this.isBrowser ? "arraybuffer" : "stream",
-          },
-    );
+    const url = `/b/${this.name}/${entry}?${param}`;
+    let response;
+
+    if (head) {
+      response = await this.httpClientWrapper.headResponse(url);
+    } else {
+      response = await this.httpClientWrapper.getWithResponseType(
+        url,
+        this.isBrowser ? "arraybuffer" : "stream",
+      );
+    }
+
+    const { status, headers, data } = response;
 
     if (status === 204) {
       throw new APIError(headers["x-reduct-error"] ?? "No content", 204);

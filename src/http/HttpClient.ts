@@ -204,4 +204,29 @@ export class HttpClient {
   ): Promise<AxiosResponse> {
     return this.httpClient.head(url, config);
   }
+
+  /**
+   * Perform a request with custom config, returning the full AxiosResponse
+   */
+  async request<T = any>(
+    config: AxiosRequestConfig,
+  ): Promise<AxiosResponse<T>> {
+    return this.httpClient.request<T>(config);
+  }
+
+  /**
+   * Convenience: Perform a GET request with specific response type
+   */
+  async getWithResponseType<T = any>(
+    url: string,
+    responseType:
+      | "arraybuffer"
+      | "blob"
+      | "stream"
+      | "document"
+      | "json"
+      | "text",
+  ): Promise<AxiosResponse<T>> {
+    return this.httpClient.get<T>(url, { responseType });
+  }
 }
