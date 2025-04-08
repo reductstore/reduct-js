@@ -310,7 +310,7 @@ export class Bucket {
       typeof options === "object" &&
       "when" in options
     ) {
-      const { data, headers } = await this.httpClientWrapper.httpClient.post(
+      const { data, headers } = await this.httpClientWrapper.postResponse(
         `/b/${this.name}/${entry}/q`,
         QueryOptions.serialize(QueryType.QUERY, options),
       );
@@ -324,8 +324,7 @@ export class Bucket {
       const ret = this.parse_query_params(start, stop, options);
 
       const url = `/b/${this.name}/${entry}/q?` + ret.query;
-      const { data, headers } =
-        await this.httpClientWrapper.httpClient.get(url);
+      const { data, headers } = await this.httpClientWrapper.getResponse(url);
       ({ id } = data);
       header_api_version = headers["x-reduct-api"];
       ({ continuous, pollInterval, head } = ret);
@@ -564,13 +563,17 @@ export class Bucket {
     head: boolean,
     id: string,
   ): AsyncGenerator<ReadableRecord> {
-    const request = head
-      ? this.httpClientWrapper.httpClient.head
-      : this.httpClientWrapper.httpClient.get;
-    const { status, headers, data } = await request(
-      `/b/${this.name}/${entry}/batch?q=${id}`,
-      head ? undefined : { responseType: "stream" },
-    );
+    const url = `/b/${this.name}/${entry}/batch?q=${id}`;
+    let response;
+    if (head) {
+      response = await this.httpClientWrapper.headResponse(url);
+    } else {
+      response = await this.httpClientWrapper.getWithResponseType(
+        url,
+        "stream",
+      );
+    }
+    const { status, headers, data } = response;
 
     if (status === 204) {
       throw new APIError(headers["x-reduct-error"] ?? "No content", 204);
