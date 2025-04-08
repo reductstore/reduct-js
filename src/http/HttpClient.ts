@@ -69,11 +69,34 @@ export class HttpClient {
       (response: AxiosResponse) => response,
       async (error: AxiosError) => {
         if (error instanceof AxiosError) {
-          throw APIError.from(error);
+          // throw APIError.from(error);
+          throw this.mapAxiosErrorToAPIError(error);
         }
         throw error;
       },
     );
+  }
+
+  /**
+   * Map AxiosError to APIError
+   */
+  private mapAxiosErrorToAPIError(error: AxiosError): APIError {
+    const original = error;
+    let { message } = error;
+    let status: number | undefined = undefined;
+
+    const resp = error.response;
+    if (resp !== undefined) {
+      // eslint-disable-next-line
+      status = resp.status;
+
+      const header_msg = resp.headers["x-reduct-error"];
+      if (header_msg !== undefined) {
+        message = header_msg;
+      }
+    }
+
+    return new APIError(message, status, original);
   }
 
   /* ------------------------------------------------------------------
