@@ -48,6 +48,7 @@
     "it-all": "^1.0.6",
     "jest": "^27.5.1",
     "jest-config": "^27.5.1",
+    "jest-environment-jsdom": "^27.5.1",
     "md5": "^2.3.0",
     "prettier": "^3.2.5",
     "sync-request": "^6.1.0",

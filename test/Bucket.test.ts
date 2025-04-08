@@ -7,7 +7,7 @@ import all from "it-all";
 
 import { Client } from "../src/Client";
 import { Bucket } from "../src/Bucket";
-import { cleanStorage, it_api, makeClient } from "./Helpers";
+import { cleanStorage, it_api, makeClient, isBrowser } from "./Helpers";
 import { BucketInfo } from "../src/messages/BucketInfo";
 import { QuotaType } from "../src/messages/BucketSettings";
 import { ReadableRecord } from "../src/Record";
@@ -356,6 +356,9 @@ describe("Bucket", () => {
     });
 
     it_api("1.13")("should query records with condition", async () => {
+      // skip in browser for now as it is not supported
+      if (isBrowser()) return;
+
       const bucket: Bucket = await client.getBucket("bucket");
 
       let record = await bucket.beginWrite("entry-labels", {

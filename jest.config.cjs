@@ -2,8 +2,10 @@
  * For a detailed explanation regarding each configuration property and type check, visit:
  * https://jestjs.io/docs/configuration
  */
+// eslint-disable-next-line @typescript-eslint/no-var-requires, no-undef
 const { defaults } = require("jest-config");
 
+// eslint-disable-next-line no-undef
 module.exports = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
@@ -90,8 +92,25 @@ module.exports = {
   // preset: undefined,
   preset: "ts-jest",
 
-  // Run tests from one or more projects
-  // projects: undefined,
+  // Run tests for browser and node environment
+  projects: [
+    {
+      displayName: "node",
+      testEnvironment: "node",
+      testMatch: ["<rootDir>/test/*.test.ts"],
+      transform: {
+        "^.+\\.(ts|tsx)$": "ts-jest",
+      },
+    },
+    {
+      displayName: "jsdom",
+      testEnvironment: "jsdom",
+      testMatch: ["<rootDir>/test/*.test.ts"],
+      transform: {
+        "^.+\\.(ts|tsx)$": "ts-jest",
+      },
+    },
+  ],
 
   // Use this configuration option to add custom reporters to Jest
   // reporters: undefined,
