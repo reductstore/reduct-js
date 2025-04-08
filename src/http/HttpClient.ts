@@ -176,6 +176,22 @@ export class HttpClient {
   }
 
   /**
+   * Convenience: Perform a GET request with specific response type
+   */
+  async getWithResponseType<T = any>(
+    url: string,
+    responseType:
+      | "arraybuffer"
+      | "blob"
+      | "stream"
+      | "document"
+      | "json"
+      | "text",
+  ): Promise<AxiosResponse<T>> {
+    return this.httpClient.get<T>(url, { responseType });
+  }
+
+  /**
    * Perform a POST request, returning the full AxiosResponse<T>
    */
   async postResponse<T = any>(
@@ -235,21 +251,5 @@ export class HttpClient {
     config: AxiosRequestConfig,
   ): Promise<AxiosResponse<T>> {
     return this.httpClient.request<T>(config);
-  }
-
-  /**
-   * Convenience: Perform a GET request with specific response type
-   */
-  async getWithResponseType<T = any>(
-    url: string,
-    responseType:
-      | "arraybuffer"
-      | "blob"
-      | "stream"
-      | "document"
-      | "json"
-      | "text",
-  ): Promise<AxiosResponse<T>> {
-    return this.httpClient.get<T>(url, { responseType });
   }
 }
