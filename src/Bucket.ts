@@ -4,10 +4,9 @@ import { BucketInfo } from "./messages/BucketInfo";
 import { EntryInfo } from "./messages/EntryInfo";
 import { LabelMap, ReadableRecord, WritableRecord } from "./Record";
 import { APIError } from "./APIError";
-import Stream, { Readable } from "stream";
+import { Readable } from "stream";
 import { Buffer } from "buffer";
 import { Batch, BatchType } from "./Batch";
-import { isCompatibale } from "./Client";
 import { QueryOptions, QueryType } from "./messages/QueryEntry";
 import { HttpClient } from "./http/HttpClient";
 
@@ -26,7 +25,6 @@ export interface WriteOptions {
 export class Bucket {
   private name: string;
   private readonly httpClientWrapper: HttpClient;
-  private readonly isBrowser: boolean;
 
   /**
    * Create a bucket. Use Client.creatBucket or Client.getBucket instead it
@@ -38,7 +36,6 @@ export class Bucket {
   constructor(name: string, httpClientWrapper: HttpClient) {
     this.name = name;
     this.httpClientWrapper = httpClientWrapper;
-    this.isBrowser = typeof window !== "undefined";
     this.readRecord = this.readRecord.bind(this);
   }
 
@@ -330,7 +327,7 @@ export class Bucket {
       ({ continuous, pollInterval, head } = ret);
     }
 
-    if (isCompatibale("1.5", header_api_version) && !this.isBrowser) {
+    if (this.httpClientWrapper.supportsBatchedRecords(header_api_version)) {
       yield* this.fetchAndParseBatchedRecords(
         entry,
         id,
@@ -480,51 +477,18 @@ export class Bucket {
     } else {
       response = await this.httpClientWrapper.getWithResponseType(
         url,
-        this.isBrowser ? "arraybuffer" : "stream",
+        this.httpClientWrapper.getResponseType(),
       );
     }
 
-    const { status, headers, data } = response;
-
-    if (status === 204) {
-      throw new APIError(headers["x-reduct-error"] ?? "No content", 204);
-    }
-
-    const labels: LabelMap = {};
-    for (const [key, value] of Object.entries(
-      headers as Record<string, string>,
-    )) {
-      if (key.startsWith("x-reduct-label-")) {
-        labels[key.substring(15)] = value;
-      }
-    }
-
-    if (this.isBrowser) {
-      // Pass a dummy Stream object and use ArrayBuffer
-      const arrayBuffer = data as ArrayBuffer;
-      return new ReadableRecord(
-        BigInt(headers["x-reduct-time"] ?? 0),
-        BigInt(headers["content-length"] ?? 0),
-        headers["x-reduct-last"] == "1",
-        head,
-        new Stream.Readable(),
-        labels,
-        headers["content-type"] ?? "application/octet-stream",
-        arrayBuffer,
-      );
-    } else {
-      // Pass the actual Stream object to ReadableRecord
-      const stream = data as Readable;
-      return new ReadableRecord(
-        BigInt(headers["x-reduct-time"] ?? 0),
-        BigInt(headers["content-length"] ?? 0),
-        headers["x-reduct-last"] == "1",
-        head,
-        stream,
-        labels,
-        headers["content-type"] ?? "application/octet-stream",
+    if (response.status === 204) {
+      throw new APIError(
+        response.headers["x-reduct-error"] ?? "No content",
+        204,
       );
     }
+
+    return this.httpClientWrapper.createReadableRecord(response, head);
   }
 
   private async *fetchAndParseBatchedRecords(
