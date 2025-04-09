@@ -24,7 +24,7 @@ export interface WriteOptions {
  */
 export class Bucket {
   private name: string;
-  private readonly httpClientWrapper: HttpClient;
+  private readonly httpClient: HttpClient;
 
   /**
    * Create a bucket. Use Client.creatBucket or Client.getBucket instead it
@@ -33,9 +33,9 @@ export class Bucket {
    * @param httpClient
    * @see {Client}
    */
-  constructor(name: string, httpClientWrapper: HttpClient) {
+  constructor(name: string, httpClient: HttpClient) {
     this.name = name;
-    this.httpClientWrapper = httpClientWrapper;
+    this.httpClient = httpClient;
     this.readRecord = this.readRecord.bind(this);
   }
 
@@ -45,7 +45,7 @@ export class Bucket {
    * @return {Promise<BucketSettings>}
    */
   async getSettings(): Promise<BucketSettings> {
-    const data = await this.httpClientWrapper.get<any>(`/b/${this.name}`);
+    const data = await this.httpClient.get<any>(`/b/${this.name}`);
     return Promise.resolve(BucketSettings.parse(data.settings));
   }
 
@@ -55,7 +55,7 @@ export class Bucket {
    * @param settings {BucketSettings} new settings (you can set a part of settings)
    */
   async setSettings(settings: BucketSettings): Promise<void> {
-    await this.httpClientWrapper.put(
+    await this.httpClient.put(
       `/b/${this.name}`,
       BucketSettings.serialize(settings),
     );
@@ -67,7 +67,7 @@ export class Bucket {
    * @return {Promise<BucketInfo>}
    */
   async getInfo(): Promise<BucketInfo> {
-    const data = await this.httpClientWrapper.get<any>(`/b/${this.name}`);
+    const data = await this.httpClient.get<any>(`/b/${this.name}`);
     return BucketInfo.parse(data.info);
   }
 
@@ -77,7 +77,7 @@ export class Bucket {
    * @return {Promise<EntryInfo>}
    */
   async getEntryList(): Promise<EntryInfo[]> {
-    const data = await this.httpClientWrapper.get<any>(`/b/${this.name}`);
+    const data = await this.httpClient.get<any>(`/b/${this.name}`);
     return Promise.resolve(
       data.entries.map((entry: any) => EntryInfo.parse(entry)),
     );
@@ -89,7 +89,7 @@ export class Bucket {
    * @return {Promise<void>}
    */
   async remove(): Promise<void> {
-    await this.httpClientWrapper.delete(`/b/${this.name}`);
+    await this.httpClient.delete(`/b/${this.name}`);
   }
 
   /**
@@ -99,7 +99,7 @@ export class Bucket {
    * @return {Promise<void>}
    */
   async removeEntry(entry: string): Promise<void> {
-    await this.httpClientWrapper.delete(`/b/${this.name}/${entry}`);
+    await this.httpClient.delete(`/b/${this.name}/${entry}`);
   }
 
   /**
@@ -108,7 +108,7 @@ export class Bucket {
    * @param ts {BigInt} timestamp of record in microseconds
    */
   async removeRecord(entry: string, ts: bigint): Promise<void> {
-    await this.httpClientWrapper.delete(`/b/${this.name}/${entry}?ts=${ts}`);
+    await this.httpClient.delete(`/b/${this.name}/${entry}?ts=${ts}`);
   }
 
   /**
@@ -117,12 +117,7 @@ export class Bucket {
    * @param tsList {BigInt[]} list of timestamps of records in microseconds
    */
   async beginRemoveBatch(entry: string): Promise<Batch> {
-    return new Batch(
-      this.name,
-      entry,
-      this.httpClientWrapper,
-      BatchType.REMOVE,
-    );
+    return new Batch(this.name, entry, this.httpClient, BatchType.REMOVE);
   }
 
   /**
@@ -139,14 +134,14 @@ export class Bucket {
     options?: QueryOptions,
   ): Promise<void> {
     if (options !== undefined && options.when !== undefined) {
-      const data = await this.httpClientWrapper.post(
+      const data = await this.httpClient.post(
         `/b/${this.name}/${entry}/q`,
         QueryOptions.serialize(QueryType.REMOVE, options),
       );
       return Promise.resolve(data["removed_records"]);
     } else {
       const ret = this.parse_query_params(start, stop, options);
-      const data = await this.httpClientWrapper.delete(
+      const data = await this.httpClient.delete(
         `/b/${this.name}/${entry}/q?${ret.query}`,
       );
       return Promise.resolve(data["removed_records"]);
@@ -181,12 +176,7 @@ export class Bucket {
     localOptions.ts = localOptions.ts ?? BigInt(Date.now()) * 1000n;
 
     return Promise.resolve(
-      new WritableRecord(
-        this.name,
-        entry,
-        localOptions,
-        this.httpClientWrapper,
-      ),
+      new WritableRecord(this.name, entry, localOptions, this.httpClient),
     );
   }
 
@@ -208,13 +198,9 @@ export class Bucket {
       headers[`x-reduct-label-${key}`] = value.toString();
     }
 
-    await this.httpClientWrapper.patch(
-      `/b/${this.name}/${entry}?ts=${ts}`,
-      "",
-      {
-        headers,
-      },
-    );
+    await this.httpClient.patch(`/b/${this.name}/${entry}?ts=${ts}`, "", {
+      headers,
+    });
   }
 
   /**
@@ -242,7 +228,7 @@ export class Bucket {
    * @param newEntry new entry name
    */
   async renameEntry(entry: string, newEntry: string): Promise<void> {
-    await this.httpClientWrapper.put(
+    await this.httpClient.put(
       `/b/${this.name}/${entry}/rename`,
       {
         new_name: newEntry,
@@ -260,7 +246,7 @@ export class Bucket {
    * @param newName new name of the bucket
    */
   async rename(newName: string): Promise<void> {
-    await this.httpClientWrapper.put(
+    await this.httpClient.put(
       `/b/${this.name}/rename`,
       {
         new_name: newName,
@@ -307,7 +293,7 @@ export class Bucket {
       typeof options === "object" &&
       "when" in options
     ) {
-      const { data, headers } = await this.httpClientWrapper.postResponse(
+      const { data, headers } = await this.httpClient.postResponse(
         `/b/${this.name}/${entry}/q`,
         QueryOptions.serialize(QueryType.QUERY, options),
       );
@@ -321,13 +307,13 @@ export class Bucket {
       const ret = this.parse_query_params(start, stop, options);
 
       const url = `/b/${this.name}/${entry}/q?` + ret.query;
-      const { data, headers } = await this.httpClientWrapper.getResponse(url);
+      const { data, headers } = await this.httpClient.getResponse(url);
       ({ id } = data);
       header_api_version = headers["x-reduct-api"];
       ({ continuous, pollInterval, head } = ret);
     }
 
-    if (this.httpClientWrapper.supportsBatchedRecords(header_api_version)) {
+    if (this.httpClient.supportsBatchedRecords(header_api_version)) {
       yield* this.fetchAndParseBatchedRecords(
         entry,
         id,
@@ -473,11 +459,11 @@ export class Bucket {
     let response;
 
     if (head) {
-      response = await this.httpClientWrapper.headResponse(url);
+      response = await this.httpClient.headResponse(url);
     } else {
-      response = await this.httpClientWrapper.getWithResponseType(
+      response = await this.httpClient.getWithResponseType(
         url,
-        this.httpClientWrapper.getResponseType(),
+        this.httpClient.getResponseType(),
       );
     }
 
@@ -488,7 +474,7 @@ export class Bucket {
       );
     }
 
-    return this.httpClientWrapper.createReadableRecord(response, head);
+    return this.httpClient.createReadableRecord(response, head);
   }
 
   private async *fetchAndParseBatchedRecords(
@@ -530,12 +516,9 @@ export class Bucket {
     const url = `/b/${this.name}/${entry}/batch?q=${id}`;
     let response;
     if (head) {
-      response = await this.httpClientWrapper.headResponse(url);
+      response = await this.httpClient.headResponse(url);
     } else {
-      response = await this.httpClientWrapper.getWithResponseType(
-        url,
-        "stream",
-      );
+      response = await this.httpClient.getWithResponseType(url, "stream");
     }
     const { status, headers, data } = response;
 
@@ -603,7 +586,7 @@ export class Bucket {
    * @param entry
    */
   async beginWriteBatch(entry: string): Promise<Batch> {
-    return new Batch(this.name, entry, this.httpClientWrapper, BatchType.WRITE);
+    return new Batch(this.name, entry, this.httpClient, BatchType.WRITE);
   }
 
   /**
@@ -611,12 +594,7 @@ export class Bucket {
    * @param entry
    */
   async beginUpdateBatch(entry: string): Promise<Batch> {
-    return new Batch(
-      this.name,
-      entry,
-      this.httpClientWrapper,
-      BatchType.UPDATE,
-    );
+    return new Batch(this.name, entry, this.httpClient, BatchType.UPDATE);
   }
 }
 
