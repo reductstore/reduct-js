@@ -3,6 +3,7 @@ import axios, {
   AxiosInstance,
   AxiosRequestConfig,
   AxiosResponse,
+  ResponseType,
 } from "axios";
 import { Readable, Stream } from "stream";
 import * as https from "https";
@@ -120,9 +121,7 @@ export class HttpClient {
   }
 
   getArrayBufferIfAvailable(data: any): ArrayBuffer | undefined {
-    return this.getResponseType() === "arraybuffer"
-      ? (data as ArrayBuffer)
-      : undefined;
+    return this.isBrowser ? (data as ArrayBuffer) : undefined;
   }
 
   supportsBatchedRecords(apiVersion: string): boolean {
@@ -144,7 +143,7 @@ export class HttpClient {
 
     const stream = this.createReadableStreamFromResponse(
       data,
-      this.getResponseType(),
+      this.isBrowser ? "arraybuffer" : "stream",
     );
 
     return new ReadableRecord(
@@ -230,25 +229,11 @@ export class HttpClient {
    */
   async getResponse<T = any>(
     url: string,
-    config?: AxiosRequestConfig,
+    responseType?: ResponseType,
   ): Promise<AxiosResponse<T>> {
-    return this.httpClient.get<T>(url, config);
-  }
-
-  /**
-   * Convenience: Perform a GET request with specific response type
-   */
-  async getWithResponseType<T = any>(
-    url: string,
-    responseType:
-      | "arraybuffer"
-      | "blob"
-      | "stream"
-      | "document"
-      | "json"
-      | "text",
-  ): Promise<AxiosResponse<T>> {
-    return this.httpClient.get<T>(url, { responseType });
+    if (responseType !== undefined)
+      return this.httpClient.get<T>(url, { responseType });
+    else return this.httpClient.get<T>(url);
   }
 
   /**

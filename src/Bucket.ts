@@ -461,7 +461,7 @@ export class Bucket {
     if (head) {
       response = await this.httpClient.headResponse(url);
     } else {
-      response = await this.httpClient.getWithResponseType(
+      response = await this.httpClient.getResponse(
         url,
         this.httpClient.getResponseType(),
       );
@@ -518,7 +518,7 @@ export class Bucket {
     if (head) {
       response = await this.httpClient.headResponse(url);
     } else {
-      response = await this.httpClient.getWithResponseType(url, "stream");
+      response = await this.httpClient.getResponse(url, "stream");
     }
     const { status, headers, data } = response;
 
