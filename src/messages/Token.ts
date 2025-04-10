@@ -1,7 +1,7 @@
 /**
  * Token Permissions with server-side names
  */
-class OriginalTokenPermission {
+export class OriginalTokenPermission {
   full_access = false;
   read?: string[] = [];
   write?: string[] = [];
@@ -49,7 +49,7 @@ export class TokenPermissions {
 /**
  * Token Info with server-side names
  */
-class OriginalTokenInfo {
+export class OriginalTokenInfo {
   name = "";
   created_at = "";
   is_provisioned? = false;

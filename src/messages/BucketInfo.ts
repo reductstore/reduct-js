@@ -32,7 +32,7 @@ export class BucketInfo {
    */
   readonly isProvisioned?: boolean = false;
 
-  static parse(bucket: Original): BucketInfo {
+  static parse(bucket: OriginalBucketInfo): BucketInfo {
     return {
       name: bucket.name,
       entryCount: BigInt(bucket.entry_count),
@@ -44,7 +44,7 @@ export class BucketInfo {
   }
 }
 
-type Original = {
+export type OriginalBucketInfo = {
   name: string;
   entry_count: string;
   size: string;

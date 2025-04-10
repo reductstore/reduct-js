@@ -7,7 +7,7 @@ import { Diagnostics, OriginalDiagnostics } from "./Diagnostics";
 /**
  * Original Replication Info
  */
-class OriginalReplicationInfo {
+export class OriginalReplicationInfo {
   name = "";
   is_active = false;
   is_provisioned = false;
@@ -67,15 +67,17 @@ export class FullReplicationInfo {
    */
   readonly diagnostics: Diagnostics = new Diagnostics();
 
-  static parse(data: {
-    info: OriginalReplicationInfo;
-    settings: OriginalReplicationSettings;
-    diagnostics: OriginalDiagnostics;
-  }): FullReplicationInfo {
+  static parse(data: FullReplicationInfoResponse): FullReplicationInfo {
     return {
       info: ReplicationInfo.parse(data.info),
       settings: ReplicationSettings.parse(data.settings),
       diagnostics: Diagnostics.parse(data.diagnostics),
     };
   }
+}
+
+export interface FullReplicationInfoResponse {
+  info: OriginalReplicationInfo;
+  settings: OriginalReplicationSettings;
+  diagnostics: OriginalDiagnostics;
 }

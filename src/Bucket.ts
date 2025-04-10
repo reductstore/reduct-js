@@ -1,15 +1,14 @@
 // @ts-ignore`
-import { AxiosInstance } from "axios";
 import { BucketSettings } from "./messages/BucketSettings";
 import { BucketInfo } from "./messages/BucketInfo";
 import { EntryInfo } from "./messages/EntryInfo";
 import { LabelMap, ReadableRecord, WritableRecord } from "./Record";
 import { APIError } from "./APIError";
-import Stream, { Readable } from "stream";
+import { Readable } from "stream";
 import { Buffer } from "buffer";
 import { Batch, BatchType } from "./Batch";
-import { isCompatibale } from "./Client";
 import { QueryOptions, QueryType } from "./messages/QueryEntry";
+import { HttpClient } from "./http/HttpClient";
 
 /**
  * Options for writing records
@@ -25,8 +24,7 @@ export interface WriteOptions {
  */
 export class Bucket {
   private name: string;
-  private readonly httpClient: AxiosInstance;
-  private readonly isBrowser: boolean;
+  private readonly httpClient: HttpClient;
 
   /**
    * Create a bucket. Use Client.creatBucket or Client.getBucket instead it
@@ -35,10 +33,9 @@ export class Bucket {
    * @param httpClient
    * @see {Client}
    */
-  constructor(name: string, httpClient: AxiosInstance) {
+  constructor(name: string, httpClient: HttpClient) {
     this.name = name;
     this.httpClient = httpClient;
-    this.isBrowser = typeof window !== "undefined";
     this.readRecord = this.readRecord.bind(this);
   }
 
@@ -48,7 +45,7 @@ export class Bucket {
    * @return {Promise<BucketSettings>}
    */
   async getSettings(): Promise<BucketSettings> {
-    const { data } = await this.httpClient.get(`/b/${this.name}`);
+    const data = await this.httpClient.get<any>(`/b/${this.name}`);
     return Promise.resolve(BucketSettings.parse(data.settings));
   }
 
@@ -70,7 +67,7 @@ export class Bucket {
    * @return {Promise<BucketInfo>}
    */
   async getInfo(): Promise<BucketInfo> {
-    const { data } = await this.httpClient.get(`/b/${this.name}`);
+    const data = await this.httpClient.get<any>(`/b/${this.name}`);
     return BucketInfo.parse(data.info);
   }
 
@@ -80,7 +77,7 @@ export class Bucket {
    * @return {Promise<EntryInfo>}
    */
   async getEntryList(): Promise<EntryInfo[]> {
-    const { data } = await this.httpClient.get(`/b/${this.name}`);
+    const data = await this.httpClient.get<any>(`/b/${this.name}`);
     return Promise.resolve(
       data.entries.map((entry: any) => EntryInfo.parse(entry)),
     );
@@ -137,15 +134,14 @@ export class Bucket {
     options?: QueryOptions,
   ): Promise<void> {
     if (options !== undefined && options.when !== undefined) {
-      const { data } = await this.httpClient.post(
+      const data = await this.httpClient.post(
         `/b/${this.name}/${entry}/q`,
         QueryOptions.serialize(QueryType.REMOVE, options),
       );
       return Promise.resolve(data["removed_records"]);
     } else {
       const ret = this.parse_query_params(start, stop, options);
-
-      const { data } = await this.httpClient.delete(
+      const data = await this.httpClient.delete(
         `/b/${this.name}/${entry}/q?${ret.query}`,
       );
       return Promise.resolve(data["removed_records"]);
@@ -261,7 +257,6 @@ export class Bucket {
         },
       },
     );
-
     this.name = newName;
   }
 
@@ -298,7 +293,7 @@ export class Bucket {
       typeof options === "object" &&
       ("when" in options || "ext" in options)
     ) {
-      const { data, headers } = await this.httpClient.post(
+      const { data, headers } = await this.httpClient.postResponse(
         `/b/${this.name}/${entry}/q`,
         QueryOptions.serialize(QueryType.QUERY, options),
       );
@@ -312,13 +307,13 @@ export class Bucket {
       const ret = this.parse_query_params(start, stop, options);
 
       const url = `/b/${this.name}/${entry}/q?` + ret.query;
-      const { data, headers } = await this.httpClient.get(url);
+      const { data, headers } = await this.httpClient.getResponse(url);
       ({ id } = data);
       header_api_version = headers["x-reduct-api"];
       ({ continuous, pollInterval, head } = ret);
     }
 
-    if (isCompatibale("1.5", header_api_version) && !this.isBrowser) {
+    if (this.httpClient.supportsBatchedRecords(header_api_version)) {
       yield* this.fetchAndParseBatchedRecords(
         entry,
         id,
@@ -460,55 +455,26 @@ export class Bucket {
       param = `q=${id}`;
     }
 
-    const request = head ? this.httpClient.head : this.httpClient.get;
-    const { status, headers, data } = await request(
-      `/b/${this.name}/${entry}?${param}`,
-      head
-        ? undefined
-        : {
-            responseType: this.isBrowser ? "arraybuffer" : "stream",
-          },
-    );
+    const url = `/b/${this.name}/${entry}?${param}`;
+    let response;
 
-    if (status === 204) {
-      throw new APIError(headers["x-reduct-error"] ?? "No content", 204);
-    }
-
-    const labels: LabelMap = {};
-    for (const [key, value] of Object.entries(
-      headers as Record<string, string>,
-    )) {
-      if (key.startsWith("x-reduct-label-")) {
-        labels[key.substring(15)] = value;
-      }
-    }
-
-    if (this.isBrowser) {
-      // Pass a dummy Stream object and use ArrayBuffer
-      const arrayBuffer = data as ArrayBuffer;
-      return new ReadableRecord(
-        BigInt(headers["x-reduct-time"] ?? 0),
-        BigInt(headers["content-length"] ?? 0),
-        headers["x-reduct-last"] == "1",
-        head,
-        new Stream.Readable(),
-        labels,
-        headers["content-type"] ?? "application/octet-stream",
-        arrayBuffer,
-      );
+    if (head) {
+      response = await this.httpClient.headResponse(url);
     } else {
-      // Pass the actual Stream object to ReadableRecord
-      const stream = data as Readable;
-      return new ReadableRecord(
-        BigInt(headers["x-reduct-time"] ?? 0),
-        BigInt(headers["content-length"] ?? 0),
-        headers["x-reduct-last"] == "1",
-        head,
-        stream,
-        labels,
-        headers["content-type"] ?? "application/octet-stream",
+      response = await this.httpClient.getResponse(
+        url,
+        this.httpClient.getResponseType(),
       );
     }
+
+    if (response.status === 204) {
+      throw new APIError(
+        response.headers["x-reduct-error"] ?? "No content",
+        204,
+      );
+    }
+
+    return this.httpClient.createReadableRecord(response, head);
   }
 
   private async *fetchAndParseBatchedRecords(
@@ -547,11 +513,14 @@ export class Bucket {
     head: boolean,
     id: string,
   ): AsyncGenerator<ReadableRecord> {
-    const request = head ? this.httpClient.head : this.httpClient.get;
-    const { status, headers, data } = await request(
-      `/b/${this.name}/${entry}/batch?q=${id}`,
-      head ? undefined : { responseType: "stream" },
-    );
+    const url = `/b/${this.name}/${entry}/batch?q=${id}`;
+    let response;
+    if (head) {
+      response = await this.httpClient.headResponse(url);
+    } else {
+      response = await this.httpClient.getResponse(url, "stream");
+    }
+    const { status, headers, data } = response;
 
     if (status === 204) {
       throw new APIError(headers["x-reduct-error"] ?? "No content", 204);
