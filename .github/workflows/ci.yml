@@ -63,6 +63,7 @@ jobs:
           --env RS_API_TOKEN=${{matrix.token}}
           --env RS_LOG_LEVEL=DEBUG
           --env RS_LICENSE_PATH=${{matrix.license}}
+          --env RS_EXT_PATH=/tmp
           -d reduct/store:${{ matrix.reductstore_version }}
 
       - name: Load image with tests
