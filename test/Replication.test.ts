@@ -44,7 +44,7 @@ describe("Replication", () => {
     const replication = await client.getReplication("test-replication");
     expect(replication.info).toMatchObject({
       name: "test-replication",
-      isActive: false,
+      isActive: true,
       isProvisioned: false,
       pendingRecords: 0n,
     });
