@@ -548,8 +548,9 @@ export class Bucket {
         }
         stream = data;
       } else {
-        const buffer = head ? Buffer.from([]) :
-          await this.httpClient.readFixedSizeChunk(data, Number(size));
+        const buffer = head
+          ? Buffer.from([])
+          : await this.httpClient.readFixedSizeChunk(data, Number(size));
         stream = Readable.from(buffer);
       }
 

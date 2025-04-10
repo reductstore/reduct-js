@@ -10,10 +10,10 @@ import * as https from "https";
 import { ClientOptions, isCompatibale } from "../Client";
 import { APIError } from "../APIError";
 import { ReadableRecord, LabelMap } from "../Record";
+import { isBrowser } from "../utils/env";
 
 export class HttpClient {
   readonly httpClient: AxiosInstance;
-  private readonly isBrowser: boolean;
 
   constructor(url: string, options: ClientOptions = {}) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -59,14 +59,13 @@ export class HttpClient {
     };
 
     // If running in Node, configure httpsAgent (for SSL verification).
-    if (typeof window === "undefined") {
+    if (!isBrowser) {
       axiosConfig.httpsAgent = new https.Agent({
         rejectUnauthorized: options.verifySSL !== false,
       });
     }
 
     this.httpClient = axios.create(axiosConfig);
-    this.isBrowser = typeof window !== "undefined";
 
     // Convert Axios errors into APIError
     this.httpClient.interceptors.response.use(
@@ -82,7 +81,7 @@ export class HttpClient {
   }
 
   getResponseType(): "arraybuffer" | "stream" {
-    return this.isBrowser ? "arraybuffer" : "stream";
+    return isBrowser ? "arraybuffer" : "stream";
   }
 
   /**
@@ -121,11 +120,11 @@ export class HttpClient {
   }
 
   getArrayBufferIfAvailable(data: any): ArrayBuffer | undefined {
-    return this.isBrowser ? (data as ArrayBuffer) : undefined;
+    return isBrowser ? (data as ArrayBuffer) : undefined;
   }
 
   supportsBatchedRecords(apiVersion: string): boolean {
-    return isCompatibale("1.5", apiVersion) && !this.isBrowser;
+    return isCompatibale("1.5", apiVersion) && !isBrowser;
   }
 
   createReadableRecord(
@@ -143,7 +142,7 @@ export class HttpClient {
 
     const stream = this.createReadableStreamFromResponse(
       data,
-      this.isBrowser ? "arraybuffer" : "stream",
+      this.getResponseType(),
     );
 
     return new ReadableRecord(
