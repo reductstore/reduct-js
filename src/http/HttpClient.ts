@@ -158,6 +158,36 @@ export class HttpClient {
     );
   }
 
+  /**
+   * Read a fixed-size chunk from a readable stream
+   * @param stream The readable stream to read from
+   * @param size The size of the chunk to read
+   * @returns A promise that resolves to a Buffer containing the chunk
+   */
+  async readFixedSizeChunk(stream: Readable, size: number): Promise<Buffer> {
+    if (size === 0) {
+      return Buffer.from([]);
+    }
+
+    return new Promise((resolve, reject) => {
+      const err_handler = (err: any) => {
+        reject(err);
+      };
+
+      const handler = () => {
+        const chunk = stream.read(size);
+        if (chunk !== null) {
+          stream.off("readable", handler);
+          stream.off("error", err_handler);
+          resolve(chunk);
+        }
+      };
+
+      stream.on("readable", handler);
+      stream.on("error", err_handler);
+    });
+  }
+
   /* ------------------------------------------------------------------
      BASIC "data only" HELPERS
      ------------------------------------------------------------------ */

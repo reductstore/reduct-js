@@ -548,24 +548,8 @@ export class Bucket {
         }
         stream = data;
       } else {
-        let buffer = Buffer.from([]);
-        if (!head) {
-          buffer = await new Promise((resolve, reject) => {
-            const err_handler = (err: any) => {
-              reject(err);
-            };
-            data.on("readable", function handler() {
-              const chunk = data.read(Number(size));
-              if (chunk !== null) {
-                resolve(chunk);
-                data.off("readable", handler);
-                data.off("error", err_handler);
-              }
-            });
-
-            data.on("error", err_handler);
-          });
-        }
+        const buffer = head ? Buffer.from([]) :
+          await this.httpClient.readFixedSizeChunk(data, Number(size));
         stream = Readable.from(buffer);
       }
 
