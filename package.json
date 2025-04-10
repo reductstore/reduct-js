@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "axios": "^0.27.2",
-    "json-bigint": "^1.0.0"
+    "json-bigint": "^1.0.0",
+    "web-streams-polyfill": "^4.1.0"
   }
 }
