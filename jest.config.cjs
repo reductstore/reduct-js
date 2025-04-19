@@ -91,12 +91,13 @@ module.exports = {
   // A preset that is used as a base for Jest's configuration
   // preset: undefined,
   preset: "ts-jest",
-
   // Run tests for browser and node environment
+
   projects: [
     {
       displayName: "node",
       testEnvironment: "node",
+      setupFiles: ["<rootDir>/test/setup/polyfills.ts"],
       testMatch: ["<rootDir>/test/*.test.ts"],
       transform: {
         "^.+\\.(ts|tsx)$": "ts-jest",
@@ -105,6 +106,7 @@ module.exports = {
     {
       displayName: "jsdom",
       testEnvironment: "jsdom",
+      setupFiles: ["<rootDir>/test/setup/polyfills.ts"],
       testMatch: ["<rootDir>/test/*.test.ts"],
       transform: {
         "^.+\\.(ts|tsx)$": "ts-jest",
@@ -151,7 +153,7 @@ module.exports = {
   // snapshotSerializers: [],
 
   // The test environment that will be used for testing
-  testEnvironment: "node",
+  // testEnvironment: "node",
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
@@ -185,10 +187,10 @@ module.exports = {
   // Setting this value to "fake" allows the use of fake timers for functions such as "setTimeout"
   // timers: "real",
 
-  transform: {
-    "^.+\\.(ts|tsx)$": "ts-jest",
-  },
-  transformIgnorePatterns: [],
+  // transform: {
+  //   "^.+\\.(ts|tsx)$": "ts-jest",
+  // },
+  // transformIgnorePatterns: [],
 
   // An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
   // unmockedModulePathPatterns: undefined,

@@ -58,8 +58,10 @@ export const it_env = (name: string) => {
   }
 };
 
-export const isBrowser = () => {
-  return (
-    typeof window !== "undefined" && typeof window.document !== "undefined"
-  );
+export const itIfNode = () => {
+  if (typeof window === "undefined") {
+    return it;
+  } else {
+    return it.skip;
+  }
 };

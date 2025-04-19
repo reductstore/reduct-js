@@ -97,10 +97,9 @@ export class HttpClient {
       // eslint-disable-next-line
       status = resp.status;
 
-      const header_msg = resp.headers["x-reduct-error"];
-      if (header_msg !== undefined) {
-        message = header_msg;
-      }
+      const headerMsg = resp.headers?.["x-reduct-error"];
+      const dataMsg = (resp.data as any)?.detail || (resp.data as any)?.message;
+      message = headerMsg ?? dataMsg ?? message;
     }
 
     return new APIError(message, status, original);

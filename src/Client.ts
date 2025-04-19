@@ -16,6 +16,7 @@ import {
 } from "./messages/ReplicationInfo";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
 import { HttpClient } from "./http/HttpClient";
+import { FetchClient } from "./http/HttpFetchClient";
 
 /**
  * Options
@@ -28,6 +29,7 @@ export type ClientOptions = {
 
 export class Client {
   private readonly httpClient: HttpClient;
+  private readonly fetchClient: FetchClient;
 
   /**
    * HTTP Client for ReductStore
@@ -36,6 +38,7 @@ export class Client {
    */
   constructor(url: string, options: ClientOptions = {}) {
     this.httpClient = new HttpClient(url, options);
+    this.fetchClient = new FetchClient(url, options);
   }
 
   /**
@@ -44,7 +47,7 @@ export class Client {
    * @return {Promise<ServerInfo>} the data about the server
    */
   async getInfo(): Promise<ServerInfo> {
-    const data = await this.httpClient.get<OriginalServerInfo>("/info");
+    const data = await this.fetchClient.get<OriginalServerInfo>("/info");
     return ServerInfo.parse(data);
   }
 

@@ -38,6 +38,7 @@
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
     "@types/jest": "^27.4.1",
+    "@types/json-bigint": "^1.0.4",
     "@types/md5": "^2.3.2",
     "@types/sjcl": "^1.0.30",
     "@typescript-eslint/eslint-plugin": "^5.19.0",
@@ -57,6 +58,7 @@
   },
   "dependencies": {
     "axios": "^0.27.2",
+    "cross-fetch": "^4.1.0",
     "json-bigint": "^1.0.0",
     "web-streams-polyfill": "^4.1.0"
   }
