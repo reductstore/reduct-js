@@ -49,7 +49,7 @@ export class Bucket {
    * @return {Promise<BucketSettings>}
    */
   async getSettings(): Promise<BucketSettings> {
-    const data = await this.httpClient.get<any>(`/b/${this.name}`);
+    const data = await this.fetchClient.get<any>(`/b/${this.name}`);
     return Promise.resolve(BucketSettings.parse(data.settings));
   }
 
@@ -59,7 +59,7 @@ export class Bucket {
    * @param settings {BucketSettings} new settings (you can set a part of settings)
    */
   async setSettings(settings: BucketSettings): Promise<void> {
-    await this.httpClient.put(
+    await this.fetchClient.put(
       `/b/${this.name}`,
       BucketSettings.serialize(settings),
     );
@@ -71,7 +71,7 @@ export class Bucket {
    * @return {Promise<BucketInfo>}
    */
   async getInfo(): Promise<BucketInfo> {
-    const data = await this.httpClient.get<any>(`/b/${this.name}`);
+    const data = await this.fetchClient.get<any>(`/b/${this.name}`);
     return BucketInfo.parse(data.info);
   }
 
@@ -81,7 +81,7 @@ export class Bucket {
    * @return {Promise<EntryInfo>}
    */
   async getEntryList(): Promise<EntryInfo[]> {
-    const data = await this.httpClient.get<any>(`/b/${this.name}`);
+    const data = await this.fetchClient.get<any>(`/b/${this.name}`);
     return Promise.resolve(
       data.entries.map((entry: any) => EntryInfo.parse(entry)),
     );
@@ -93,7 +93,7 @@ export class Bucket {
    * @return {Promise<void>}
    */
   async remove(): Promise<void> {
-    await this.httpClient.delete(`/b/${this.name}`);
+    await this.fetchClient.delete(`/b/${this.name}`);
   }
 
   /**
@@ -103,7 +103,7 @@ export class Bucket {
    * @return {Promise<void>}
    */
   async removeEntry(entry: string): Promise<void> {
-    await this.httpClient.delete(`/b/${this.name}/${entry}`);
+    await this.fetchClient.delete(`/b/${this.name}/${entry}`);
   }
 
   /**
@@ -112,7 +112,7 @@ export class Bucket {
    * @param ts {BigInt} timestamp of record in microseconds
    */
   async removeRecord(entry: string, ts: bigint): Promise<void> {
-    await this.httpClient.delete(`/b/${this.name}/${entry}?ts=${ts}`);
+    await this.fetchClient.delete(`/b/${this.name}/${entry}?ts=${ts}`);
   }
 
   /**

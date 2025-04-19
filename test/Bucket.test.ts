@@ -247,23 +247,26 @@ describe("Bucket", () => {
       expect(batch.lastAccessTime()).toEqual(0);
     });
 
-    it_api("1.7")("should write a batch of records with errors", async () => {
-      const bucket: Bucket = await client.getBucket("bucket");
+    it_api("1.7", true)(
+      "should write a batch of records with errors",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
 
-      const batch = await bucket.beginWriteBatch("entry-1");
-      batch.add(1000_000n, "somedata1");
-      batch.add(2000n, "somedata2", "text/plain");
-      batch.add(3000n, "somedata3", undefined, {
-        label1: "value1",
-        label2: "value2",
-      });
+        const batch = await bucket.beginWriteBatch("entry-1");
+        batch.add(1000_000n, "somedata1");
+        batch.add(2000n, "somedata2", "text/plain");
+        batch.add(3000n, "somedata3", undefined, {
+          label1: "value1",
+          label2: "value2",
+        });
 
-      const errors = await batch.write();
-      expect(errors.size).toEqual(1);
-      expect(errors.get(1000_000n)).toEqual(
-        new APIError("A record with timestamp 1000000 already exists", 409),
-      );
-    });
+        const errors = await batch.write();
+        expect(errors.size).toEqual(1);
+        expect(errors.get(1000_000n)).toEqual(
+          new APIError("A record with timestamp 1000000 already exists", 409),
+        );
+      },
+    );
   });
 
   describe("query", () => {
@@ -418,7 +421,7 @@ describe("Bucket", () => {
       });
     });
 
-    it_api("1.12")("should remove a batch of records", async () => {
+    it_api("1.12", true)("should remove a batch of records", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const batch = await bucket.beginRemoveBatch("entry-2");
       batch.addOnlyTimestamp(2000_000n);
@@ -432,7 +435,7 @@ describe("Bucket", () => {
       );
     });
 
-    it_api("1.12")("should remove records by query", async () => {
+    it_api("1.12", true)("should remove records by query", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const removed = await bucket.removeQuery(
         "entry-2",
