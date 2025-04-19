@@ -3,6 +3,7 @@ import { Client, isCompatibale } from "../src/Client";
 import * as process from "process";
 // @ts-ignore
 import request from "sync-request";
+import { isBrowser } from "../src/utils/env";
 
 /**
  * Remove all buckets
@@ -39,7 +40,8 @@ export const makeClient = (): Client => {
   });
 };
 
-export const it_api = (version: string) => {
+export const it_api = (version: string, skip_browser = false) => {
+  if (skip_browser && isBrowser) return it.skip;
   const resp = request("HEAD", "http://localhost:8383/api/v1/alive");
   const api_version = resp.headers["x-reduct-api"] ?? "0.0";
   if (isCompatibale(version, api_version.toString())) {
@@ -52,6 +54,14 @@ export const it_api = (version: string) => {
 export const it_env = (name: string) => {
   const variable = process.env[name];
   if (variable !== undefined && variable.length > 0) {
+    return it;
+  } else {
+    return it.skip;
+  }
+};
+
+export const itIfNode = () => {
+  if (!isBrowser) {
     return it;
   } else {
     return it.skip;

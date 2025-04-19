@@ -38,6 +38,7 @@
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
     "@types/jest": "^27.4.1",
+    "@types/json-bigint": "^1.0.4",
     "@types/md5": "^2.3.2",
     "@types/sjcl": "^1.0.30",
     "@typescript-eslint/eslint-plugin": "^5.19.0",
@@ -48,6 +49,7 @@
     "it-all": "^1.0.6",
     "jest": "^27.5.1",
     "jest-config": "^27.5.1",
+    "jest-environment-jsdom": "^27.5.1",
     "md5": "^2.3.0",
     "prettier": "^3.2.5",
     "sync-request": "^6.1.0",
@@ -56,6 +58,8 @@
   },
   "dependencies": {
     "axios": "^0.27.2",
-    "json-bigint": "^1.0.0"
+    "cross-fetch": "^4.1.0",
+    "json-bigint": "^1.0.0",
+    "web-streams-polyfill": "^4.1.0"
   }
 }
