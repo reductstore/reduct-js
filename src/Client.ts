@@ -159,7 +159,7 @@ export class Client {
    * @param name name of the token
    */
   async deleteToken(name: string): Promise<void> {
-    await this.httpClient.delete<void>(`/tokens/${name}`);
+    await this.fetchClient.delete<void>(`/tokens/${name}`);
   }
 
   /**
@@ -222,7 +222,7 @@ export class Client {
     name: string,
     settings: ReplicationSettings,
   ): Promise<void> {
-    await this.httpClient.put<void>(
+    await this.fetchClient.put<void>(
       `/replications/${name}`,
       ReplicationSettings.serialize(settings),
     );
@@ -234,7 +234,7 @@ export class Client {
    * @return {Promise<void>}
    */
   async deleteReplication(name: string): Promise<void> {
-    await this.httpClient.delete<void>(`/replications/${name}`);
+    await this.fetchClient.delete<void>(`/replications/${name}`);
   }
 }
 

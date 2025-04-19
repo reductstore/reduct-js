@@ -109,25 +109,19 @@ export class FetchClient {
     return this.request("POST", url, data) as Promise<T>;
   }
 
-  put(
-    url: string,
-    data?: any,
-  ): Promise<object | string | ReadableStream<Uint8Array>> {
-    return this.request("PUT", url, data);
+  put<T = any>(url: string, data?: any): Promise<T> {
+    return this.request("PUT", url, data) as Promise<T>;
   }
 
-  patch(
-    url: string,
-    data?: any,
-  ): Promise<object | string | ReadableStream<Uint8Array>> {
-    return this.request("PATCH", url, data);
+  patch<T = any>(url: string, data?: any): Promise<T> {
+    return this.request("PATCH", url, data) as Promise<T>;
   }
 
-  delete(url: string): Promise<object | string | ReadableStream<Uint8Array>> {
-    return this.request("DELETE", url);
+  delete<T = any>(url: string): Promise<T> {
+    return this.request("DELETE", url) as Promise<T>;
   }
 
-  head(url: string): Promise<object | string | ReadableStream<Uint8Array>> {
-    return this.request("HEAD", url);
+  head<T = any>(url: string): Promise<T> {
+    return this.request("HEAD", url) as Promise<T>;
   }
 }
