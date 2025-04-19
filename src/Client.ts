@@ -58,7 +58,7 @@ export class Client {
    * @see BucketInfo
    */
   async getBucketList(): Promise<BucketInfo[]> {
-    const data = await this.httpClient.get<{ buckets: OriginalBucketInfo[] }>(
+    const data = await this.fetchClient.get<{ buckets: OriginalBucketInfo[] }>(
       "/list",
     );
     return data.buckets.map((bucket) => BucketInfo.parse(bucket));
@@ -137,7 +137,7 @@ export class Client {
    * @return {Promise<Token>} the token
    */
   async getToken(name: string): Promise<Token> {
-    const data = await this.httpClient.get<OriginalTokenInfo>(
+    const data = await this.fetchClient.get<OriginalTokenInfo>(
       `/tokens/${name}`,
     );
     return Token.parse(data);
@@ -148,7 +148,7 @@ export class Client {
    * @return {Promise<Token[]>} the list of tokens
    */
   async getTokenList(): Promise<Token[]> {
-    const data = await this.httpClient.get<{ tokens: OriginalTokenInfo[] }>(
+    const data = await this.fetchClient.get<{ tokens: OriginalTokenInfo[] }>(
       "/tokens",
     );
     return data.tokens.map((token) => Token.parse(token));
@@ -167,7 +167,7 @@ export class Client {
    * @return {Promise<Token>} the token
    */
   async me(): Promise<Token> {
-    const data = await this.httpClient.get<OriginalTokenInfo>("/me");
+    const data = await this.fetchClient.get<OriginalTokenInfo>("/me");
     return Token.parse(data);
   }
 
@@ -176,7 +176,7 @@ export class Client {
    * @return {Promise<ReplicationInfo[]>} the list of replications
    */
   async getReplicationList(): Promise<ReplicationInfo[]> {
-    const data = await this.httpClient.get<{
+    const data = await this.fetchClient.get<{
       replications: OriginalReplicationInfo[];
     }>("/replications");
     return data.replications.map((replication) =>
@@ -190,7 +190,7 @@ export class Client {
    * @return {Promise<FullReplicationInfo>} the replication
    */
   async getReplication(name: string): Promise<FullReplicationInfo> {
-    const data = await this.httpClient.get<FullReplicationInfoResponse>(
+    const data = await this.fetchClient.get<FullReplicationInfoResponse>(
       `/replications/${name}`,
     );
     return FullReplicationInfo.parse(data);
