@@ -47,7 +47,7 @@ export class Client {
    * @return {Promise<ServerInfo>} the data about the server
    */
   async getInfo(): Promise<ServerInfo> {
-    const data = await this.fetchClient.get<OriginalServerInfo>("/info");
+    const data = await this.httpClient.get<OriginalServerInfo>("/info");
     return ServerInfo.parse(data);
   }
 

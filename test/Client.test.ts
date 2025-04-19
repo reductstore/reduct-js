@@ -6,9 +6,10 @@ import { cleanStorage, it_api, it_env, makeClient } from "./Helpers";
 
 test("Client should raise network error", async () => {
   const client: Client = new Client("http://127.0.0.1:9999");
+  console.error = jest.fn();
 
   await expect(client.getInfo()).rejects.toMatchObject({
-    message: "connect ECONNREFUSED 127.0.0.1:9999",
+    message: expect.stringMatching(/(Network Error|ECONNREFUSED)/),
   });
 });
 
