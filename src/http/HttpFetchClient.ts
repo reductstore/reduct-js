@@ -105,11 +105,8 @@ export class FetchClient {
     throw new Error("Unexpected response type");
   }
 
-  post(
-    url: string,
-    data?: any,
-  ): Promise<object | string | ReadableStream<Uint8Array>> {
-    return this.request("POST", url, data);
+  post<T = any>(url: string, data?: any): Promise<T> {
+    return this.request("POST", url, data) as Promise<T>;
   }
 
   put(

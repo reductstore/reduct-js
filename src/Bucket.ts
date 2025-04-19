@@ -9,6 +9,7 @@ import { Buffer } from "buffer";
 import { Batch, BatchType } from "./Batch";
 import { QueryOptions, QueryType } from "./messages/QueryEntry";
 import { HttpClient } from "./http/HttpClient";
+import { FetchClient } from "./http/HttpFetchClient";
 
 /**
  * Options for writing records
@@ -25,6 +26,7 @@ export interface WriteOptions {
 export class Bucket {
   private name: string;
   private readonly httpClient: HttpClient;
+  private readonly fetchClient: FetchClient;
 
   /**
    * Create a bucket. Use Client.creatBucket or Client.getBucket instead it
@@ -33,9 +35,11 @@ export class Bucket {
    * @param httpClient
    * @see {Client}
    */
-  constructor(name: string, httpClient: HttpClient) {
+  constructor(name: string, httpClient: HttpClient, fetchClient: FetchClient) {
     this.name = name;
     this.httpClient = httpClient;
+    this.fetchClient = fetchClient;
+
     this.readRecord = this.readRecord.bind(this);
   }
 

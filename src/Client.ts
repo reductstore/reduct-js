@@ -71,11 +71,11 @@ export class Client {
    * @return {Promise<Bucket>}
    */
   async createBucket(name: string, settings?: BucketSettings): Promise<Bucket> {
-    await this.httpClient.post<void>(
+    await this.fetchClient.post<void>(
       `/b/${name}`,
       settings ? BucketSettings.serialize(settings) : undefined,
     );
-    return new Bucket(name, this.httpClient);
+    return new Bucket(name, this.httpClient, this.fetchClient);
   }
 
   /**
@@ -84,8 +84,8 @@ export class Client {
    * @return {Promise<Bucket>}
    */
   async getBucket(name: string): Promise<Bucket> {
-    await this.httpClient.get<void>(`/b/${name}`);
-    return new Bucket(name, this.httpClient);
+    await this.fetchClient.get<void>(`/b/${name}`);
+    return new Bucket(name, this.httpClient, this.fetchClient);
   }
 
   /**
@@ -124,7 +124,7 @@ export class Client {
     name: string,
     permissions: TokenPermissions,
   ): Promise<string> {
-    const data = await this.httpClient.post<{ value: string }>(
+    const data = await this.fetchClient.post<{ value: string }>(
       `/tokens/${name}`,
       TokenPermissions.serialize(permissions),
     );
@@ -206,7 +206,7 @@ export class Client {
     name: string,
     settings: ReplicationSettings,
   ): Promise<void> {
-    await this.httpClient.post<void>(
+    await this.fetchClient.post<void>(
       `/replications/${name}`,
       ReplicationSettings.serialize(settings),
     );
