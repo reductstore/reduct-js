@@ -31,7 +31,7 @@ export class FetchClient {
     method: string,
     url: string,
     body?: any,
-    extraInit: RequestInit = {},
+    headers?: HeadersInit,
   ): Promise<object | string | ReadableStream<Uint8Array>> {
     const controller = new AbortController();
     if (this.timeout) setTimeout(() => controller.abort(), this.timeout);
@@ -40,11 +40,10 @@ export class FetchClient {
       method,
       headers: {
         ...this.headers,
-        ...(extraInit.headers || {}),
+        ...headers,
       },
       body: this.encodeBody(body),
       signal: controller.signal,
-      ...extraInit,
       // @ts-ignore: cross-fetch doesn't define `agent` but it is passed to Node's fetch
       agent: this.agent,
     };
@@ -109,12 +108,12 @@ export class FetchClient {
     return this.request("POST", url, data) as Promise<T>;
   }
 
-  put<T = any>(url: string, data?: any): Promise<T> {
-    return this.request("PUT", url, data) as Promise<T>;
+  put<T = any>(url: string, data?: any, headers?: HeadersInit): Promise<T> {
+    return this.request("PUT", url, data, headers) as Promise<T>;
   }
 
-  patch<T = any>(url: string, data?: any): Promise<T> {
-    return this.request("PATCH", url, data) as Promise<T>;
+  patch<T = any>(url: string, data?: any, headers?: HeadersInit): Promise<T> {
+    return this.request("PATCH", url, data, headers) as Promise<T>;
   }
 
   delete<T = any>(url: string): Promise<T> {

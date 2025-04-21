@@ -138,14 +138,14 @@ export class Bucket {
     options?: QueryOptions,
   ): Promise<void> {
     if (options !== undefined && options.when !== undefined) {
-      const data = await this.httpClient.post(
+      const data = await this.fetchClient.post(
         `/b/${this.name}/${entry}/q`,
         QueryOptions.serialize(QueryType.REMOVE, options),
       );
       return Promise.resolve(data["removed_records"]);
     } else {
       const ret = this.parse_query_params(start, stop, options);
-      const data = await this.httpClient.delete(
+      const data = await this.fetchClient.delete(
         `/b/${this.name}/${entry}/q?${ret.query}`,
       );
       return Promise.resolve(data["removed_records"]);
@@ -202,9 +202,11 @@ export class Bucket {
       headers[`x-reduct-label-${key}`] = value.toString();
     }
 
-    await this.httpClient.patch(`/b/${this.name}/${entry}?ts=${ts}`, "", {
+    await this.fetchClient.patch(
+      `/b/${this.name}/${entry}?ts=${ts}`,
+      "",
       headers,
-    });
+    );
   }
 
   /**
@@ -232,15 +234,13 @@ export class Bucket {
    * @param newEntry new entry name
    */
   async renameEntry(entry: string, newEntry: string): Promise<void> {
-    await this.httpClient.put(
+    await this.fetchClient.put(
       `/b/${this.name}/${entry}/rename`,
       {
         new_name: newEntry,
       },
       {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        "Content-Type": "application/json",
       },
     );
   }
@@ -250,15 +250,13 @@ export class Bucket {
    * @param newName new name of the bucket
    */
   async rename(newName: string): Promise<void> {
-    await this.httpClient.put(
+    await this.fetchClient.put(
       `/b/${this.name}/rename`,
       {
         new_name: newName,
       },
       {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        "Content-Type": "application/json",
       },
     );
     this.name = newName;
