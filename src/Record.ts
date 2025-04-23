@@ -29,7 +29,6 @@ export class ReadableRecord {
     stream: Stream,
     labels: LabelMap,
     contentType?: string,
-    arrayBuffer?: ArrayBuffer,
   ) {
     this.time = time;
     this.size = size;
@@ -37,26 +36,12 @@ export class ReadableRecord {
     this.stream = stream;
     this.labels = labels;
     this.contentType = contentType;
-    this.arrayBuffer = arrayBuffer;
-
-    if (head) {
-      (this.arrayBuffer as ArrayBuffer) = new ArrayBuffer(0);
-    }
   }
 
   /**
    * Read content of record
    */
   public async read(): Promise<Buffer> {
-    if (this.arrayBuffer !== undefined) {
-      return new Promise((resolve, reject) => {
-        try {
-          resolve(Buffer.from(this.arrayBuffer as ArrayBuffer));
-        } catch (error) {
-          reject(error);
-        }
-      });
-    }
     const chunks: Buffer[] = [];
     return new Promise((resolve, reject) => {
       (this.stream as Stream).on("data", (chunk: Buffer) => chunks.push(chunk));

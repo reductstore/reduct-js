@@ -463,22 +463,36 @@ export class Bucket {
     let response;
 
     if (head) {
-      response = await this.httpClient.headResponse(url);
+      response = await this.fetchClient.head(url);
     } else {
-      response = await this.httpClient.getResponse(
-        url,
-        this.httpClient.getResponseType(),
-      );
+      response = await this.fetchClient.get(url);
     }
 
     if (response.status === 204) {
       throw new APIError(
-        response.headers["x-reduct-error"] ?? "No content",
+        response.headers.get("x-reduct-error") ?? "No content",
         204,
       );
     }
 
-    return this.httpClient.createReadableRecord(response, head);
+    const { headers, data } = response;
+    const labels: LabelMap = {};
+
+    for (const [key, value] of headers.entries()) {
+      if (key.startsWith("x-reduct-label-")) {
+        labels[key.substring(15)] = value;
+      }
+    }
+
+    return new ReadableRecord(
+      BigInt(headers.get("x-reduct-time") ?? 0),
+      BigInt(headers.get("content-length") ?? 0),
+      headers.get("x-reduct-last") == "1",
+      head,
+      data as Readable,
+      labels,
+      headers.get("content-type") ?? "application/octet-stream",
+    );
   }
 
   private async *fetchAndParseBatchedRecords(

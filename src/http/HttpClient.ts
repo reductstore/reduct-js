@@ -5,11 +5,10 @@ import axios, {
   AxiosResponse,
   ResponseType,
 } from "axios";
-import { Readable, Stream } from "stream";
+import { Readable } from "stream";
 import * as https from "https";
 import { ClientOptions } from "../Client";
 import { APIError } from "../APIError";
-import { ReadableRecord, LabelMap } from "../Record";
 import { isBrowser } from "../utils/env";
 
 export class HttpClient {
@@ -105,51 +104,8 @@ export class HttpClient {
     return new APIError(message, status, original);
   }
 
-  createReadableStreamFromResponse(
-    data: any,
-    responseType: "arraybuffer" | "stream",
-  ): Readable {
-    if (responseType === "arraybuffer") {
-      const stream = new Stream.Readable();
-      stream.push(Buffer.from(data as ArrayBuffer));
-      stream.push(null);
-      return stream;
-    }
-    return data as Readable;
-  }
-
   getArrayBufferIfAvailable(data: any): ArrayBuffer | undefined {
     return isBrowser ? (data as ArrayBuffer) : undefined;
-  }
-
-  createReadableRecord(
-    response: { status: number; headers: Record<string, string>; data: any },
-    head: boolean,
-  ): ReadableRecord {
-    const { headers, data } = response;
-    const labels: LabelMap = {};
-
-    for (const [key, value] of Object.entries(headers)) {
-      if (key.startsWith("x-reduct-label-")) {
-        labels[key.substring(15)] = value;
-      }
-    }
-
-    const stream = this.createReadableStreamFromResponse(
-      data,
-      this.getResponseType(),
-    );
-
-    return new ReadableRecord(
-      BigInt(headers["x-reduct-time"] ?? 0),
-      BigInt(headers["content-length"] ?? 0),
-      headers["x-reduct-last"] == "1",
-      head,
-      stream,
-      labels,
-      headers["content-type"] ?? "application/octet-stream",
-      this.getArrayBufferIfAvailable(data),
-    );
   }
 
   /**

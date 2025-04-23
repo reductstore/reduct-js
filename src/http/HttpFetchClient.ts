@@ -11,6 +11,7 @@ const bigJson = JSONbig({ alwaysParseAsBig: false, useNativeBigInt: true });
 export type FetchResult<T = unknown> = {
   data: T;
   headers: Headers;
+  status: number;
 };
 
 export class FetchClient {
@@ -61,7 +62,7 @@ export class FetchClient {
     }
 
     const data = (await this.parseResponse(response)) as T;
-    return { data, headers: response.headers };
+    return { data, headers: response.headers, status: response.status };
   }
 
   private encodeBody(data?: unknown): BodyInit | undefined {
