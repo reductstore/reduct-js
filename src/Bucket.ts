@@ -199,11 +199,15 @@ export class Bucket {
       try {
         const record = await this.beginRead(entry, ts);
         data = await record.read();
-      } catch (e) {}
+      } catch (e) {
+        // Ignore errors if record doesn't exist or can't be read
+      }
 
       try {
         await this.removeRecord(entry, ts);
-      } catch (e) {}
+      } catch (e) {
+        // Ignore errors if record doesn't exist
+      }
 
       const writeRecord = await this.beginWrite(entry, { ts, labels });
       await writeRecord.write(data);
