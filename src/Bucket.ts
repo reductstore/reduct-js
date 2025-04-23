@@ -10,6 +10,8 @@ import { Batch, BatchType } from "./Batch";
 import { QueryOptions, QueryType } from "./messages/QueryEntry";
 import { HttpClient } from "./http/HttpClient";
 import { FetchClient } from "./http/HttpFetchClient";
+import { isCompatibale } from "./Client";
+import { isBrowser } from "./utils/env";
 
 /**
  * Options for writing records
@@ -49,7 +51,7 @@ export class Bucket {
    * @return {Promise<BucketSettings>}
    */
   async getSettings(): Promise<BucketSettings> {
-    const data = await this.fetchClient.get<any>(`/b/${this.name}`);
+    const { data } = await this.fetchClient.get<any>(`/b/${this.name}`);
     return Promise.resolve(BucketSettings.parse(data.settings));
   }
 
@@ -71,7 +73,7 @@ export class Bucket {
    * @return {Promise<BucketInfo>}
    */
   async getInfo(): Promise<BucketInfo> {
-    const data = await this.fetchClient.get<any>(`/b/${this.name}`);
+    const { data } = await this.fetchClient.get<any>(`/b/${this.name}`);
     return BucketInfo.parse(data.info);
   }
 
@@ -81,7 +83,7 @@ export class Bucket {
    * @return {Promise<EntryInfo>}
    */
   async getEntryList(): Promise<EntryInfo[]> {
-    const data = await this.fetchClient.get<any>(`/b/${this.name}`);
+    const { data } = await this.fetchClient.get<any>(`/b/${this.name}`);
     return Promise.resolve(
       data.entries.map((entry: any) => EntryInfo.parse(entry)),
     );
@@ -136,18 +138,18 @@ export class Bucket {
     start?: bigint,
     stop?: bigint,
     options?: QueryOptions,
-  ): Promise<void> {
+  ): Promise<number> {
     if (options !== undefined && options.when !== undefined) {
-      const data = await this.fetchClient.post(
+      const { data } = await this.fetchClient.post<{ removed_records: number }>(
         `/b/${this.name}/${entry}/q`,
         QueryOptions.serialize(QueryType.REMOVE, options),
       );
       return Promise.resolve(data["removed_records"]);
     } else {
       const ret = this.parse_query_params(start, stop, options);
-      const data = await this.fetchClient.delete(
-        `/b/${this.name}/${entry}/q?${ret.query}`,
-      );
+      const { data } = await this.fetchClient.delete<{
+        removed_records: number;
+      }>(`/b/${this.name}/${entry}/q?${ret.query}`);
       return Promise.resolve(data["removed_records"]);
     }
   }
@@ -295,12 +297,12 @@ export class Bucket {
       typeof options === "object" &&
       "when" in options
     ) {
-      const { data, headers } = await this.httpClient.postResponse(
+      const { data, headers } = await this.fetchClient.post<{ id: string }>(
         `/b/${this.name}/${entry}/q`,
         QueryOptions.serialize(QueryType.QUERY, options),
       );
       ({ id } = data);
-      header_api_version = headers["x-reduct-api"];
+      header_api_version = String(headers.get("x-reduct-api"));
       continuous = options.continuous ?? false;
       pollInterval = options.pollInterval ?? 1;
       head = options.head ?? false;
@@ -309,13 +311,13 @@ export class Bucket {
       const ret = this.parse_query_params(start, stop, options);
 
       const url = `/b/${this.name}/${entry}/q?` + ret.query;
-      const { data, headers } = await this.httpClient.getResponse(url);
+      const { data, headers } = await this.fetchClient.get<{ id: string }>(url);
       ({ id } = data);
-      header_api_version = headers["x-reduct-api"];
+      header_api_version = String(headers.get("x-reduct-api"));
       ({ continuous, pollInterval, head } = ret);
     }
 
-    if (this.httpClient.supportsBatchedRecords(header_api_version)) {
+    if (isCompatibale("1.5", header_api_version) && !isBrowser) {
       yield* this.fetchAndParseBatchedRecords(
         entry,
         id,

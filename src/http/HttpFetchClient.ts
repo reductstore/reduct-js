@@ -1,12 +1,17 @@
 import JSONbig from "json-bigint";
 import fetch from "cross-fetch";
 import { Readable } from "stream";
-import { Agent as HttpsAgent } from "https"; // <-- for Node SSL bypass
+import { Agent as HttpsAgent } from "https";
 import { ClientOptions } from "../Client";
 import { APIError } from "../APIError";
 import { isBrowser } from "../utils/env";
 
 const bigJson = JSONbig({ alwaysParseAsBig: false, useNativeBigInt: true });
+
+export type FetchResult<T = unknown> = {
+  data: T;
+  headers: Headers;
+};
 
 export class FetchClient {
   private baseURL: string;
@@ -17,34 +22,29 @@ export class FetchClient {
   constructor(url: string, options: ClientOptions = {}) {
     this.baseURL = `${url}/api/v1`;
     this.timeout = options.timeout;
-    this.headers = {
-      Authorization: `Bearer ${options.apiToken}`,
-    };
+    this.headers = { Authorization: `Bearer ${options.apiToken}` };
 
-    // Only in Node.js: allow skipping SSL check
     if (!isBrowser && options.verifySSL === false) {
       this.agent = new HttpsAgent({ rejectUnauthorized: false });
     }
   }
 
-  private async request(
+  // ---------- low-level ----------
+  private async request<T = unknown>(
     method: string,
     url: string,
-    body?: any,
+    body?: unknown,
     headers?: HeadersInit,
-  ): Promise<object | string | ReadableStream<Uint8Array>> {
+  ): Promise<FetchResult<T>> {
     const controller = new AbortController();
     if (this.timeout) setTimeout(() => controller.abort(), this.timeout);
 
     const init: RequestInit = {
       method,
-      headers: {
-        ...this.headers,
-        ...headers,
-      },
+      headers: { ...this.headers, ...headers },
       body: this.encodeBody(body),
       signal: controller.signal,
-      // @ts-ignore: cross-fetch doesn't define `agent` but it is passed to Node's fetch
+      // @ts-ignore – passed through to Node fetch
       agent: this.agent,
     };
 
@@ -60,10 +60,11 @@ export class FetchClient {
       throw new APIError(message, response.status, { response });
     }
 
-    return this.parseResponse(response);
+    const data = (await this.parseResponse(response)) as T;
+    return { data, headers: response.headers };
   }
 
-  private encodeBody(data?: any): BodyInit | undefined {
+  private encodeBody(data?: unknown): BodyInit | undefined {
     if (
       data === undefined ||
       typeof data !== "object" ||
@@ -71,7 +72,7 @@ export class FetchClient {
       data instanceof ArrayBuffer ||
       data instanceof Blob
     ) {
-      return data;
+      return data as BodyInit;
     }
     return bigJson.stringify(data);
   }
@@ -79,7 +80,7 @@ export class FetchClient {
   private async parseResponse(
     res: Response,
   ): Promise<object | string | ReadableStream<Uint8Array>> {
-    const ct = res.headers.get("content-type") || "";
+    const ct = res.headers.get("content-type") ?? "";
 
     if (!res.body) return {};
 
@@ -87,40 +88,46 @@ export class FetchClient {
       const text = await res.text();
       return text ? bigJson.parse(text) : {};
     }
-
     if (ct.startsWith("text/")) {
-      return await res.text();
+      return res.text();
     }
-
     return res.body;
   }
 
-  // -------- BASIC REQUEST HELPERS --------
-  async get<T = any>(url: string): Promise<T> {
-    const result = await this.request("GET", url);
-    if (typeof result === "object" && !(result instanceof ReadableStream)) {
-      return result as T;
-    }
-    throw new Error("Unexpected response type");
+  // ---------- helpers ----------
+  get<T = unknown>(url: string): Promise<FetchResult<T>> {
+    return this.request<T>("GET", url);
   }
 
-  post<T = any>(url: string, data?: any): Promise<T> {
-    return this.request("POST", url, data) as Promise<T>;
+  post<T = unknown>(
+    url: string,
+    data?: unknown,
+    headers?: HeadersInit,
+  ): Promise<FetchResult<T>> {
+    return this.request<T>("POST", url, data, headers);
   }
 
-  put<T = any>(url: string, data?: any, headers?: HeadersInit): Promise<T> {
-    return this.request("PUT", url, data, headers) as Promise<T>;
+  put<T = unknown>(
+    url: string,
+    data?: unknown,
+    headers?: HeadersInit,
+  ): Promise<FetchResult<T>> {
+    return this.request<T>("PUT", url, data, headers);
   }
 
-  patch<T = any>(url: string, data?: any, headers?: HeadersInit): Promise<T> {
-    return this.request("PATCH", url, data, headers) as Promise<T>;
+  patch<T = unknown>(
+    url: string,
+    data?: unknown,
+    headers?: HeadersInit,
+  ): Promise<FetchResult<T>> {
+    return this.request<T>("PATCH", url, data, headers);
   }
 
-  delete<T = any>(url: string): Promise<T> {
-    return this.request("DELETE", url) as Promise<T>;
+  delete<T = unknown>(url: string): Promise<FetchResult<T>> {
+    return this.request<T>("DELETE", url);
   }
 
-  head<T = any>(url: string): Promise<T> {
-    return this.request("HEAD", url) as Promise<T>;
+  head<T = unknown>(url: string): Promise<FetchResult<T>> {
+    return this.request("HEAD", url);
   }
 }

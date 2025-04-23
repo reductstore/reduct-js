@@ -7,7 +7,7 @@ import axios, {
 } from "axios";
 import { Readable, Stream } from "stream";
 import * as https from "https";
-import { ClientOptions, isCompatibale } from "../Client";
+import { ClientOptions } from "../Client";
 import { APIError } from "../APIError";
 import { ReadableRecord, LabelMap } from "../Record";
 import { isBrowser } from "../utils/env";
@@ -120,10 +120,6 @@ export class HttpClient {
 
   getArrayBufferIfAvailable(data: any): ArrayBuffer | undefined {
     return isBrowser ? (data as ArrayBuffer) : undefined;
-  }
-
-  supportsBatchedRecords(apiVersion: string): boolean {
-    return isCompatibale("1.5", apiVersion) && !isBrowser;
   }
 
   createReadableRecord(
