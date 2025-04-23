@@ -125,8 +125,11 @@ export class FetchClient {
     return this.request<T>("PATCH", url, data, headers);
   }
 
-  delete<T = unknown>(url: string): Promise<FetchResult<T>> {
-    return this.request<T>("DELETE", url);
+  delete<T = unknown>(
+    url: string,
+    headers?: HeadersInit,
+  ): Promise<FetchResult<T>> {
+    return this.request<T>("DELETE", url, undefined, headers);
   }
 
   head<T = unknown>(url: string): Promise<FetchResult<T>> {

@@ -123,7 +123,7 @@ export class Bucket {
    * @param tsList {BigInt[]} list of timestamps of records in microseconds
    */
   async beginRemoveBatch(entry: string): Promise<Batch> {
-    return new Batch(this.name, entry, this.httpClient, BatchType.REMOVE);
+    return new Batch(this.name, entry, this.fetchClient, BatchType.REMOVE);
   }
 
   /**
@@ -575,7 +575,7 @@ export class Bucket {
    * @param entry
    */
   async beginWriteBatch(entry: string): Promise<Batch> {
-    return new Batch(this.name, entry, this.httpClient, BatchType.WRITE);
+    return new Batch(this.name, entry, this.fetchClient, BatchType.WRITE);
   }
 
   /**
@@ -583,7 +583,7 @@ export class Bucket {
    * @param entry
    */
   async beginUpdateBatch(entry: string): Promise<Batch> {
-    return new Batch(this.name, entry, this.httpClient, BatchType.UPDATE);
+    return new Batch(this.name, entry, this.fetchClient, BatchType.UPDATE);
   }
 }
 
