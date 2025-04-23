@@ -273,7 +273,7 @@ describe("Bucket", () => {
   });
 
   describe("query", () => {
-    it("should query batched big blobs", async () => {
+    itIfNode()("should query batched big blobs", async () => {
       const bigBlob1 = crypto.randomBytes(16_000_000);
       const bigBlob2 = crypto.randomBytes(16_000_000);
 
@@ -319,7 +319,7 @@ describe("Bucket", () => {
       },
     );
 
-    it("should query records with parameters", async () => {
+    itIfNode()("should query records with parameters", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       let records: ReadableRecord[] = await all(
         bucket.query("entry-2", 3_000_000n),
@@ -334,7 +334,7 @@ describe("Bucket", () => {
       ).rejects.toHaveProperty("status", 404);
     });
 
-    it_api("1.6")("should query limited number of query", async () => {
+    it_api("1.6", true)("should query limited number of query", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const records: ReadableRecord[] = await all(
         bucket.query("entry-2", 0n, undefined, { limit: 1 }),
@@ -382,7 +382,7 @@ describe("Bucket", () => {
       expect(records[0].labels).toEqual({ score: "20", class: "dog" });
     });
 
-    it_api("1.13")(
+    it_api("1.13", true)(
       "should query records with strict or non-strict condition",
       async () => {
         const bucket: Bucket = await client.getBucket("bucket");
