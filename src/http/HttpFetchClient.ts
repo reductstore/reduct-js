@@ -67,7 +67,9 @@ export class FetchClient {
   private encodeBody(data?: unknown): BodyInit | undefined {
     if (
       data === undefined ||
-      typeof data !== "object" ||
+      typeof data === "string" ||
+      Buffer.isBuffer(data) ||
+      data instanceof Uint8Array ||
       data instanceof Readable ||
       data instanceof ArrayBuffer ||
       data instanceof Blob

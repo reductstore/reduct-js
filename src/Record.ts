@@ -1,7 +1,7 @@
 import Stream from "stream";
 import { Buffer } from "buffer";
 import { WriteOptions } from "./Bucket";
-import { HttpClient } from "./http/HttpClient";
+import { FetchClient } from "./http/HttpFetchClient";
 
 export type LabelMap = Record<string, string | number | boolean | bigint>;
 
@@ -79,7 +79,7 @@ export class ReadableRecord {
 export class WritableRecord {
   private readonly bucketName: string;
   private readonly entryName: string;
-  private readonly httpClient: HttpClient;
+  private readonly fetchClient: FetchClient;
   private readonly options: WriteOptions;
 
   /**
@@ -90,11 +90,11 @@ export class WritableRecord {
     bucketName: string,
     entryName: string,
     options: WriteOptions,
-    httpClient: HttpClient,
+    fetchClient: FetchClient,
   ) {
     this.bucketName = bucketName;
     this.entryName = entryName;
-    this.httpClient = httpClient;
+    this.fetchClient = fetchClient;
     this.options = options;
   }
 
@@ -127,12 +127,10 @@ export class WritableRecord {
       throw new Error("Timestamp must be set");
     }
 
-    await this.httpClient.post(
+    await this.fetchClient.post(
       `/b/${bucketName}/${entryName}?ts=${options.ts}`,
       data,
-      {
-        headers: headers,
-      },
+      headers,
     );
   }
 }
