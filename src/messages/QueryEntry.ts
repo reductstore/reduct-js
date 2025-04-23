@@ -37,6 +37,9 @@ export interface QueryEntry {
    * If true, the query returns an error if any condition cannot be evaluated
    */
   strict?: boolean;
+
+  /** Additional parameters for extensions */
+  ext?: Record<string, any>;
 }
 
 /**
@@ -69,6 +72,8 @@ export class QueryOptions {
   when?: Record<string, any>;
   /**  strict conditional query */
   strict?: boolean;
+  /** Additional parameters for extensions */
+  ext?: Record<string, any>;
 
   static serialize(queryType: QueryType, data: QueryOptions): QueryEntry {
     return {
@@ -83,6 +88,7 @@ export class QueryOptions {
       when: data.when,
       strict: data.strict,
       only_metadata: data.head,
+      ext: data.ext,
     };
   }
 }

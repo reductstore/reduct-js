@@ -397,6 +397,17 @@ describe("Bucket", () => {
         expect(records.length).toEqual(0);
       },
     );
+
+    it_api("1.15")("should query with parameters for extensions", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      await expect(
+        all(
+          bucket.query("entry-1", undefined, undefined, { ext: { test: {} } }),
+        ),
+      ).rejects.toMatchObject({
+        status: 422,
+      });
+    });
   });
 
   describe("remove", () => {

@@ -310,7 +310,7 @@ export class Bucket {
     if (
       options !== undefined &&
       typeof options === "object" &&
-      "when" in options
+      ("when" in options || "ext" in options)
     ) {
       const { data, headers } = await this.httpClient.post(
         `/b/${this.name}/${entry}/q`,
