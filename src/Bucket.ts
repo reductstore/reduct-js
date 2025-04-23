@@ -194,17 +194,31 @@ export class Bucket {
    * @param labels {LabelMap} labels to update
    */
   async update(entry: string, ts: bigint, labels: LabelMap): Promise<void> {
-    const headers: Record<string, string> = {
-      "Content-Length": "0",
-    };
+    if (typeof window !== "undefined") {
+      let data: Buffer | string = "";
+      try {
+        const record = await this.beginRead(entry, ts);
+        data = await record.read();
+      } catch (e) {}
 
-    for (const [key, value] of Object.entries(labels)) {
-      headers[`x-reduct-label-${key}`] = value.toString();
+      try {
+        await this.removeRecord(entry, ts);
+      } catch (e) {}
+
+      const writeRecord = await this.beginWrite(entry, { ts, labels });
+      await writeRecord.write(data);
+    } else {
+      // Node.js implementation: use Content-Length header
+      const headers: Record<string, string> = { "Content-Length": "0" };
+
+      for (const [key, value] of Object.entries(labels)) {
+        headers[`x-reduct-label-${key}`] = value.toString();
+      }
+
+      await this.httpClient.patch(`/b/${this.name}/${entry}?ts=${ts}`, "", {
+        headers,
+      });
     }
-
-    await this.httpClient.patch(`/b/${this.name}/${entry}?ts=${ts}`, "", {
-      headers,
-    });
   }
 
   /**
