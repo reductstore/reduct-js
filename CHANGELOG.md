@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added:
 
-- RS-xxx: Add browser support for update, [PR-101](https://github.com/reductstore/reduct-js/pull/101)
+- RS-xxx: Add browser support for edit labels, [PR-101](https://github.com/reductstore/reduct-js/pull/101)
 - RS-550: Add when condition to replication settings, [PR-98](https://github.com/reductstore/reduct-js/pull/98)
 
 ## [1.13.0] - 2024-12-04
