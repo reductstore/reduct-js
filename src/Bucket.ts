@@ -194,9 +194,11 @@ export class Bucket {
    * @param labels {LabelMap} labels to update
    */
   async update(entry: string, ts: bigint, labels: LabelMap): Promise<void> {
-    const headers: Record<string, string> = {
-      "Content-Length": "0",
-    };
+    const headers: Record<string, string> = {};
+
+    if (typeof window === "undefined") {
+      headers["Content-Length"] = "0";
+    }
 
     for (const [key, value] of Object.entries(labels)) {
       headers[`x-reduct-label-${key}`] = value.toString();

@@ -133,7 +133,9 @@ export class Batch {
     let response;
     switch (this.type) {
       case BatchType.WRITE: {
-        headers["Content-Length"] = contentLength.toString();
+        if (typeof window === "undefined") {
+          headers["Content-Length"] = contentLength.toString();
+        }
         headers["Content-Type"] = "application/octet-stream";
 
         const stream = Stream.Readable.from(chunks);
@@ -147,7 +149,9 @@ export class Batch {
         break;
       }
       case BatchType.UPDATE:
-        headers["Content-Length"] = "0";
+        if (typeof window === "undefined") {
+          headers["Content-Length"] = "0";
+        }
         response = await this.httpClient.patch(
           `/b/${this.bucketName}/${this.entryName}/batch`,
           "",
@@ -157,7 +161,9 @@ export class Batch {
         );
         break;
       case BatchType.REMOVE:
-        headers["Content-Length"] = "0";
+        if (typeof window === "undefined") {
+          headers["Content-Length"] = "0";
+        }
         response = await this.httpClient.delete(
           `/b/${this.bucketName}/${this.entryName}/batch`,
           {
