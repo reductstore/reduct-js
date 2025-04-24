@@ -195,24 +195,35 @@ export class Bucket {
    */
   async update(entry: string, ts: bigint, labels: LabelMap): Promise<void> {
     if (typeof window !== "undefined") {
-      let data: Buffer | string = "";
-      try {
-        const record = await this.beginRead(entry, ts);
-        data = await record.read();
-      } catch (e) {
-        // Ignore errors if record doesn't exist or can't be read
+      const url = `${this.httpClient.defaults.baseURL as string}/b/${this.name}/${entry}?ts=${ts}`;
+
+      const headers = new Headers();
+
+      const authHeader =
+        this.httpClient.defaults.headers?.common?.Authorization;
+      if (authHeader) {
+        headers.append("Authorization", authHeader as string);
       }
 
-      try {
-        await this.removeRecord(entry, ts);
-      } catch (e) {
-        // Ignore errors if record doesn't exist
+      for (const [key, value] of Object.entries(labels)) {
+        headers.append(`x-reduct-label-${key}`, value.toString());
       }
 
-      const writeRecord = await this.beginWrite(entry, { ts, labels });
-      await writeRecord.write(data);
+      const emptyBlob = new Blob([""], { type: "application/octet-stream" });
+
+      const response = await fetch(url, {
+        method: "PATCH",
+        headers: headers,
+        body: emptyBlob,
+        credentials: "same-origin",
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `HTTP error ${response.status}: ${await response.text()}`,
+        );
+      }
     } else {
-      // Node.js implementation: use Content-Length header
       const headers: Record<string, string> = { "Content-Length": "0" };
 
       for (const [key, value] of Object.entries(labels)) {
@@ -314,7 +325,7 @@ export class Bucket {
     if (
       options !== undefined &&
       typeof options === "object" &&
-      ("when" in options || "ext" in options)
+      "when" in options
     ) {
       const { data, headers } = await this.httpClient.post(
         `/b/${this.name}/${entry}/q`,

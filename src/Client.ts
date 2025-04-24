@@ -91,19 +91,6 @@ export class Client {
     }
     this.httpClient = axios.create(axiosConfig);
 
-    this.httpClient.interceptors.request.use((config: AxiosRequestConfig) => {
-      if (typeof window !== "undefined" && config.headers) {
-        if (config.headers["Content-Length"] !== undefined) {
-          const contentLength = config.headers["Content-Length"];
-          delete config.headers["Content-Length"];
-          if (contentLength === "0" && !config.data) {
-            config.data = "";
-          }
-        }
-      }
-      return config;
-    });
-
     this.httpClient.interceptors.response.use(
       (response: AxiosResponse) => response,
       async (error: AxiosError) => {
