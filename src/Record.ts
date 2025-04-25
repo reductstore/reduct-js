@@ -117,11 +117,8 @@ export class WritableRecord {
 
     const headers: Record<string, string> = {
       "Content-Type": options.contentType ?? "application/octet-stream",
+      "Content-Length": contentLength.toString(),
     };
-
-    if (typeof window === "undefined") {
-      headers["Content-Length"] = contentLength.toString();
-    }
 
     for (const [key, value] of Object.entries(options.labels ?? {})) {
       headers[`x-reduct-label-${key}`] = value.toString();
