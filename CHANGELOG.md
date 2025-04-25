@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added:
 
-- RS-xyz: Fixed browser compatibility issues with Content-Length header, [PR-103](https://github.com/reductstore/reduct-js/pull/103)
+- RS-613: Fixed browser compatibility issues with Content-Length header, [PR-103](https://github.com/reductstore/reduct-js/pull/103)
 - RS-628: Support `ext` parameter in `Bucket.query`, [PR-100](https://github.com/reductstore/reduct-js/pull/100)
 
 ## [1.14.0] - 2025-02-25
