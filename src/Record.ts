@@ -116,8 +116,8 @@ export class WritableRecord {
     const { bucketName, entryName, options } = this;
 
     const headers: Record<string, string> = {
-      "Content-Length": contentLength.toString(),
       "Content-Type": options.contentType ?? "application/octet-stream",
+      "Content-Length": contentLength.toString(),
     };
 
     for (const [key, value] of Object.entries(options.labels ?? {})) {
