@@ -71,7 +71,7 @@ export class Client {
    * @return {Promise<Bucket>}
    */
   async createBucket(name: string, settings?: BucketSettings): Promise<Bucket> {
-    await this.fetchClient.post<void>(
+    await this.fetchClient.post(
       `/b/${name}`,
       settings ? BucketSettings.serialize(settings) : undefined,
     );
@@ -84,7 +84,7 @@ export class Client {
    * @return {Promise<Bucket>}
    */
   async getBucket(name: string): Promise<Bucket> {
-    await this.fetchClient.get<void>(`/b/${name}`);
+    await this.fetchClient.get(`/b/${name}`);
     return new Bucket(name, this.httpClient, this.fetchClient);
   }
 
@@ -159,7 +159,7 @@ export class Client {
    * @param name name of the token
    */
   async deleteToken(name: string): Promise<void> {
-    await this.fetchClient.delete<void>(`/tokens/${name}`);
+    await this.fetchClient.delete(`/tokens/${name}`);
   }
 
   /**
@@ -206,7 +206,7 @@ export class Client {
     name: string,
     settings: ReplicationSettings,
   ): Promise<void> {
-    await this.fetchClient.post<void>(
+    await this.fetchClient.post(
       `/replications/${name}`,
       ReplicationSettings.serialize(settings),
     );
@@ -222,7 +222,7 @@ export class Client {
     name: string,
     settings: ReplicationSettings,
   ): Promise<void> {
-    await this.fetchClient.put<void>(
+    await this.fetchClient.put(
       `/replications/${name}`,
       ReplicationSettings.serialize(settings),
     );
@@ -234,7 +234,7 @@ export class Client {
    * @return {Promise<void>}
    */
   async deleteReplication(name: string): Promise<void> {
-    await this.fetchClient.delete<void>(`/replications/${name}`);
+    await this.fetchClient.delete(`/replications/${name}`);
   }
 }
 

@@ -8,7 +8,9 @@ import { isBrowser } from "../utils/env";
 
 const bigJson = JSONbig({ alwaysParseAsBig: false, useNativeBigInt: true });
 
-export type FetchResult<T = unknown> = {
+export type ValidResponse = object | string | ReadableStream<Uint8Array>;
+
+export type FetchResult<T extends ValidResponse = ValidResponse> = {
   data: T;
   headers: Headers;
   status: number;
@@ -30,23 +32,48 @@ export class FetchClient {
     }
   }
 
-  // ---------- low-level ----------
-  private async request<T = unknown>(
+  // ---------- request overloads ----------
+
+  private async request(
+    method: "HEAD",
+    url: string,
+    body?: unknown,
+    headers?: HeadersInit,
+  ): Promise<FetchResult<Record<string, never>>>;
+
+  private async request<T extends ValidResponse>(
+    method: "GET",
+    url: string,
+    body?: unknown,
+    headers?: HeadersInit,
+  ): Promise<FetchResult<T>>;
+
+  private async request<T extends ValidResponse>(
+    method: string,
+    url: string,
+    body?: unknown,
+    headers?: HeadersInit,
+  ): Promise<FetchResult<T>>;
+
+  // ---------- request implementation ----------
+  private async request<T extends ValidResponse>(
     method: string,
     url: string,
     body?: unknown,
     headers?: HeadersInit,
   ): Promise<FetchResult<T>> {
     const controller = new AbortController();
-    if (this.timeout) setTimeout(() => controller.abort(), this.timeout);
+
+    const { timeout } = this;
+    if (timeout) setTimeout(() => controller.abort(), timeout);
 
     const init: RequestInit = {
       method,
       headers: { ...this.headers, ...headers },
       body: this.encodeBody(body),
       signal: controller.signal,
-      // @ts-ignore – passed through to Node fetch
-      agent: this.agent,
+      // @ts-ignore
+      agent: this.agent, // Node.js specific, fine to ts-ignore
     };
 
     const response = await fetch(`${this.baseURL}${url}`, init).catch((err) => {
@@ -55,14 +82,17 @@ export class FetchClient {
 
     if (!response.ok) {
       const message =
-        response.headers.get("x-reduct-error") ||
-        (await response.text()) ||
-        response.statusText;
+        response.headers.get("x-reduct-error") || response.statusText;
       throw new APIError(message, response.status, { response });
     }
 
     const data = (await this.parseResponse(response)) as T;
-    return { data, headers: response.headers, status: response.status };
+
+    return {
+      data,
+      headers: response.headers,
+      status: response.status,
+    };
   }
 
   private encodeBody(data?: unknown): BodyInit | undefined {
@@ -83,6 +113,7 @@ export class FetchClient {
   private async parseResponse(
     res: Response,
   ): Promise<object | string | ReadableStream<Uint8Array>> {
+    if (res.status === 204) return {};
     const ct = res.headers.get("content-type") ?? "";
 
     if (!res.body) return {};
@@ -98,11 +129,13 @@ export class FetchClient {
   }
 
   // ---------- helpers ----------
-  get<T = unknown>(url: string): Promise<FetchResult<T>> {
+  get<T extends ValidResponse = ValidResponse>(
+    url: string,
+  ): Promise<FetchResult<T>> {
     return this.request<T>("GET", url);
   }
 
-  post<T = unknown>(
+  post<T extends ValidResponse = ValidResponse>(
     url: string,
     data?: unknown,
     headers?: HeadersInit,
@@ -110,7 +143,7 @@ export class FetchClient {
     return this.request<T>("POST", url, data, headers);
   }
 
-  put<T = unknown>(
+  put<T extends ValidResponse = ValidResponse>(
     url: string,
     data?: unknown,
     headers?: HeadersInit,
@@ -118,7 +151,7 @@ export class FetchClient {
     return this.request<T>("PUT", url, data, headers);
   }
 
-  patch<T = unknown>(
+  patch<T extends ValidResponse = ValidResponse>(
     url: string,
     data?: unknown,
     headers?: HeadersInit,
@@ -126,14 +159,14 @@ export class FetchClient {
     return this.request<T>("PATCH", url, data, headers);
   }
 
-  delete<T = unknown>(
+  delete<T extends ValidResponse = ValidResponse>(
     url: string,
     headers?: HeadersInit,
   ): Promise<FetchResult<T>> {
     return this.request<T>("DELETE", url, undefined, headers);
   }
 
-  head<T = unknown>(url: string): Promise<FetchResult<T>> {
+  head(url: string): Promise<FetchResult<Record<string, never>>> {
     return this.request("HEAD", url);
   }
 }

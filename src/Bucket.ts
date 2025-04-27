@@ -4,7 +4,7 @@ import { BucketInfo } from "./messages/BucketInfo";
 import { EntryInfo } from "./messages/EntryInfo";
 import { LabelMap, ReadableRecord, WritableRecord } from "./Record";
 import { APIError } from "./APIError";
-import { Readable } from "stream";
+import Stream, { Readable } from "stream";
 import { Buffer } from "buffer";
 import { Batch, BatchType } from "./Batch";
 import { QueryOptions, QueryType } from "./messages/QueryEntry";
@@ -451,22 +451,15 @@ export class Bucket {
     ts?: string,
     id?: string,
   ): Promise<ReadableRecord> {
-    let param = "";
-    if (ts !== undefined) {
-      param = `ts=${ts}`;
-    }
-    if (id !== undefined) {
-      param = `q=${id}`;
-    }
+    const params = new URLSearchParams();
+    if (ts !== undefined) params.set("ts", ts);
+    if (id !== undefined) params.set("q", id);
 
-    const url = `/b/${this.name}/${entry}?${param}`;
-    let response;
+    const url = `/b/${this.name}/${entry}?${params.toString()}`;
 
-    if (head) {
-      response = await this.fetchClient.head(url);
-    } else {
-      response = await this.fetchClient.get(url);
-    }
+    const response = head
+      ? await this.fetchClient.head(url)
+      : await this.fetchClient.get(url);
 
     if (response.status === 204) {
       throw new APIError(
@@ -476,22 +469,58 @@ export class Bucket {
     }
 
     const { headers, data } = response;
-    const labels: LabelMap = {};
 
+    const labels: LabelMap = {};
     for (const [key, value] of headers.entries()) {
       if (key.startsWith("x-reduct-label-")) {
         labels[key.substring(15)] = value;
       }
     }
 
+    const contentType =
+      headers.get("content-type") ?? "application/octet-stream";
+    const contentLength = BigInt(headers.get("content-length") ?? 0);
+    const timestamp = BigInt(headers.get("x-reduct-time") ?? 0);
+    const last = headers.get("x-reduct-last") === "1";
+
+    let stream: ReadableStream<Uint8Array> | Readable;
+
+    if (head) {
+      stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.close();
+        },
+      });
+    } else if (typeof data === "string") {
+      stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(data));
+          controller.close();
+        },
+      });
+    } else if (
+      typeof data === "object" &&
+      typeof (data as any).getReader === "function"
+    ) {
+      stream = data as ReadableStream<Uint8Array>;
+    } else if (
+      typeof data === "object" &&
+      typeof (data as any).pipe === "function" &&
+      typeof (data as any)._read === "function"
+    ) {
+      stream = data as Readable;
+    } else {
+      throw new APIError("Invalid stream type returned by fetch", 500);
+    }
+
     return new ReadableRecord(
-      BigInt(headers.get("x-reduct-time") ?? 0),
-      BigInt(headers.get("content-length") ?? 0),
-      headers.get("x-reduct-last") == "1",
+      timestamp,
+      contentLength,
+      last,
       head,
-      data as Readable,
+      stream,
       labels,
-      headers.get("content-type") ?? "application/octet-stream",
+      contentType,
     );
   }
 
@@ -526,6 +555,48 @@ export class Bucket {
     }
   }
 
+  private async readFixedSizeChunk(
+    stream: Readable | ReadableStream<Uint8Array>,
+    size: number,
+  ): Promise<Buffer> {
+    if (size === 0) {
+      return Buffer.from([]);
+    }
+
+    // Node.js Readable
+    if (typeof (stream as any).read === "function") {
+      return new Promise((resolve, reject) => {
+        const handler = () => {
+          const chunk = (stream as Readable).read(size);
+          if (chunk !== null) {
+            (stream as Readable).off("readable", handler);
+            (stream as Readable).off("error", reject);
+            resolve(chunk);
+          }
+        };
+        (stream as Readable).on("readable", handler);
+        (stream as Readable).on("error", reject);
+      });
+    }
+
+    // Web ReadableStream (e.g. in browser)
+    if (typeof (stream as any)?.getReader === "function") {
+      const reader = (stream as ReadableStream<Uint8Array>).getReader();
+      const chunks: Uint8Array[] = [];
+      let total = 0;
+      while (total < size) {
+        const { done, value } = await reader.read();
+        if (done || !value) break;
+        chunks.push(value);
+        total += value.length;
+      }
+      const combined = Buffer.concat(chunks.map((c) => Buffer.from(c)));
+      return combined.subarray(0, size);
+    }
+
+    throw new Error("Unsupported stream type");
+  }
+
   private async *readBatchedRecords(
     entry: string,
     head: boolean,
@@ -534,25 +605,25 @@ export class Bucket {
     const url = `/b/${this.name}/${entry}/batch?q=${id}`;
     let response;
     if (head) {
-      response = await this.httpClient.headResponse(url);
+      response = await this.fetchClient.head(url);
     } else {
-      response = await this.httpClient.getResponse(url, "stream");
+      response = await this.fetchClient.get(url);
     }
     const { status, headers, data } = response;
 
     if (status === 204) {
-      throw new APIError(headers["x-reduct-error"] ?? "No content", 204);
+      throw new APIError(headers.get("x-reduct-error") ?? "No content", 204);
     }
 
     let count = 0;
-    const total = Object.entries(headers).reduce(
-      (acc, [key, _]) => (key.startsWith("x-reduct-time-") ? acc + 1 : acc),
+    const total = Array.from(headers.entries()).reduce(
+      (acc, [key]) => (key.startsWith("x-reduct-time-") ? acc + 1 : acc),
       0,
     );
+
     let last = false;
-    for (const [key, value] of Object.entries(
-      headers as Record<string, string>,
-    )) {
+
+    for (const [key, value] of headers.entries()) {
       if (!key.startsWith("x-reduct-time-")) continue;
 
       const ts = key.substring(14);
@@ -561,14 +632,14 @@ export class Bucket {
       count += 1;
       let stream;
       if (count === total) {
-        if (headers["x-reduct-last"] === "true") {
+        if (headers.get("x-reduct-last") === "true") {
           last = true;
         }
         stream = data;
       } else {
         const buffer = head
           ? Buffer.from([])
-          : await this.httpClient.readFixedSizeChunk(data, Number(size));
+          : await this.readFixedSizeChunk(data as any, Number(size));
         stream = Readable.from(buffer);
       }
 
@@ -577,7 +648,7 @@ export class Bucket {
         size,
         last,
         head,
-        stream,
+        stream as Stream,
         labels,
         contentType,
       );

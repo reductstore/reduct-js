@@ -1,4 +1,4 @@
-import Stream from "stream";
+import Stream, { Readable } from "stream";
 import { Buffer } from "buffer";
 import { WriteOptions } from "./Bucket";
 import { FetchClient } from "./http/HttpFetchClient";
@@ -12,7 +12,7 @@ export class ReadableRecord {
   public readonly time: bigint;
   public readonly size: bigint;
   public readonly last: boolean;
-  public readonly stream: Stream;
+  public readonly stream: ReadableStream<Uint8Array> | Stream;
   public readonly labels: LabelMap = {};
   public readonly contentType: string | undefined;
   private readonly arrayBuffer: ArrayBuffer | undefined;
@@ -26,7 +26,7 @@ export class ReadableRecord {
     size: bigint,
     last: boolean,
     head: boolean,
-    stream: Stream,
+    stream: ReadableStream<Uint8Array> | Stream,
     labels: LabelMap,
     contentType?: string,
   ) {
@@ -42,12 +42,34 @@ export class ReadableRecord {
    * Read content of record
    */
   public async read(): Promise<Buffer> {
-    const chunks: Buffer[] = [];
-    return new Promise((resolve, reject) => {
-      (this.stream as Stream).on("data", (chunk: Buffer) => chunks.push(chunk));
-      (this.stream as Stream).on("error", (err: Error) => reject(err));
-      (this.stream as Stream).on("end", () => resolve(Buffer.concat(chunks)));
-    });
+    if (typeof (this.stream as any)?.getReader === "function") {
+      // Web ReadableStream
+      const reader = (this.stream as ReadableStream<Uint8Array>).getReader();
+      const chunks: Uint8Array[] = [];
+      let done = false;
+      while (!done) {
+        const result = await reader.read();
+        ({ done } = result);
+        if (result.value) chunks.push(result.value);
+      }
+      const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+      const merged = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of chunks) {
+        merged.set(chunk, offset);
+        offset += chunk.length;
+      }
+      return Buffer.from(merged.buffer, merged.byteOffset, merged.byteLength);
+    } else {
+      // Node.js Readable
+      return new Promise<Buffer>((resolve, reject) => {
+        const chunks: Buffer[] = [];
+        (this.stream as Readable)
+          .on("data", (chunk: Buffer) => chunks.push(chunk))
+          .on("end", () => resolve(Buffer.concat(chunks)))
+          .on("error", reject);
+      });
+    }
   }
 
   /**
