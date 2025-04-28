@@ -2,7 +2,7 @@ import { Client } from "../src/Client";
 import { ServerInfo } from "../src/messages/ServerInfo";
 import { Bucket } from "../src/Bucket";
 import { QuotaType } from "../src/messages/BucketSettings";
-import { cleanStorage, it_api, it_env, makeClient } from "./Helpers";
+import { cleanStorage, it_api, it_env, makeClient } from "./utils/Helpers";
 
 test("Client should raise network error", async () => {
   const client: Client = new Client("http://127.0.0.1:9999");

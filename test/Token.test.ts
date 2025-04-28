@@ -1,5 +1,5 @@
 import { Client } from "../src/Client";
-import { cleanStorage, makeClient } from "./Helpers";
+import { cleanStorage, makeClient } from "./utils/Helpers";
 import { TokenPermissions, Token } from "../src/messages/Token";
 
 const describe_token = () =>

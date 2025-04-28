@@ -1,5 +1,5 @@
 import { Client } from "../src/Client";
-import { cleanStorage, it_api, makeClient } from "./Helpers";
+import { cleanStorage, it_api, makeClient } from "./utils/Helpers";
 import { DiagnosticsItem } from "../src/messages/Diagnostics";
 
 describe("Replication", () => {

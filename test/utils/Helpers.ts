@@ -1,9 +1,9 @@
-import { Bucket } from "../src/Bucket";
-import { Client, isCompatibale } from "../src/Client";
+import { Bucket } from "../../src/Bucket";
+import { Client, isCompatibale } from "../../src/Client";
 import * as process from "process";
 // @ts-ignore
 import request from "sync-request";
-import { isBrowser } from "../src/utils/env";
+import { isBrowser } from "../../src/utils/env";
 
 /**
  * Remove all buckets

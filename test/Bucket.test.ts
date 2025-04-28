@@ -7,7 +7,7 @@ import all from "it-all";
 
 import { Client } from "../src/Client";
 import { Bucket } from "../src/Bucket";
-import { cleanStorage, it_api, itIfNode, makeClient } from "./Helpers";
+import { cleanStorage, it_api, itIfNode, makeClient } from "./utils/Helpers";
 import { BucketInfo } from "../src/messages/BucketInfo";
 import { QuotaType } from "../src/messages/BucketSettings";
 import { ReadableRecord } from "../src/Record";
