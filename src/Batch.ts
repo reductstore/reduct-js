@@ -1,7 +1,7 @@
 import { LabelMap } from "./Record";
 import { APIError } from "./APIError";
 import Stream from "stream";
-import { FetchClient } from "./http/HttpFetchClient";
+import { HttpClient } from "./http/HttpClient";
 
 /**
  * Represents a batch of records for writing
@@ -16,7 +16,7 @@ export enum BatchType {
 export class Batch {
   private readonly bucketName: string;
   private readonly entryName: string;
-  private readonly fetchClient: FetchClient;
+  private readonly httpClient: HttpClient;
   private readonly type: BatchType;
 
   private readonly records: Map<
@@ -34,12 +34,12 @@ export class Batch {
   public constructor(
     bucketName: string,
     entryName: string,
-    fetchClient: FetchClient,
+    httpClient: HttpClient,
     type: BatchType,
   ) {
     this.bucketName = bucketName;
     this.entryName = entryName;
-    this.fetchClient = fetchClient;
+    this.httpClient = httpClient;
     this.records = new Map();
     this.type = type;
     this.totalSize = BigInt(0);
@@ -137,7 +137,7 @@ export class Batch {
         headers["Content-Type"] = "application/octet-stream";
 
         const stream = Stream.Readable.from(chunks);
-        response = await this.fetchClient.post(
+        response = await this.httpClient.post(
           `/b/${this.bucketName}/${this.entryName}/batch`,
           stream,
           headers,
@@ -146,7 +146,7 @@ export class Batch {
       }
       case BatchType.UPDATE:
         headers["Content-Length"] = "0";
-        response = await this.fetchClient.patch(
+        response = await this.httpClient.patch(
           `/b/${this.bucketName}/${this.entryName}/batch`,
           "",
           headers,
@@ -154,7 +154,7 @@ export class Batch {
         break;
       case BatchType.REMOVE:
         headers["Content-Length"] = "0";
-        response = await this.fetchClient.delete(
+        response = await this.httpClient.delete(
           `/b/${this.bucketName}/${this.entryName}/batch`,
           headers,
         );

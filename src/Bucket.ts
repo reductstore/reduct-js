@@ -9,7 +9,6 @@ import { Buffer } from "buffer";
 import { Batch, BatchType } from "./Batch";
 import { QueryOptions, QueryType } from "./messages/QueryEntry";
 import { HttpClient } from "./http/HttpClient";
-import { FetchClient } from "./http/HttpFetchClient";
 import { isCompatibale } from "./Client";
 import { isBrowser } from "./utils/env";
 
@@ -28,7 +27,6 @@ export interface WriteOptions {
 export class Bucket {
   private name: string;
   private readonly httpClient: HttpClient;
-  private readonly fetchClient: FetchClient;
 
   /**
    * Create a bucket. Use Client.creatBucket or Client.getBucket instead it
@@ -37,10 +35,9 @@ export class Bucket {
    * @param httpClient
    * @see {Client}
    */
-  constructor(name: string, httpClient: HttpClient, fetchClient: FetchClient) {
+  constructor(name: string, httpClient: HttpClient) {
     this.name = name;
     this.httpClient = httpClient;
-    this.fetchClient = fetchClient;
 
     this.readRecord = this.readRecord.bind(this);
   }
@@ -51,7 +48,7 @@ export class Bucket {
    * @return {Promise<BucketSettings>}
    */
   async getSettings(): Promise<BucketSettings> {
-    const { data } = await this.fetchClient.get<any>(`/b/${this.name}`);
+    const { data } = await this.httpClient.get<any>(`/b/${this.name}`);
     return Promise.resolve(BucketSettings.parse(data.settings));
   }
 
@@ -61,7 +58,7 @@ export class Bucket {
    * @param settings {BucketSettings} new settings (you can set a part of settings)
    */
   async setSettings(settings: BucketSettings): Promise<void> {
-    await this.fetchClient.put(
+    await this.httpClient.put(
       `/b/${this.name}`,
       BucketSettings.serialize(settings),
     );
@@ -73,7 +70,7 @@ export class Bucket {
    * @return {Promise<BucketInfo>}
    */
   async getInfo(): Promise<BucketInfo> {
-    const { data } = await this.fetchClient.get<any>(`/b/${this.name}`);
+    const { data } = await this.httpClient.get<any>(`/b/${this.name}`);
     return BucketInfo.parse(data.info);
   }
 
@@ -83,7 +80,7 @@ export class Bucket {
    * @return {Promise<EntryInfo>}
    */
   async getEntryList(): Promise<EntryInfo[]> {
-    const { data } = await this.fetchClient.get<any>(`/b/${this.name}`);
+    const { data } = await this.httpClient.get<any>(`/b/${this.name}`);
     return Promise.resolve(
       data.entries.map((entry: any) => EntryInfo.parse(entry)),
     );
@@ -95,7 +92,7 @@ export class Bucket {
    * @return {Promise<void>}
    */
   async remove(): Promise<void> {
-    await this.fetchClient.delete(`/b/${this.name}`);
+    await this.httpClient.delete(`/b/${this.name}`);
   }
 
   /**
@@ -105,7 +102,7 @@ export class Bucket {
    * @return {Promise<void>}
    */
   async removeEntry(entry: string): Promise<void> {
-    await this.fetchClient.delete(`/b/${this.name}/${entry}`);
+    await this.httpClient.delete(`/b/${this.name}/${entry}`);
   }
 
   /**
@@ -114,7 +111,7 @@ export class Bucket {
    * @param ts {BigInt} timestamp of record in microseconds
    */
   async removeRecord(entry: string, ts: bigint): Promise<void> {
-    await this.fetchClient.delete(`/b/${this.name}/${entry}?ts=${ts}`);
+    await this.httpClient.delete(`/b/${this.name}/${entry}?ts=${ts}`);
   }
 
   /**
@@ -123,7 +120,7 @@ export class Bucket {
    * @param tsList {BigInt[]} list of timestamps of records in microseconds
    */
   async beginRemoveBatch(entry: string): Promise<Batch> {
-    return new Batch(this.name, entry, this.fetchClient, BatchType.REMOVE);
+    return new Batch(this.name, entry, this.httpClient, BatchType.REMOVE);
   }
 
   /**
@@ -140,14 +137,14 @@ export class Bucket {
     options?: QueryOptions,
   ): Promise<number> {
     if (options !== undefined && options.when !== undefined) {
-      const { data } = await this.fetchClient.post<{ removed_records: number }>(
+      const { data } = await this.httpClient.post<{ removed_records: number }>(
         `/b/${this.name}/${entry}/q`,
         QueryOptions.serialize(QueryType.REMOVE, options),
       );
       return Promise.resolve(data["removed_records"]);
     } else {
       const ret = this.parse_query_params(start, stop, options);
-      const { data } = await this.fetchClient.delete<{
+      const { data } = await this.httpClient.delete<{
         removed_records: number;
       }>(`/b/${this.name}/${entry}/q?${ret.query}`);
       return Promise.resolve(data["removed_records"]);
@@ -182,7 +179,7 @@ export class Bucket {
     localOptions.ts = localOptions.ts ?? BigInt(Date.now()) * 1000n;
 
     return Promise.resolve(
-      new WritableRecord(this.name, entry, localOptions, this.fetchClient),
+      new WritableRecord(this.name, entry, localOptions, this.httpClient),
     );
   }
 
@@ -204,7 +201,7 @@ export class Bucket {
       headers[`x-reduct-label-${key}`] = value.toString();
     }
 
-    await this.fetchClient.patch(
+    await this.httpClient.patch(
       `/b/${this.name}/${entry}?ts=${ts}`,
       "",
       headers,
@@ -236,7 +233,7 @@ export class Bucket {
    * @param newEntry new entry name
    */
   async renameEntry(entry: string, newEntry: string): Promise<void> {
-    await this.fetchClient.put(
+    await this.httpClient.put(
       `/b/${this.name}/${entry}/rename`,
       {
         new_name: newEntry,
@@ -252,7 +249,7 @@ export class Bucket {
    * @param newName new name of the bucket
    */
   async rename(newName: string): Promise<void> {
-    await this.fetchClient.put(
+    await this.httpClient.put(
       `/b/${this.name}/rename`,
       {
         new_name: newName,
@@ -297,7 +294,7 @@ export class Bucket {
       typeof options === "object" &&
       "when" in options
     ) {
-      const { data, headers } = await this.fetchClient.post<{ id: string }>(
+      const { data, headers } = await this.httpClient.post<{ id: string }>(
         `/b/${this.name}/${entry}/q`,
         QueryOptions.serialize(QueryType.QUERY, options),
       );
@@ -311,7 +308,7 @@ export class Bucket {
       const ret = this.parse_query_params(start, stop, options);
 
       const url = `/b/${this.name}/${entry}/q?` + ret.query;
-      const { data, headers } = await this.fetchClient.get<{ id: string }>(url);
+      const { data, headers } = await this.httpClient.get<{ id: string }>(url);
       ({ id } = data);
       header_api_version = String(headers.get("x-reduct-api"));
       ({ continuous, pollInterval, head } = ret);
@@ -458,8 +455,8 @@ export class Bucket {
     const url = `/b/${this.name}/${entry}?${params.toString()}`;
 
     const response = head
-      ? await this.fetchClient.head(url)
-      : await this.fetchClient.get(url);
+      ? await this.httpClient.head(url)
+      : await this.httpClient.get(url);
 
     if (response.status === 204) {
       throw new APIError(
@@ -605,9 +602,9 @@ export class Bucket {
     const url = `/b/${this.name}/${entry}/batch?q=${id}`;
     let response;
     if (head) {
-      response = await this.fetchClient.head(url);
+      response = await this.httpClient.head(url);
     } else {
-      response = await this.fetchClient.get(url);
+      response = await this.httpClient.get(url);
     }
     const { status, headers, data } = response;
 
@@ -660,7 +657,7 @@ export class Bucket {
    * @param entry
    */
   async beginWriteBatch(entry: string): Promise<Batch> {
-    return new Batch(this.name, entry, this.fetchClient, BatchType.WRITE);
+    return new Batch(this.name, entry, this.httpClient, BatchType.WRITE);
   }
 
   /**
@@ -668,7 +665,7 @@ export class Bucket {
    * @param entry
    */
   async beginUpdateBatch(entry: string): Promise<Batch> {
-    return new Batch(this.name, entry, this.fetchClient, BatchType.UPDATE);
+    return new Batch(this.name, entry, this.httpClient, BatchType.UPDATE);
   }
 }
 

@@ -26,9 +26,7 @@ test("Client should raise an error with original error from http client", async 
 
   await expect(client.getInfo()).rejects.toMatchObject({
     original: {
-      message: "timeout of 10ms exceeded",
-      code: "ECONNABORTED",
-      name: "AxiosError",
+      message: "The user aborted a request.",
     },
   });
 });

@@ -16,7 +16,6 @@ import {
 } from "./messages/ReplicationInfo";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
 import { HttpClient } from "./http/HttpClient";
-import { FetchClient } from "./http/HttpFetchClient";
 
 /**
  * Options
@@ -29,7 +28,6 @@ export type ClientOptions = {
 
 export class Client {
   private readonly httpClient: HttpClient;
-  private readonly fetchClient: FetchClient;
 
   /**
    * HTTP Client for ReductStore
@@ -38,7 +36,6 @@ export class Client {
    */
   constructor(url: string, options: ClientOptions = {}) {
     this.httpClient = new HttpClient(url, options);
-    this.fetchClient = new FetchClient(url, options);
   }
 
   /**
@@ -47,7 +44,7 @@ export class Client {
    * @return {Promise<ServerInfo>} the data about the server
    */
   async getInfo(): Promise<ServerInfo> {
-    const data = await this.httpClient.get<OriginalServerInfo>("/info");
+    const { data } = await this.httpClient.get<OriginalServerInfo>("/info");
     return ServerInfo.parse(data);
   }
 
@@ -58,7 +55,7 @@ export class Client {
    * @see BucketInfo
    */
   async getBucketList(): Promise<BucketInfo[]> {
-    const { data } = await this.fetchClient.get<{
+    const { data } = await this.httpClient.get<{
       buckets: OriginalBucketInfo[];
     }>("/list");
     return data.buckets.map((bucket) => BucketInfo.parse(bucket));
@@ -71,11 +68,11 @@ export class Client {
    * @return {Promise<Bucket>}
    */
   async createBucket(name: string, settings?: BucketSettings): Promise<Bucket> {
-    await this.fetchClient.post(
+    await this.httpClient.post(
       `/b/${name}`,
       settings ? BucketSettings.serialize(settings) : undefined,
     );
-    return new Bucket(name, this.httpClient, this.fetchClient);
+    return new Bucket(name, this.httpClient);
   }
 
   /**
@@ -84,8 +81,8 @@ export class Client {
    * @return {Promise<Bucket>}
    */
   async getBucket(name: string): Promise<Bucket> {
-    await this.fetchClient.get(`/b/${name}`);
-    return new Bucket(name, this.httpClient, this.fetchClient);
+    await this.httpClient.get(`/b/${name}`);
+    return new Bucket(name, this.httpClient);
   }
 
   /**
@@ -124,7 +121,7 @@ export class Client {
     name: string,
     permissions: TokenPermissions,
   ): Promise<string> {
-    const { data } = await this.fetchClient.post<{ value: string }>(
+    const { data } = await this.httpClient.post<{ value: string }>(
       `/tokens/${name}`,
       TokenPermissions.serialize(permissions),
     );
@@ -137,7 +134,7 @@ export class Client {
    * @return {Promise<Token>} the token
    */
   async getToken(name: string): Promise<Token> {
-    const { data } = await this.fetchClient.get<OriginalTokenInfo>(
+    const { data } = await this.httpClient.get<OriginalTokenInfo>(
       `/tokens/${name}`,
     );
     return Token.parse(data);
@@ -148,7 +145,7 @@ export class Client {
    * @return {Promise<Token[]>} the list of tokens
    */
   async getTokenList(): Promise<Token[]> {
-    const { data } = await this.fetchClient.get<{
+    const { data } = await this.httpClient.get<{
       tokens: OriginalTokenInfo[];
     }>("/tokens");
     return data.tokens.map((token) => Token.parse(token));
@@ -159,7 +156,7 @@ export class Client {
    * @param name name of the token
    */
   async deleteToken(name: string): Promise<void> {
-    await this.fetchClient.delete(`/tokens/${name}`);
+    await this.httpClient.delete(`/tokens/${name}`);
   }
 
   /**
@@ -167,7 +164,7 @@ export class Client {
    * @return {Promise<Token>} the token
    */
   async me(): Promise<Token> {
-    const { data } = await this.fetchClient.get<OriginalTokenInfo>("/me");
+    const { data } = await this.httpClient.get<OriginalTokenInfo>("/me");
     return Token.parse(data);
   }
 
@@ -176,7 +173,7 @@ export class Client {
    * @return {Promise<ReplicationInfo[]>} the list of replications
    */
   async getReplicationList(): Promise<ReplicationInfo[]> {
-    const { data } = await this.fetchClient.get<{
+    const { data } = await this.httpClient.get<{
       replications: OriginalReplicationInfo[];
     }>("/replications");
     return data.replications.map((replication) =>
@@ -190,7 +187,7 @@ export class Client {
    * @return {Promise<FullReplicationInfo>} the replication
    */
   async getReplication(name: string): Promise<FullReplicationInfo> {
-    const { data } = await this.fetchClient.get<FullReplicationInfoResponse>(
+    const { data } = await this.httpClient.get<FullReplicationInfoResponse>(
       `/replications/${name}`,
     );
     return FullReplicationInfo.parse(data);
@@ -206,7 +203,7 @@ export class Client {
     name: string,
     settings: ReplicationSettings,
   ): Promise<void> {
-    await this.fetchClient.post(
+    await this.httpClient.post(
       `/replications/${name}`,
       ReplicationSettings.serialize(settings),
     );
@@ -222,7 +219,7 @@ export class Client {
     name: string,
     settings: ReplicationSettings,
   ): Promise<void> {
-    await this.fetchClient.put(
+    await this.httpClient.put(
       `/replications/${name}`,
       ReplicationSettings.serialize(settings),
     );
@@ -234,7 +231,7 @@ export class Client {
    * @return {Promise<void>}
    */
   async deleteReplication(name: string): Promise<void> {
-    await this.fetchClient.delete(`/replications/${name}`);
+    await this.httpClient.delete(`/replications/${name}`);
   }
 }
 
