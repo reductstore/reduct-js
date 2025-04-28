@@ -97,7 +97,7 @@ module.exports = {
     {
       displayName: "node",
       testEnvironment: "node",
-      setupFiles: ["<rootDir>/test/setup/polyfills.ts"],
+      setupFiles: ["<rootDir>/test/utils/polyfills.ts"],
       testMatch: ["<rootDir>/test/*.test.ts"],
       transform: {
         "^.+\\.(ts|tsx)$": "ts-jest",
@@ -106,7 +106,7 @@ module.exports = {
     {
       displayName: "jsdom",
       testEnvironment: "jsdom",
-      setupFiles: ["<rootDir>/test/setup/polyfills.ts"],
+      setupFiles: ["<rootDir>/test/utils/polyfills.ts"],
       testMatch: ["<rootDir>/test/*.test.ts"],
       transform: {
         "^.+\\.(ts|tsx)$": "ts-jest",
