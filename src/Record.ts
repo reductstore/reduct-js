@@ -101,11 +101,11 @@ export class WritableRecord {
    * @param size size of data in bytes (only for streams)
    */
   public async write(
-    data: Buffer | string | Stream,
+    data: Buffer | string | Stream | ReadableStream<Uint8Array>,
     size?: bigint | number,
   ): Promise<void> {
     let contentLength = size || 0;
-    if (!(data instanceof Stream)) {
+    if (!(data instanceof Stream) && !(data instanceof ReadableStream)) {
       contentLength = data.length;
     }
 

@@ -136,27 +136,32 @@ describe("Bucket", () => {
       ).rejects.toMatchObject({ status: 404 });
     });
 
-    // TODO
-    //  itIfNode()("should write and read a big blob as streams", async () => {
-    //   const bigBlob = crypto.randomBytes(2 ** 20);
+    itIfNode()("should write and read a big blob as streams", async () => {
+      const bigBlob = crypto.randomBytes(2 ** 20);
 
-    //   const bucket: Bucket = await client.getBucket("bucket");
-    //   const record = await bucket.beginWrite("big-blob");
-    //   await record.write(Stream.Readable.from(bigBlob), bigBlob.length);
+      const bucket: Bucket = await client.getBucket("bucket");
+      const record = await bucket.beginWrite("big-blob");
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(bigBlob);
+          controller.close();
+        },
+      });
+      await record.write(stream, bigBlob.length);
 
-    //   const readStream = (await bucket.beginRead("big-blob")).stream as Stream;
+      // const readStream = (await bucket.beginRead("big-blob")).stream as Stream;
 
-    //   const actual: Buffer = await new Promise((resolve, reject) => {
-    //     const chunks: Buffer[] = [];
+      // const actual: Buffer = await new Promise((resolve, reject) => {
+      //   const chunks: Buffer[] = [];
 
-    //     readStream.on("data", (chunk: Buffer) => chunks.push(chunk));
-    //     readStream.on("error", (err: Error) => reject(err));
-    //     readStream.on("end", () => resolve(Buffer.concat(chunks)));
-    //   });
+      //   readStream.on("data", (chunk: Buffer) => chunks.push(chunk));
+      //   readStream.on("error", (err: Error) => reject(err));
+      //   readStream.on("end", () => resolve(Buffer.concat(chunks)));
+      // });
 
-    //   expect(actual.length).toEqual(bigBlob.length);
-    //   expect(md5(actual)).toEqual(md5(bigBlob));
-    // });
+      // expect(actual.length).toEqual(bigBlob.length);
+      // expect(md5(actual)).toEqual(md5(bigBlob));
+    });
 
     it("should write and read a big blob as buffers", async () => {
       const bigBlob = crypto.randomBytes(2 ** 20);
