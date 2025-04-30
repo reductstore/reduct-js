@@ -58,6 +58,7 @@
   },
   "dependencies": {
     "cross-fetch": "^4.1.0",
-    "json-bigint": "^1.0.0"
+    "json-bigint": "^1.0.0",
+    "undici": "^6.21.2"
   }
 }

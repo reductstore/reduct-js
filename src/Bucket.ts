@@ -4,13 +4,10 @@ import { BucketInfo } from "./messages/BucketInfo";
 import { EntryInfo } from "./messages/EntryInfo";
 import { LabelMap, ReadableRecord, WritableRecord } from "./Record";
 import { APIError } from "./APIError";
-import Stream, { Readable } from "stream";
-import { Buffer } from "buffer";
 import { Batch, BatchType } from "./Batch";
 import { QueryOptions, QueryType } from "./messages/QueryEntry";
 import { HttpClient } from "./http/HttpClient";
 import { isCompatibale } from "./Client";
-import { isBrowser } from "./utils/env";
 
 /**
  * Options for writing records
@@ -314,7 +311,7 @@ export class Bucket {
       ({ continuous, pollInterval, head } = ret);
     }
 
-    if (isCompatibale("1.5", header_api_version) && !isBrowser) {
+    if (isCompatibale("1.5", header_api_version)) {
       yield* this.fetchAndParseBatchedRecords(
         entry,
         id,
@@ -449,8 +446,8 @@ export class Bucket {
     id?: string,
   ): Promise<ReadableRecord> {
     const params = new URLSearchParams();
-    if (ts !== undefined) params.set("ts", ts);
-    if (id !== undefined) params.set("q", id);
+    if (ts) params.set("ts", ts);
+    if (id) params.set("q", id);
 
     const url = `/b/${this.name}/${entry}?${params.toString()}`;
 
@@ -470,7 +467,7 @@ export class Bucket {
     const labels: LabelMap = {};
     for (const [key, value] of headers.entries()) {
       if (key.startsWith("x-reduct-label-")) {
-        labels[key.substring(15)] = value;
+        labels[key.slice(15)] = value;
       }
     }
 
@@ -480,34 +477,35 @@ export class Bucket {
     const timestamp = BigInt(headers.get("x-reduct-time") ?? 0);
     const last = headers.get("x-reduct-last") === "1";
 
-    let stream: ReadableStream<Uint8Array> | Readable;
+    let stream: ReadableStream<Uint8Array>;
 
     if (head) {
       stream = new ReadableStream<Uint8Array>({
-        start(controller) {
-          controller.close();
+        start(ctrl) {
+          ctrl.close();
+        },
+      });
+    } else if (data instanceof ReadableStream) {
+      stream = data as ReadableStream<Uint8Array>;
+    } else if (data instanceof Blob) {
+      stream = data.stream() as ReadableStream<Uint8Array>;
+    } else if (data instanceof Uint8Array) {
+      stream = new ReadableStream<Uint8Array>({
+        start(ctrl) {
+          ctrl.enqueue(data);
+          ctrl.close();
         },
       });
     } else if (typeof data === "string") {
+      const bytes = new TextEncoder().encode(data);
       stream = new ReadableStream<Uint8Array>({
-        start(controller) {
-          controller.enqueue(new TextEncoder().encode(data));
-          controller.close();
+        start(ctrl) {
+          ctrl.enqueue(bytes);
+          ctrl.close();
         },
       });
-    } else if (
-      typeof data === "object" &&
-      typeof (data as any).getReader === "function"
-    ) {
-      stream = data as ReadableStream<Uint8Array>;
-    } else if (
-      typeof data === "object" &&
-      typeof (data as any).pipe === "function" &&
-      typeof (data as any)._read === "function"
-    ) {
-      stream = data as Readable;
     } else {
-      throw new APIError("Invalid stream type returned by fetch", 500);
+      throw new APIError("Invalid body type returned by httpClient", 500);
     }
 
     return new ReadableRecord(
@@ -552,104 +550,133 @@ export class Bucket {
     }
   }
 
-  private async readFixedSizeChunk(
-    stream: Readable | ReadableStream<Uint8Array>,
-    size: number,
-  ): Promise<Buffer> {
-    if (size === 0) {
-      return Buffer.from([]);
-    }
-
-    // Node.js Readable
-    if (typeof (stream as any).read === "function") {
-      return new Promise((resolve, reject) => {
-        const handler = () => {
-          const chunk = (stream as Readable).read(size);
-          if (chunk !== null) {
-            (stream as Readable).off("readable", handler);
-            (stream as Readable).off("error", reject);
-            resolve(chunk);
-          }
-        };
-        (stream as Readable).on("readable", handler);
-        (stream as Readable).on("error", reject);
-      });
-    }
-
-    // Web ReadableStream (e.g. in browser)
-    if (typeof (stream as any)?.getReader === "function") {
-      const reader = (stream as ReadableStream<Uint8Array>).getReader();
-      const chunks: Uint8Array[] = [];
-      let total = 0;
-      while (total < size) {
-        const { done, value } = await reader.read();
-        if (done || !value) break;
-        chunks.push(value);
-        total += value.length;
-      }
-      const combined = Buffer.concat(chunks.map((c) => Buffer.from(c)));
-      return combined.subarray(0, size);
-    }
-
-    throw new Error("Unsupported stream type");
-  }
-
   private async *readBatchedRecords(
     entry: string,
     head: boolean,
     id: string,
   ): AsyncGenerator<ReadableRecord> {
     const url = `/b/${this.name}/${entry}/batch?q=${id}`;
-    let response;
-    if (head) {
-      response = await this.httpClient.head(url);
-    } else {
-      response = await this.httpClient.get(url);
+    const resp = head
+      ? await this.httpClient.head(url)
+      : await this.httpClient.get(url);
+
+    if (resp.status === 204) {
+      throw new APIError(
+        resp.headers.get("x-reduct-error") ?? "No content",
+        204,
+      );
     }
-    const { status, headers, data } = response;
 
-    if (status === 204) {
-      throw new APIError(headers.get("x-reduct-error") ?? "No content", 204);
+    const { headers, data: body } = resp;
+
+    let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
+    if (!head && body instanceof ReadableStream) {
+      reader = body.getReader();
     }
 
-    let count = 0;
-    const total = Array.from(headers.entries()).reduce(
-      (acc, [key]) => (key.startsWith("x-reduct-time-") ? acc + 1 : acc),
-      0,
-    );
+    let leftover: Uint8Array | null = null;
 
-    let last = false;
+    async function readExactly(len: number): Promise<Uint8Array> {
+      if (!reader) throw new Error("Reader is not available");
+      const parts: Uint8Array[] = [];
+      let filled = 0;
 
-    for (const [key, value] of headers.entries()) {
-      if (!key.startsWith("x-reduct-time-")) continue;
-
-      const ts = key.substring(14);
-      const { size, contentType, labels } = parseCsvRow(value);
-
-      count += 1;
-      let stream;
-      if (count === total) {
-        if (headers.get("x-reduct-last") === "true") {
-          last = true;
-        }
-        stream = data;
-      } else {
-        const buffer = head
-          ? Buffer.from([])
-          : await this.readFixedSizeChunk(data as any, Number(size));
-        stream = Readable.from(buffer);
+      if (leftover) {
+        const take = Math.min(leftover.length, len);
+        parts.push(leftover.subarray(0, take));
+        filled += take;
+        leftover = leftover.length > take ? leftover.subarray(take) : null;
       }
 
+      while (filled < len) {
+        const { value, done } = await reader.read();
+        if (done) throw new Error("Unexpected EOF while batching records");
+
+        const need = len - filled;
+        if (value.length > need) {
+          parts.push(value.subarray(0, need));
+          leftover = value.subarray(need);
+          filled = len;
+        } else {
+          parts.push(value);
+          filled += value.length;
+        }
+      }
+
+      const out = new Uint8Array(len);
+      let off = 0;
+      for (const p of parts) {
+        out.set(p, off);
+        off += p.length;
+      }
+      return out;
+    }
+
+    const timeHeaders = [...headers.keys()].filter((k) =>
+      k.startsWith("x-reduct-time-"),
+    );
+    const total = timeHeaders.length;
+    let index = 0;
+
+    for (const h of timeHeaders) {
+      const tsStr = h.slice(14);
+      const value = headers.get(h);
+      if (!value)
+        throw new APIError(`Invalid header ${h} with value ${value}`, 500);
+
+      const { size, contentType, labels } = parseCsvRow(value);
+      const byteLen = Number(size);
+
+      index += 1;
+      const isLast = headers.get("x-reduct-last") === "true" && index === total;
+
+      let bytes: Uint8Array;
+
+      if (head || !reader) {
+        bytes = new Uint8Array(0);
+      } else if (isLast) {
+        const chunks: Uint8Array[] = [];
+        if (leftover) {
+          chunks.push(leftover);
+          leftover = null;
+        }
+
+        let done = false;
+        while (!done) {
+          const { value, done: isDone } = await reader.read();
+          if (!isDone) chunks.push(value);
+          done = isDone;
+        }
+        const totalLen = chunks.reduce((n, c) => n + c.length, 0);
+        bytes = new Uint8Array(totalLen);
+        let off = 0;
+        for (const c of chunks) {
+          bytes.set(c, off);
+          off += c.length;
+        }
+      } else {
+        bytes = await readExactly(byteLen);
+      }
+
+      const stream = new ReadableStream<Uint8Array>({
+        start(ctrl) {
+          if (bytes.length) ctrl.enqueue(bytes);
+          ctrl.close();
+        },
+      });
+
       yield new ReadableRecord(
-        BigInt(ts),
-        size,
-        last,
+        BigInt(tsStr),
+        BigInt(byteLen),
+        isLast,
         head,
-        stream as Stream,
+        stream,
         labels,
         contentType,
       );
     }
+
+    if (reader) await reader.cancel();
   }
 
   /**

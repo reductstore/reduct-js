@@ -9,7 +9,7 @@ test("Client should raise network error", async () => {
   console.error = jest.fn();
 
   await expect(client.getInfo()).rejects.toMatchObject({
-    message: expect.stringMatching(/(Network Error|ECONNREFUSED)/),
+    message: "fetch failed",
   });
 });
 
@@ -24,11 +24,10 @@ test("Client should raise timeout error", async () => {
 test("Client should raise an error with original error from http client", async () => {
   const client: Client = new Client("http://google.com:333", { timeout: 10 });
 
-  await expect(client.getInfo()).rejects.toMatchObject({
-    original: {
-      message: "The user aborted a request.",
-    },
-  });
+  await expect(client.getInfo()).rejects.toHaveProperty(
+    "original.message",
+    "This operation was aborted",
+  );
 });
 
 describe("Client", () => {

@@ -67,3 +67,5 @@ export const itIfNode = () => {
     return it.skip;
   }
 };
+
+export const u8 = (s: string) => new TextEncoder().encode(s);

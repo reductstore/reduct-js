@@ -1,4 +1,4 @@
-import Stream, { Readable } from "stream";
+import Stream from "stream";
 import { Buffer } from "buffer";
 import { WriteOptions } from "./Bucket";
 import { HttpClient } from "./http/HttpClient";
@@ -12,7 +12,7 @@ export class ReadableRecord {
   public readonly time: bigint;
   public readonly size: bigint;
   public readonly last: boolean;
-  public readonly stream: ReadableStream<Uint8Array> | Stream;
+  public readonly stream: ReadableStream<Uint8Array>;
   public readonly labels: LabelMap = {};
   public readonly contentType: string | undefined;
   private readonly arrayBuffer: ArrayBuffer | undefined;
@@ -26,7 +26,7 @@ export class ReadableRecord {
     size: bigint,
     last: boolean,
     head: boolean,
-    stream: ReadableStream<Uint8Array> | Stream,
+    stream: ReadableStream<Uint8Array>,
     labels: LabelMap,
     contentType?: string,
   ) {
@@ -41,42 +41,32 @@ export class ReadableRecord {
   /**
    * Read content of record
    */
-  public async read(): Promise<Buffer> {
-    if (typeof (this.stream as any)?.getReader === "function") {
-      // Web ReadableStream
-      const reader = (this.stream as ReadableStream<Uint8Array>).getReader();
-      const chunks: Uint8Array[] = [];
-      let done = false;
-      while (!done) {
-        const result = await reader.read();
-        ({ done } = result);
-        if (result.value) chunks.push(result.value);
+  public async read(): Promise<Uint8Array> {
+    const reader = this.stream.getReader();
+    const chunks: Uint8Array[] = [];
+    let done = false;
+    while (!done) {
+      const { value, done: isDone } = await reader.read();
+      done = isDone;
+      if (value) {
+        chunks.push(value);
       }
-      const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-      const merged = new Uint8Array(totalLength);
-      let offset = 0;
-      for (const chunk of chunks) {
-        merged.set(chunk, offset);
-        offset += chunk.length;
-      }
-      return Buffer.from(merged.buffer, merged.byteOffset, merged.byteLength);
-    } else {
-      // Node.js Readable
-      return new Promise<Buffer>((resolve, reject) => {
-        const chunks: Buffer[] = [];
-        (this.stream as Readable)
-          .on("data", (chunk: Buffer) => chunks.push(chunk))
-          .on("end", () => resolve(Buffer.concat(chunks)))
-          .on("error", reject);
-      });
     }
+    const total = chunks.reduce((n, c) => n + c.length, 0);
+    const out = new Uint8Array(total);
+    let offset = 0;
+    for (const c of chunks) {
+      out.set(c, offset);
+      offset += c.length;
+    }
+    return out;
   }
 
   /**
    * Read content of record and convert to string
    */
   public async readAsString(): Promise<string> {
-    return (await this.read()).toString();
+    return new TextDecoder().decode(await this.read());
   }
 }
 

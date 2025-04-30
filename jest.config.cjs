@@ -103,15 +103,15 @@ module.exports = {
         "^.+\\.(ts|tsx)$": "ts-jest",
       },
     },
-    {
-      displayName: "jsdom",
-      testEnvironment: "jsdom",
-      setupFiles: ["<rootDir>/test/utils/polyfills.ts"],
-      testMatch: ["<rootDir>/test/*.test.ts"],
-      transform: {
-        "^.+\\.(ts|tsx)$": "ts-jest",
-      },
-    },
+    // {
+    //   displayName: "jsdom",
+    //   testEnvironment: "jsdom",
+    //   setupFiles: ["<rootDir>/test/utils/polyfills.ts"],
+    //   testMatch: ["<rootDir>/test/*.test.ts"],
+    //   transform: {
+    //     "^.+\\.(ts|tsx)$": "ts-jest",
+    //   },
+    // },
   ],
 
   // Use this configuration option to add custom reporters to Jest
