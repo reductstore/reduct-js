@@ -5,13 +5,7 @@ import all from "it-all";
 
 import { Client } from "../src/Client";
 import { Bucket } from "../src/Bucket";
-import {
-  cleanStorage,
-  it_api,
-  itIfNode,
-  makeClient,
-  u8,
-} from "./utils/Helpers";
+import { cleanStorage, it_api, makeClient, u8 } from "./utils/Helpers";
 import { BucketInfo } from "../src/messages/BucketInfo";
 import { QuotaType } from "../src/messages/BucketSettings";
 import { ReadableRecord } from "../src/Record";
@@ -136,31 +130,28 @@ describe("Bucket", () => {
       ).rejects.toMatchObject({ status: 404 });
     });
 
-    itIfNode()("should write and read a big blob as streams", async () => {
+    it("should write and read a big blob as streams", async () => {
       const bigBlob = crypto.randomBytes(2 ** 20);
 
       const bucket: Bucket = await client.getBucket("bucket");
       const record = await bucket.beginWrite("big-blob");
-      const stream = new ReadableStream({
+
+      const stream = new ReadableStream<Uint8Array>({
         start(controller) {
           controller.enqueue(bigBlob);
           controller.close();
         },
       });
+
       await record.write(stream, bigBlob.length);
 
-      // const readStream = (await bucket.beginRead("big-blob")).stream as Stream;
+      const readStream = (await bucket.beginRead("big-blob")).stream;
 
-      // const actual: Buffer = await new Promise((resolve, reject) => {
-      //   const chunks: Buffer[] = [];
+      const actual = await new Response(readStream).arrayBuffer();
+      const actualBuffer = Buffer.from(actual);
 
-      //   readStream.on("data", (chunk: Buffer) => chunks.push(chunk));
-      //   readStream.on("error", (err: Error) => reject(err));
-      //   readStream.on("end", () => resolve(Buffer.concat(chunks)));
-      // });
-
-      // expect(actual.length).toEqual(bigBlob.length);
-      // expect(md5(actual)).toEqual(md5(bigBlob));
+      expect(actualBuffer.length).toEqual(bigBlob.length);
+      expect(md5(actualBuffer)).toEqual(md5(bigBlob));
     });
 
     it("should write and read a big blob as buffers", async () => {
@@ -177,23 +168,20 @@ describe("Bucket", () => {
       expect(md5(actual)).toEqual(md5(bigBlob));
     });
 
-    itIfNode()(
-      "should read write and read labels along with records",
-      async () => {
-        const bucket: Bucket = await client.getBucket("bucket");
-        const record = await bucket.beginWrite("entry-1", {
-          labels: { label1: "label1", label2: 100n, label3: true },
-        });
-        await record.write("somedata1");
+    it("should read write and read labels along with records", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      const record = await bucket.beginWrite("entry-1", {
+        labels: { label1: "label1", label2: 100n, label3: true },
+      });
+      await record.write("somedata1");
 
-        const readRecord = await bucket.beginRead("entry-1");
-        expect(readRecord.labels).toEqual({
-          label1: "label1",
-          label2: "100",
-          label3: "true",
-        });
-      },
-    );
+      const readRecord = await bucket.beginRead("entry-1");
+      expect(readRecord.labels).toEqual({
+        label1: "label1",
+        label2: "100",
+        label3: "true",
+      });
+    });
 
     it("should read and write content type of records", async () => {
       const bucket: Bucket = await client.getBucket("bucket");

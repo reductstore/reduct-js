@@ -60,12 +60,4 @@ export const it_env = (name: string) => {
   }
 };
 
-export const itIfNode = () => {
-  if (!isBrowser) {
-    return it;
-  } else {
-    return it.skip;
-  }
-};
-
 export const u8 = (s: string) => new TextEncoder().encode(s);

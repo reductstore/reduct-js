@@ -107,9 +107,9 @@ export class Batch {
   public async write(): Promise<Map<bigint, APIError>> {
     const headers: Record<string, string> = {};
     const chunks: Buffer[] = [];
-    // let contentLength = 0;
+    let contentLength = 0;
     for (const [ts, { data, contentType, labels }] of this.items()) {
-      // contentLength += data.length;
+      contentLength += data.length;
       chunks.push(data);
       const headerName = `x-reduct-time-${ts}`;
 
@@ -132,14 +132,21 @@ export class Batch {
     let response;
     switch (this.type) {
       case BatchType.WRITE: {
-        // TODO: use stream
-        const buffer = Buffer.concat(chunks);
-        // headers["Content-Length"] = buffer.length.toString();
+        const stream = new ReadableStream<Uint8Array>({
+          start(ctrl) {
+            for (const chunk of chunks) {
+              ctrl.enqueue(chunk);
+            }
+            ctrl.close();
+          },
+        });
+
         headers["Content-Type"] = "application/octet-stream";
+        headers["Content-Length"] = contentLength.toString();
 
         response = await this.httpClient.post(
           `/b/${this.bucketName}/${this.entryName}/batch`,
-          buffer,
+          stream,
           headers,
         );
         break;

@@ -1,4 +1,3 @@
-import Stream from "stream";
 import { Buffer } from "buffer";
 import { WriteOptions } from "./Bucket";
 import { HttpClient } from "./http/HttpClient";
@@ -101,11 +100,11 @@ export class WritableRecord {
    * @param size size of data in bytes (only for streams)
    */
   public async write(
-    data: Buffer | string | Stream | ReadableStream<Uint8Array>,
+    data: Buffer | string | ReadableStream<Uint8Array>,
     size?: bigint | number,
   ): Promise<void> {
     let contentLength = size || 0;
-    if (!(data instanceof Stream) && !(data instanceof ReadableStream)) {
+    if (!(data instanceof ReadableStream)) {
       contentLength = data.length;
     }
 

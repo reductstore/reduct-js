@@ -1,12 +1,8 @@
 import JSONbig from "json-bigint";
-import { Readable } from "stream";
 import { Agent as HttpsAgent } from "https";
 import { ClientOptions } from "../Client";
 import { APIError } from "../APIError";
 import { isBrowser } from "../utils/env";
-import { fetch as undiciFetch } from "undici";
-
-export const fetch: typeof globalThis.fetch = globalThis.fetch ?? undiciFetch;
 
 const bigJson = JSONbig({ alwaysParseAsBig: false, useNativeBigInt: true });
 
@@ -116,7 +112,6 @@ export class HttpClient {
       typeof data === "string" ||
       Buffer.isBuffer(data) ||
       data instanceof Uint8Array ||
-      data instanceof Readable ||
       data instanceof ArrayBuffer ||
       data instanceof Blob
     ) {
@@ -137,9 +132,11 @@ export class HttpClient {
       const text = await res.text();
       return text ? bigJson.parse(text) : {};
     }
+
     if (ct.startsWith("text/")) {
       return res.text();
     }
+
     return res.body;
   }
 

@@ -505,7 +505,7 @@ export class Bucket {
         },
       });
     } else {
-      throw new APIError("Invalid body type returned by httpClient", 500);
+      throw new Error("Invalid body type returned by httpClient");
     }
 
     return new ReadableRecord(
