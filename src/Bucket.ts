@@ -632,38 +632,46 @@ export class Bucket {
 
       let bytes: Uint8Array;
 
-      if (head || !reader) {
-        bytes = new Uint8Array(0);
+      let stream: ReadableStream<Uint8Array>;
+      if (!reader) {
+        stream = new ReadableStream<Uint8Array>({
+          start(ctrl) {
+            ctrl.close();
+          },
+        });
       } else if (isLast) {
-        const chunks: Uint8Array[] = [];
-        if (leftover) {
-          chunks.push(leftover);
-          leftover = null;
-        }
+        stream = new ReadableStream<Uint8Array>({
+          start(ctrl) {
+            if (leftover) {
+              ctrl.enqueue(leftover);
+            }
+            ctrl.close();
+          },
 
-        let done = false;
-        while (!done) {
-          const { value, done: isDone } = await reader.read();
-          if (!isDone) chunks.push(value);
-          done = isDone;
-        }
-        const totalLen = chunks.reduce((n, c) => n + c.length, 0);
-        bytes = new Uint8Array(totalLen);
-        let off = 0;
-        for (const c of chunks) {
-          bytes.set(c, off);
-          off += c.length;
-        }
+          async pull(ctrl) {
+            if (!reader) {
+              throw new Error("Reader is not available");
+            }
+
+            const { value, done: isDone } = await reader.read();
+            if (value) {
+              ctrl.enqueue(value);
+            }
+
+            if (isDone) {
+              ctrl.close();
+            }
+          },
+        });
       } else {
         bytes = await readExactly(byteLen);
+        stream = new ReadableStream<Uint8Array>({
+          start(ctrl) {
+            if (bytes.length) ctrl.enqueue(bytes);
+            ctrl.close();
+          },
+        });
       }
-
-      const stream = new ReadableStream<Uint8Array>({
-        start(ctrl) {
-          if (bytes.length) ctrl.enqueue(bytes);
-          ctrl.close();
-        },
-      });
 
       yield new ReadableRecord(
         BigInt(tsStr),
