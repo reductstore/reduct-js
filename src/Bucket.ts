@@ -675,8 +675,6 @@ export class Bucket {
         contentType,
       );
     }
-
-    if (reader) await reader.cancel();
   }
 
   /**

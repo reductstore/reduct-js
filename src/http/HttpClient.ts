@@ -78,6 +78,7 @@ export class HttpClient {
       signal: signal,
       // @ts-ignore Node.js only
       agent: this.agent,
+      duplex: body instanceof ReadableStream ? "half" : undefined,
     };
 
     const response = await fetch(`${this.baseURL}${url}`, init).catch((err) => {
@@ -113,10 +114,12 @@ export class HttpClient {
       Buffer.isBuffer(data) ||
       data instanceof Uint8Array ||
       data instanceof ArrayBuffer ||
-      data instanceof Blob
+      data instanceof Blob ||
+      data instanceof ReadableStream
     ) {
       return data as BodyInit;
     }
+
     return bigJson.stringify(data);
   }
 
