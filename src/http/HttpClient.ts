@@ -3,6 +3,7 @@ import { Agent as HttpsAgent } from "https";
 import { ClientOptions } from "../Client";
 import { APIError } from "../APIError";
 import { isBrowser } from "../utils/env";
+import { Buffer } from "buffer";
 
 const bigJson = JSONbig({ alwaysParseAsBig: false, useNativeBigInt: true });
 
