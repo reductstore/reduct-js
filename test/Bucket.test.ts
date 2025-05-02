@@ -147,8 +147,19 @@ describe("Bucket", () => {
 
       const readStream = (await bucket.beginRead("big-blob")).stream;
 
-      const actual = await new Response(readStream).arrayBuffer();
-      const actualBuffer = Buffer.from(actual);
+      // Read the stream
+      const reader = readStream.getReader();
+      const chunks: Uint8Array[] = [];
+      let done = false;
+      while (!done) {
+        const { value, done: isDone } = await reader.read();
+        done = isDone;
+        if (value) {
+          chunks.push(value);
+        }
+      }
+
+      const actualBuffer = Buffer.concat(chunks);
 
       expect(actualBuffer.length).toEqual(bigBlob.length);
       expect(md5(actualBuffer)).toEqual(md5(bigBlob));
