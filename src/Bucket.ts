@@ -298,7 +298,7 @@ export class Bucket {
     ) {
       const { data, headers } = await this.httpClient.post(
         `/b/${this.name}/${entry}/q`,
-        QueryOptions.serialize(QueryType.QUERY, options),
+        QueryOptions.serialize(QueryType.QUERY, options, start, stop),
       );
       ({ id } = data);
       header_api_version = headers["x-reduct-api"];

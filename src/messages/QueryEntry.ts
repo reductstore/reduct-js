@@ -9,9 +9,9 @@ export interface QueryEntry {
   query_type: string;
 
   /** Start query from (Unix timestamp in microseconds) */
-  start?: number;
+  start?: bigint;
   /** Stop query at (Unix timestamp in microseconds) */
-  stop?: number;
+  stop?: bigint;
 
   /** Include records with label */
   include?: Record<string, string>;
@@ -75,8 +75,15 @@ export class QueryOptions {
   /** Additional parameters for extensions */
   ext?: Record<string, any>;
 
-  static serialize(queryType: QueryType, data: QueryOptions): QueryEntry {
+  static serialize(
+    queryType: QueryType,
+    data: QueryOptions,
+    start?: bigint,
+    stop?: bigint,
+  ): QueryEntry {
     return {
+      start: start,
+      stop: stop,
       query_type: QueryType[queryType],
       ttl: data.ttl,
       include: data.include as Record<string, string>,
