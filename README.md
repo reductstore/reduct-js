@@ -8,6 +8,11 @@ The ReductStore Client SDK for JavaScript is an asynchronous HTTP client for int
 a [ReductStore](https://www.reduct.store) instance from a JavaScript application. It is written in TypeScript and provides a set of APIs for accessing and manipulating
 data stored in ReductStore.
 
+## Requirements
+
+- Node.js 18 or later
+- TypeScript 4.6 or later
+
 ## Features
 
 - Promise-based API for easy asynchronous programming
