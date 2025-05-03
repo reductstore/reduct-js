@@ -364,16 +364,35 @@ describe("Bucket", () => {
       const bucket: Bucket = await client.getBucket("bucket");
 
       let record = await bucket.beginWrite("entry-labels", {
+        ts: 1000_000n,
         labels: { score: 10, class: "cat" },
       });
+
       await record.write("somedata1");
+
       record = await bucket.beginWrite("entry-labels", {
+        ts: 2000_000n,
+        labels: { score: 10, class: "cat" },
+      });
+
+      await record.write("somedata1");
+
+      record = await bucket.beginWrite("entry-labels", {
+        ts: 3000_000n,
         labels: { score: 20, class: "dog" },
       });
+
+      await record.write("somedata1");
+
+      record = await bucket.beginWrite("entry-labels", {
+        ts: 4000_000n,
+        labels: { score: 20, class: "dog" },
+      });
+
       await record.write("somedata1");
 
       const records: ReadableRecord[] = await all(
-        bucket.query("entry-labels", undefined, undefined, {
+        bucket.query("entry-labels", 1000_000n, 4000_000n, {
           when: { "&score": { $gt: 10 } },
         }),
       );
@@ -402,6 +421,17 @@ describe("Bucket", () => {
         expect(records.length).toEqual(0);
       },
     );
+
+    it_api("1.15")("should query with parameters for extensions", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      await expect(
+        all(
+          bucket.query("entry-1", undefined, undefined, { ext: { test: {} } }),
+        ),
+      ).rejects.toMatchObject({
+        status: 422,
+      });
+    });
   });
 
   describe("remove", () => {

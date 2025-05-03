@@ -7,11 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2025-05-02
+
+### Added:
+
+- RS-628: Support `ext` parameter in `Bucket.query`, [PR-100](https://github.com/reductstore/reduct-js/pull/100)
+
+### Fixed:
+
+- RS-613: Fixed browser compatibility issues with Content-Length header, [PR-103](https://github.com/reductstore/reduct-js/pull/103)
+- Fix `start` and `stop` parameters for POST query request, [PR-104](https://github.com/reductstore/reduct-js/pull/104)
+
 ## [1.14.0] - 2025-02-25
 
 ### Added:
 
-- RS-550: Add when condition to replication settings, [PR-98](https://github.com/reductstore/reduct-js/pull/98)
+- RS-550: Add `when` condition to replication settings, [PR-98](https://github.com/reductstore/reduct-js/pull/98)
 
 ## [1.13.0] - 2024-12-04
 
@@ -288,7 +299,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.14.0...HEAD
+[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.15.0...HEAD
+[1.15.0]: https://github.com/reduct-storage/reduct-js/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/reduct-storage/reduct-js/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/reduct-storage/reduct-js/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/reduct-storage/reduct-js/compare/v1.11.0...v1.12.0

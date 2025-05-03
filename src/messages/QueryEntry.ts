@@ -9,9 +9,9 @@ export interface QueryEntry {
   query_type: string;
 
   /** Start query from (Unix timestamp in microseconds) */
-  start?: number;
+  start?: bigint;
   /** Stop query at (Unix timestamp in microseconds) */
-  stop?: number;
+  stop?: bigint;
 
   /** Include records with label */
   include?: Record<string, string>;
@@ -37,6 +37,9 @@ export interface QueryEntry {
    * If true, the query returns an error if any condition cannot be evaluated
    */
   strict?: boolean;
+
+  /** Additional parameters for extensions */
+  ext?: Record<string, any>;
 }
 
 /**
@@ -69,9 +72,18 @@ export class QueryOptions {
   when?: Record<string, any>;
   /**  strict conditional query */
   strict?: boolean;
+  /** Additional parameters for extensions */
+  ext?: Record<string, any>;
 
-  static serialize(queryType: QueryType, data: QueryOptions): QueryEntry {
+  static serialize(
+    queryType: QueryType,
+    data: QueryOptions,
+    start?: bigint,
+    stop?: bigint,
+  ): QueryEntry {
     return {
+      start: start,
+      stop: stop,
       query_type: QueryType[queryType],
       ttl: data.ttl,
       include: data.include as Record<string, string>,
@@ -83,6 +95,7 @@ export class QueryOptions {
       when: data.when,
       strict: data.strict,
       only_metadata: data.head,
+      ext: data.ext,
     };
   }
 }

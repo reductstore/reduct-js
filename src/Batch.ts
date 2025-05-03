@@ -152,7 +152,6 @@ export class Batch {
         break;
       }
       case BatchType.UPDATE:
-        headers["Content-Length"] = "0";
         response = await this.httpClient.patch(
           `/b/${this.bucketName}/${this.entryName}/batch`,
           "",
@@ -160,7 +159,6 @@ export class Batch {
         );
         break;
       case BatchType.REMOVE:
-        headers["Content-Length"] = "0";
         response = await this.httpClient.delete(
           `/b/${this.bucketName}/${this.entryName}/batch`,
           headers,

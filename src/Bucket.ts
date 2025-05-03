@@ -190,9 +190,7 @@ export class Bucket {
    * @param labels {LabelMap} labels to update
    */
   async update(entry: string, ts: bigint, labels: LabelMap): Promise<void> {
-    const headers: Record<string, string> = {
-      "Content-Length": "0",
-    };
+    const headers: Record<string, string> = {};
 
     for (const [key, value] of Object.entries(labels)) {
       headers[`x-reduct-label-${key}`] = value.toString();
@@ -289,11 +287,11 @@ export class Bucket {
     if (
       options !== undefined &&
       typeof options === "object" &&
-      "when" in options
+      ("when" in options || "ext" in options)
     ) {
       const { data, headers } = await this.httpClient.post<{ id: string }>(
         `/b/${this.name}/${entry}/q`,
-        QueryOptions.serialize(QueryType.QUERY, options),
+        QueryOptions.serialize(QueryType.QUERY, options, start, stop),
       );
       ({ id } = data);
       header_api_version = String(headers.get("x-reduct-api"));
