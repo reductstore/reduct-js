@@ -626,7 +626,8 @@ export class Bucket {
       const byteLen = Number(size);
 
       index += 1;
-      const isLast = headers.get("x-reduct-last") === "true" && index === total;
+      const isLastInBatch = index === total;
+      const isLastInQuery = headers.get("x-reduct-last") === "true" && isLastInBatch;
 
       let bytes: Uint8Array;
 
@@ -637,13 +638,14 @@ export class Bucket {
             ctrl.close();
           },
         });
-      } else if (isLast) {
+      } else if (isLastInBatch) {
+        // Last record in batch must be stramed
+        // because it can be very large
         stream = new ReadableStream<Uint8Array>({
           start(ctrl) {
             if (leftover) {
               ctrl.enqueue(leftover);
             }
-            ctrl.close();
           },
 
           async pull(ctrl) {
@@ -674,7 +676,7 @@ export class Bucket {
       yield new ReadableRecord(
         BigInt(tsStr),
         BigInt(byteLen),
-        isLast,
+        isLastInQuery,
         head,
         stream,
         labels,
