@@ -627,7 +627,8 @@ export class Bucket {
 
       index += 1;
       const isLastInBatch = index === total;
-      const isLastInQuery = headers.get("x-reduct-last") === "true" && isLastInBatch;
+      const isLastInQuery =
+        headers.get("x-reduct-last") === "true" && isLastInBatch;
 
       let bytes: Uint8Array;
 
