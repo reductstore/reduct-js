@@ -15,6 +15,7 @@ data stored in ReductStore.
 
 ## Features
 
+- Based on the Fetch API
 - Promise-based API for easy asynchronous programming
 - Support for [ReductStore HTTP API v1.15](https://www.reduct.store/docs/http-api)
 - Token-based authentication for secure access to the database
@@ -87,3 +88,8 @@ main().then(() => console.log("done"));
 ```
 
 For more examples, see the [Guides](https://www.reduct.store/docs/guides) section in the ReductStore documentation.
+
+## JavaScript Limitations
+
+- The SDK doesn't support steaming data to the server in JavaScript. The `WriteableRecord.write` method
+  is not implemented and will throw a Fetch error.
