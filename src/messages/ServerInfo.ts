@@ -77,7 +77,7 @@ export class ServerInfo {
    */
   readonly defaults: ServerDefaults = { bucket: {} };
 
-  static parse(data: Original): ServerInfo {
+  static parse(data: OriginalServerInfo): ServerInfo {
     return {
       version: data.version,
       bucketCount: BigInt(data.bucket_count),
@@ -103,7 +103,7 @@ type OriginalLicenseInfo = {
   fingerprint: string;
 };
 
-type Original = {
+export type OriginalServerInfo = {
   version: string;
   bucket_count: string;
   uptime: string;

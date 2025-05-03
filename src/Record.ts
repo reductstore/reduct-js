@@ -1,8 +1,6 @@
-import Stream from "stream";
 import { Buffer } from "buffer";
-// @ts-ignore`
-import { AxiosInstance } from "axios";
 import { WriteOptions } from "./Bucket";
+import { HttpClient } from "./http/HttpClient";
 
 export type LabelMap = Record<string, string | number | boolean | bigint>;
 
@@ -13,7 +11,7 @@ export class ReadableRecord {
   public readonly time: bigint;
   public readonly size: bigint;
   public readonly last: boolean;
-  public readonly stream: Stream;
+  public readonly stream: ReadableStream<Uint8Array>;
   public readonly labels: LabelMap = {};
   public readonly contentType: string | undefined;
   private readonly arrayBuffer: ArrayBuffer | undefined;
@@ -27,10 +25,9 @@ export class ReadableRecord {
     size: bigint,
     last: boolean,
     head: boolean,
-    stream: Stream,
+    stream: ReadableStream<Uint8Array>,
     labels: LabelMap,
     contentType?: string,
-    arrayBuffer?: ArrayBuffer,
   ) {
     this.time = time;
     this.size = size;
@@ -38,39 +35,37 @@ export class ReadableRecord {
     this.stream = stream;
     this.labels = labels;
     this.contentType = contentType;
-    this.arrayBuffer = arrayBuffer;
-
-    if (head) {
-      (this.arrayBuffer as ArrayBuffer) = new ArrayBuffer(0);
-    }
   }
 
   /**
    * Read content of record
    */
-  public async read(): Promise<Buffer> {
-    if (this.arrayBuffer !== undefined) {
-      return new Promise((resolve, reject) => {
-        try {
-          resolve(Buffer.from(this.arrayBuffer as ArrayBuffer));
-        } catch (error) {
-          reject(error);
-        }
-      });
+  public async read(): Promise<Uint8Array> {
+    const reader = this.stream.getReader();
+    const chunks: Uint8Array[] = [];
+    let done = false;
+    while (!done) {
+      const { value, done: isDone } = await reader.read();
+      done = isDone;
+      if (value) {
+        chunks.push(value);
+      }
     }
-    const chunks: Buffer[] = [];
-    return new Promise((resolve, reject) => {
-      (this.stream as Stream).on("data", (chunk: Buffer) => chunks.push(chunk));
-      (this.stream as Stream).on("error", (err: Error) => reject(err));
-      (this.stream as Stream).on("end", () => resolve(Buffer.concat(chunks)));
-    });
+    const total = chunks.reduce((n, c) => n + c.length, 0);
+    const out = new Uint8Array(total);
+    let offset = 0;
+    for (const c of chunks) {
+      out.set(c, offset);
+      offset += c.length;
+    }
+    return out;
   }
 
   /**
    * Read content of record and convert to string
    */
   public async readAsString(): Promise<string> {
-    return (await this.read()).toString();
+    return new TextDecoder().decode(await this.read());
   }
 }
 
@@ -80,7 +75,7 @@ export class ReadableRecord {
 export class WritableRecord {
   private readonly bucketName: string;
   private readonly entryName: string;
-  private readonly httpClient: AxiosInstance;
+  private readonly httpClient: HttpClient;
   private readonly options: WriteOptions;
 
   /**
@@ -91,7 +86,7 @@ export class WritableRecord {
     bucketName: string,
     entryName: string,
     options: WriteOptions,
-    httpClient: AxiosInstance,
+    httpClient: HttpClient,
   ) {
     this.bucketName = bucketName;
     this.entryName = entryName;
@@ -105,11 +100,11 @@ export class WritableRecord {
    * @param size size of data in bytes (only for streams)
    */
   public async write(
-    data: Buffer | string | Stream,
+    data: Buffer | string | ReadableStream<Uint8Array>,
     size?: bigint | number,
   ): Promise<void> {
     let contentLength = size || 0;
-    if (!(data instanceof Stream)) {
+    if (!(data instanceof ReadableStream)) {
       contentLength = data.length;
     }
 
@@ -131,9 +126,7 @@ export class WritableRecord {
     await this.httpClient.post(
       `/b/${bucketName}/${entryName}?ts=${options.ts}`,
       data,
-      {
-        headers: headers,
-      },
+      headers,
     );
   }
 }

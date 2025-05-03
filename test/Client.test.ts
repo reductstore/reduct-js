@@ -2,13 +2,14 @@ import { Client } from "../src/Client";
 import { ServerInfo } from "../src/messages/ServerInfo";
 import { Bucket } from "../src/Bucket";
 import { QuotaType } from "../src/messages/BucketSettings";
-import { cleanStorage, it_api, it_env, makeClient } from "./Helpers";
+import { cleanStorage, it_api, it_env, makeClient } from "./utils/Helpers";
 
 test("Client should raise network error", async () => {
   const client: Client = new Client("http://127.0.0.1:9999");
+  console.error = jest.fn();
 
   await expect(client.getInfo()).rejects.toMatchObject({
-    message: "connect ECONNREFUSED 127.0.0.1:9999",
+    message: "fetch failed",
   });
 });
 
@@ -23,13 +24,10 @@ test("Client should raise timeout error", async () => {
 test("Client should raise an error with original error from http client", async () => {
   const client: Client = new Client("http://google.com:333", { timeout: 10 });
 
-  await expect(client.getInfo()).rejects.toMatchObject({
-    original: {
-      message: "timeout of 10ms exceeded",
-      code: "ECONNABORTED",
-      name: "AxiosError",
-    },
-  });
+  await expect(client.getInfo()).rejects.toHaveProperty(
+    "original.message",
+    "This operation was aborted",
+  );
 });
 
 describe("Client", () => {

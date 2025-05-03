@@ -1,13 +1,11 @@
 import crypto from "crypto";
-import { Buffer } from "buffer";
 import md5 from "md5";
-import * as Stream from "stream";
 // @ts-ignore
 import all from "it-all";
 
 import { Client } from "../src/Client";
 import { Bucket } from "../src/Bucket";
-import { cleanStorage, it_api, makeClient } from "./Helpers";
+import { cleanStorage, it_api, makeClient, u8 } from "./utils/Helpers";
 import { BucketInfo } from "../src/messages/BucketInfo";
 import { QuotaType } from "../src/messages/BucketSettings";
 import { ReadableRecord } from "../src/Record";
@@ -108,7 +106,7 @@ describe("Bucket", () => {
       const record = await bucket.beginRead("entry-2");
 
       expect(record).toMatchObject({ size: 9n, time: 4000000n, last: true });
-      expect((await record.read()).toString()).toEqual("somedata4");
+      expect(await record.readAsString()).toEqual("somedata4");
     });
 
     it.each([
@@ -121,7 +119,7 @@ describe("Bucket", () => {
         const record = await bucket.beginRead("entry-2", 2000000n, head);
 
         expect(record).toMatchObject({ size: 9n, time: 2000000n, last: true });
-        expect(await record.read()).toEqual(Buffer.from(content, "ascii"));
+        expect(await record.read()).toEqual(u8(content));
       },
     );
 
@@ -137,20 +135,34 @@ describe("Bucket", () => {
 
       const bucket: Bucket = await client.getBucket("bucket");
       const record = await bucket.beginWrite("big-blob");
-      await record.write(Stream.Readable.from(bigBlob), bigBlob.length);
 
-      const readStream: Stream = (await bucket.beginRead("big-blob")).stream;
-
-      const actual: Buffer = await new Promise((resolve, reject) => {
-        const chunks: Buffer[] = [];
-
-        readStream.on("data", (chunk: Buffer) => chunks.push(chunk));
-        readStream.on("error", (err: Error) => reject(err));
-        readStream.on("end", () => resolve(Buffer.concat(chunks)));
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(bigBlob);
+          controller.close();
+        },
       });
 
-      expect(actual.length).toEqual(bigBlob.length);
-      expect(md5(actual)).toEqual(md5(bigBlob));
+      await record.write(stream, bigBlob.length);
+
+      const readStream = (await bucket.beginRead("big-blob")).stream;
+
+      // Read the stream
+      const reader = readStream.getReader();
+      const chunks: Uint8Array[] = [];
+      let done = false;
+      while (!done) {
+        const { value, done: isDone } = await reader.read();
+        done = isDone;
+        if (value) {
+          chunks.push(value);
+        }
+      }
+
+      const actualBuffer = Buffer.concat(chunks);
+
+      expect(actualBuffer.length).toEqual(bigBlob.length);
+      expect(md5(actualBuffer)).toEqual(md5(bigBlob));
     });
 
     it("should write and read a big blob as buffers", async () => {
@@ -162,7 +174,7 @@ describe("Bucket", () => {
 
       const reader = await bucket.beginRead("big-blob");
 
-      const actual: Buffer = await reader.read();
+      const actual = await reader.read();
       expect(actual.length).toEqual(bigBlob.length);
       expect(md5(actual)).toEqual(md5(bigBlob));
     });
@@ -217,9 +229,7 @@ describe("Bucket", () => {
         contentType: "application/octet-stream",
         labels: {},
       });
-      expect(await records[0].read()).toEqual(
-        Buffer.from("somedata1", "ascii"),
-      );
+      expect(await records[0].read()).toEqual(u8("somedata1"));
 
       expect(records[1]).toMatchObject({
         time: 2000n,
@@ -227,9 +237,7 @@ describe("Bucket", () => {
         contentType: "text/plain",
         labels: {},
       });
-      expect(await records[1].read()).toEqual(
-        Buffer.from("somedata2", "ascii"),
-      );
+      expect(await records[1].read()).toEqual(u8("somedata2"));
 
       expect(records[2]).toMatchObject({
         time: 3000n,
@@ -237,9 +245,7 @@ describe("Bucket", () => {
         contentType: "application/octet-stream",
         labels: { label1: "value1", label2: "value2" },
       });
-      expect(await records[2].read()).toEqual(
-        Buffer.from("somedata3", "ascii"),
-      );
+      expect(await records[2].read()).toEqual(u8("somedata3"));
 
       batch.clear();
       expect(batch.size()).toEqual(0n);
@@ -247,23 +253,26 @@ describe("Bucket", () => {
       expect(batch.lastAccessTime()).toEqual(0);
     });
 
-    it_api("1.7")("should write a batch of records with errors", async () => {
-      const bucket: Bucket = await client.getBucket("bucket");
+    it_api("1.7", true)(
+      "should write a batch of records with errors",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
 
-      const batch = await bucket.beginWriteBatch("entry-1");
-      batch.add(1000_000n, "somedata1");
-      batch.add(2000n, "somedata2", "text/plain");
-      batch.add(3000n, "somedata3", undefined, {
-        label1: "value1",
-        label2: "value2",
-      });
+        const batch = await bucket.beginWriteBatch("entry-1");
+        batch.add(1000_000n, "somedata1");
+        batch.add(2000n, "somedata2", "text/plain");
+        batch.add(3000n, "somedata3", undefined, {
+          label1: "value1",
+          label2: "value2",
+        });
 
-      const errors = await batch.write();
-      expect(errors.size).toEqual(1);
-      expect(errors.get(1000_000n)).toEqual(
-        new APIError("A record with timestamp 1000000 already exists", 409),
-      );
-    });
+        const errors = await batch.write();
+        expect(errors.size).toEqual(1);
+        expect(errors.get(1000_000n)).toEqual(
+          new APIError("A record with timestamp 1000000 already exists", 409),
+        );
+      },
+    );
   });
 
   describe("query", () => {
@@ -301,15 +310,11 @@ describe("Bucket", () => {
         expect(records.length).toEqual(3);
         expect(records[0].time).toEqual(2_000_000n);
         expect(records[0].size).toEqual(9n);
-        expect(await records[0].read()).toEqual(
-          Buffer.from(contents[0], "ascii"),
-        );
+        expect(await records[0].read()).toEqual(u8(contents[0]));
 
         expect(records[1].time).toEqual(3_000_000n);
         expect(records[1].size).toEqual(9n);
-        expect(await records[1].read()).toEqual(
-          Buffer.from(contents[1], "ascii"),
-        );
+        expect(await records[1].read()).toEqual(u8(contents[1]));
       },
     );
 
@@ -328,7 +333,7 @@ describe("Bucket", () => {
       ).rejects.toHaveProperty("status", 404);
     });
 
-    it_api("1.6")("should query limited number of query", async () => {
+    it_api("1.6", true)("should query limited number of query", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const records: ReadableRecord[] = await all(
         bucket.query("entry-2", 0n, undefined, { limit: 1 }),
@@ -336,7 +341,7 @@ describe("Bucket", () => {
       expect(records.length).toEqual(1);
     });
 
-    it_api("1.10")("should query a record each 2 s", async () => {
+    it_api("1.10", true)("should query a record each 2 s", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const records: ReadableRecord[] = await all(
         bucket.query("entry-2", 0n, undefined, { eachS: 2.0 }),
@@ -346,7 +351,7 @@ describe("Bucket", () => {
       expect(records[1].time).toEqual(4_000_000n);
     });
 
-    it_api("1.10")("should query each 3d record", async () => {
+    it_api("1.10", true)("should query each 3d record", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const records: ReadableRecord[] = await all(
         bucket.query("entry-2", 0n, undefined, { eachN: 3 }),
@@ -355,7 +360,7 @@ describe("Bucket", () => {
       expect(records[0].time).toEqual(2_000_000n);
     });
 
-    it_api("1.13")("should query records with condition", async () => {
+    it_api("1.13", true)("should query records with condition", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
 
       let record = await bucket.beginWrite("entry-labels", {
@@ -395,7 +400,7 @@ describe("Bucket", () => {
       expect(records[0].labels).toEqual({ score: "20", class: "dog" });
     });
 
-    it_api("1.13")(
+    it_api("1.13", true)(
       "should query records with strict or non-strict condition",
       async () => {
         const bucket: Bucket = await client.getBucket("bucket");
@@ -448,7 +453,7 @@ describe("Bucket", () => {
       });
     });
 
-    it_api("1.12")("should remove a batch of records", async () => {
+    it_api("1.12", true)("should remove a batch of records", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const batch = await bucket.beginRemoveBatch("entry-2");
       batch.addOnlyTimestamp(2000_000n);
@@ -462,7 +467,7 @@ describe("Bucket", () => {
       );
     });
 
-    it_api("1.12")("should remove records by query", async () => {
+    it_api("1.12", true)("should remove records by query", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const removed = await bucket.removeQuery(
         "entry-2",
@@ -517,7 +522,7 @@ describe("Bucket", () => {
   });
 
   describe("update", () => {
-    it_api("1.11")("should update labels in a batch", async () => {
+    it_api("1.11", true)("should update labels in a batch", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
 
       const batch = await bucket.beginUpdateBatch("entry-1");
@@ -531,7 +536,7 @@ describe("Bucket", () => {
       );
     });
 
-    it_api("1.11")("should update labels", async () => {
+    it_api("1.11", true)("should update labels", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const ts = 1000_000n;
 
@@ -545,7 +550,7 @@ describe("Bucket", () => {
   });
 
   describe("rename", () => {
-    it_api("1.12")("should rename entry", async () => {
+    it_api("1.12", true)("should rename entry", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       await bucket.renameEntry("entry-1", "entry-1-renamed");
 

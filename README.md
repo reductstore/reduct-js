@@ -8,8 +8,14 @@ The ReductStore Client SDK for JavaScript is an asynchronous HTTP client for int
 a [ReductStore](https://www.reduct.store) instance from a JavaScript application. It is written in TypeScript and provides a set of APIs for accessing and manipulating
 data stored in ReductStore.
 
+## Requirements
+
+- Node.js 18 or later
+- TypeScript 4.6 or later
+
 ## Features
 
+- Based on the Fetch API
 - Promise-based API for easy asynchronous programming
 - Support for [ReductStore HTTP API v1.15](https://www.reduct.store/docs/http-api)
 - Token-based authentication for secure access to the database
@@ -82,3 +88,8 @@ main().then(() => console.log("done"));
 ```
 
 For more examples, see the [Guides](https://www.reduct.store/docs/guides) section in the ReductStore documentation.
+
+## JavaScript Limitations
+
+- The SDK doesn't support steaming data to the server in JavaScript. The `WriteableRecord.write` method
+  is not implemented and will throw a Fetch error.

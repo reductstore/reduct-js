@@ -1,8 +1,6 @@
-// @ts-ignore
-import { AxiosInstance } from "axios";
 import { LabelMap } from "./Record";
 import { APIError } from "./APIError";
-import Stream from "stream";
+import { HttpClient } from "./http/HttpClient";
 
 /**
  * Represents a batch of records for writing
@@ -17,7 +15,7 @@ export enum BatchType {
 export class Batch {
   private readonly bucketName: string;
   private readonly entryName: string;
-  private readonly httpClient: AxiosInstance;
+  private readonly httpClient: HttpClient;
   private readonly type: BatchType;
 
   private readonly records: Map<
@@ -35,7 +33,7 @@ export class Batch {
   public constructor(
     bucketName: string,
     entryName: string,
-    httpClient: AxiosInstance,
+    httpClient: HttpClient,
     type: BatchType,
   ) {
     this.bucketName = bucketName;
@@ -62,7 +60,8 @@ export class Batch {
   ): void {
     const _contentType = contentType ?? "application/octet-stream";
     const _labels = labels ?? {};
-    const _data: Buffer = data instanceof Buffer ? data : Buffer.from(data);
+    const _data: Buffer =
+      data instanceof Buffer ? data : Buffer.from(data as string, "utf-8");
 
     this.totalSize += BigInt(_data.length);
     this.lastAccess = Date.now();
@@ -133,16 +132,22 @@ export class Batch {
     let response;
     switch (this.type) {
       case BatchType.WRITE: {
-        headers["Content-Length"] = contentLength.toString();
-        headers["Content-Type"] = "application/octet-stream";
+        const stream = new ReadableStream<Uint8Array>({
+          start(ctrl) {
+            for (const chunk of chunks) {
+              ctrl.enqueue(chunk);
+            }
+            ctrl.close();
+          },
+        });
 
-        const stream = Stream.Readable.from(chunks);
+        headers["Content-Type"] = "application/octet-stream";
+        headers["Content-Length"] = contentLength.toString();
+
         response = await this.httpClient.post(
           `/b/${this.bucketName}/${this.entryName}/batch`,
           stream,
-          {
-            headers,
-          },
+          headers,
         );
         break;
       }
@@ -150,25 +155,19 @@ export class Batch {
         response = await this.httpClient.patch(
           `/b/${this.bucketName}/${this.entryName}/batch`,
           "",
-          {
-            headers,
-          },
+          headers,
         );
         break;
       case BatchType.REMOVE:
         response = await this.httpClient.delete(
           `/b/${this.bucketName}/${this.entryName}/batch`,
-          {
-            headers,
-          },
+          headers,
         );
         break;
     }
 
     const errors = new Map<bigint, APIError>();
-    for (const [key, value] of Object.entries(
-      response.headers as Record<string, string>,
-    )) {
+    for (const [key, value] of response.headers.entries()) {
       if (key.startsWith("x-reduct-error-")) {
         const ts = BigInt(key.slice(15));
         const [code, message] = value.split(",", 2);

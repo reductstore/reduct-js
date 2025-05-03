@@ -2,26 +2,20 @@
  * Represents HTTP Client for ReductStore API
  * @class
  */
-import { ServerInfo } from "./messages/ServerInfo";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import axios, { AxiosInstance, AxiosResponse, AxiosError } from "axios";
+import { ServerInfo, OriginalServerInfo } from "./messages/ServerInfo";
 import { APIError } from "./APIError";
-import { BucketInfo } from "./messages/BucketInfo";
+import { BucketInfo, OriginalBucketInfo } from "./messages/BucketInfo";
 import { BucketSettings } from "./messages/BucketSettings";
 import { Bucket } from "./Bucket";
-import { Token, TokenPermissions } from "./messages/Token";
-import { Readable } from "stream";
-import { Buffer } from "buffer";
+import { Token, TokenPermissions, OriginalTokenInfo } from "./messages/Token";
 import {
   FullReplicationInfo,
   ReplicationInfo,
+  FullReplicationInfoResponse,
+  OriginalReplicationInfo,
 } from "./messages/ReplicationInfo";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
-// @ts-ignore
-import { AxiosError, AxiosInstance, AxiosResponse } from "axios";
-import { AxiosRequestConfig } from "../node_modules/axios/index";
-import * as https from "https";
+import { HttpClient } from "./http/HttpClient";
 
 /**
  * Options
@@ -33,7 +27,7 @@ export type ClientOptions = {
 };
 
 export class Client {
-  private readonly httpClient: AxiosInstance;
+  private readonly httpClient: HttpClient;
 
   /**
    * HTTP Client for ReductStore
@@ -41,66 +35,7 @@ export class Client {
    * @param options
    */
   constructor(url: string, options: ClientOptions = {}) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const bigJson = require("json-bigint")({
-      alwaysParseAsBig: false,
-      useNativeBigInt: true,
-    });
-
-    // http client with big int support in JSON
-    const axiosConfig: AxiosRequestConfig = {
-      baseURL: `${url}/api/v1`,
-      timeout: options.timeout,
-
-      headers: {
-        Authorization: `Bearer ${options.apiToken}`,
-      },
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-      transformRequest: [
-        (data: any) => {
-          // very ugly hack to support big int in JSON
-          if (
-            typeof data !== "object" ||
-            data instanceof Readable ||
-            data instanceof Buffer
-          ) {
-            return data;
-          }
-          return bigJson.stringify(data);
-        },
-      ],
-      transformResponse: [
-        (data: any) => {
-          // very ugly hack to support big int in JSON
-          if (typeof data !== "string") {
-            return data;
-          }
-
-          if (data.length == 0) {
-            return {};
-          }
-          return bigJson.parse(data);
-        },
-      ],
-    };
-    if (typeof window === "undefined") {
-      axiosConfig.httpsAgent = new https.Agent({
-        rejectUnauthorized: options.verifySSL !== false,
-      });
-    }
-    this.httpClient = axios.create(axiosConfig);
-
-    this.httpClient.interceptors.response.use(
-      (response: AxiosResponse) => response,
-      async (error: AxiosError) => {
-        if (error instanceof AxiosError) {
-          throw APIError.from(error);
-        }
-
-        throw error;
-      },
-    );
+    this.httpClient = new HttpClient(url, options);
   }
 
   /**
@@ -109,7 +44,7 @@ export class Client {
    * @return {Promise<ServerInfo>} the data about the server
    */
   async getInfo(): Promise<ServerInfo> {
-    const { data } = await this.httpClient.get("/info");
+    const { data } = await this.httpClient.get<OriginalServerInfo>("/info");
     return ServerInfo.parse(data);
   }
 
@@ -120,8 +55,10 @@ export class Client {
    * @see BucketInfo
    */
   async getBucketList(): Promise<BucketInfo[]> {
-    const { data } = await this.httpClient.get("/list");
-    return data.buckets.map((bucket: any) => BucketInfo.parse(bucket));
+    const { data } = await this.httpClient.get<{
+      buckets: OriginalBucketInfo[];
+    }>("/list");
+    return data.buckets.map((bucket) => BucketInfo.parse(bucket));
   }
 
   /**
@@ -184,11 +121,11 @@ export class Client {
     name: string,
     permissions: TokenPermissions,
   ): Promise<string> {
-    const { data } = await this.httpClient.post(
+    const { data } = await this.httpClient.post<{ value: string }>(
       `/tokens/${name}`,
       TokenPermissions.serialize(permissions),
     );
-    return data.value as string;
+    return data.value;
   }
 
   /**
@@ -197,7 +134,9 @@ export class Client {
    * @return {Promise<Token>} the token
    */
   async getToken(name: string): Promise<Token> {
-    const { data } = await this.httpClient.get(`/tokens/${name}`);
+    const { data } = await this.httpClient.get<OriginalTokenInfo>(
+      `/tokens/${name}`,
+    );
     return Token.parse(data);
   }
 
@@ -206,8 +145,10 @@ export class Client {
    * @return {Promise<Token[]>} the list of tokens
    */
   async getTokenList(): Promise<Token[]> {
-    const { data } = await this.httpClient.get("/tokens");
-    return data.tokens.map((token: any) => Token.parse(token));
+    const { data } = await this.httpClient.get<{
+      tokens: OriginalTokenInfo[];
+    }>("/tokens");
+    return data.tokens.map((token) => Token.parse(token));
   }
 
   /**
@@ -223,7 +164,7 @@ export class Client {
    * @return {Promise<Token>} the token
    */
   async me(): Promise<Token> {
-    const { data } = await this.httpClient.get("/me");
+    const { data } = await this.httpClient.get<OriginalTokenInfo>("/me");
     return Token.parse(data);
   }
 
@@ -232,10 +173,10 @@ export class Client {
    * @return {Promise<ReplicationInfo[]>} the list of replications
    */
   async getReplicationList(): Promise<ReplicationInfo[]> {
-    const { data } = (await this.httpClient.get("/replications")) as {
-      data: { replications: ReplicationInfo[] };
-    };
-    return data.replications.map((replication: any) =>
+    const { data } = await this.httpClient.get<{
+      replications: OriginalReplicationInfo[];
+    }>("/replications");
+    return data.replications.map((replication) =>
       ReplicationInfo.parse(replication),
     );
   }
@@ -246,7 +187,9 @@ export class Client {
    * @return {Promise<FullReplicationInfo>} the replication
    */
   async getReplication(name: string): Promise<FullReplicationInfo> {
-    const { data } = await this.httpClient.get(`/replications/${name}`);
+    const { data } = await this.httpClient.get<FullReplicationInfoResponse>(
+      `/replications/${name}`,
+    );
     return FullReplicationInfo.parse(data);
   }
 
