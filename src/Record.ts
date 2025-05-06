@@ -40,7 +40,7 @@ export class ReadableRecord {
   /**
    * Read content of record
    */
-  public async read(): Promise<Uint8Array> {
+  public async read(): Promise<Buffer> {
     const reader = this.stream.getReader();
     const chunks: Uint8Array[] = [];
     let done = false;
@@ -58,7 +58,7 @@ export class ReadableRecord {
       out.set(c, offset);
       offset += c.length;
     }
-    return out;
+    return Buffer.from(out);
   }
 
   /**

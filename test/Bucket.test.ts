@@ -5,11 +5,12 @@ import all from "it-all";
 
 import { Client } from "../src/Client";
 import { Bucket } from "../src/Bucket";
-import { cleanStorage, it_api, makeClient, u8 } from "./utils/Helpers";
+import { cleanStorage, it_api, makeClient } from "./utils/Helpers";
 import { BucketInfo } from "../src/messages/BucketInfo";
 import { QuotaType } from "../src/messages/BucketSettings";
 import { ReadableRecord } from "../src/Record";
 import { APIError } from "../src/APIError";
+import { Buffer } from "buffer";
 
 describe("Bucket", () => {
   const client: Client = makeClient();
@@ -119,7 +120,7 @@ describe("Bucket", () => {
         const record = await bucket.beginRead("entry-2", 2000000n, head);
 
         expect(record).toMatchObject({ size: 9n, time: 2000000n, last: true });
-        expect(await record.read()).toEqual(u8(content));
+        expect(await record.read()).toEqual(Buffer.from(content));
       },
     );
 
@@ -229,7 +230,7 @@ describe("Bucket", () => {
         contentType: "application/octet-stream",
         labels: {},
       });
-      expect(await records[0].read()).toEqual(u8("somedata1"));
+      expect(await records[0].read()).toEqual(Buffer.from("somedata1"));
 
       expect(records[1]).toMatchObject({
         time: 2000n,
@@ -237,7 +238,7 @@ describe("Bucket", () => {
         contentType: "text/plain",
         labels: {},
       });
-      expect(await records[1].read()).toEqual(u8("somedata2"));
+      expect(await records[1].read()).toEqual(Buffer.from("somedata2"));
 
       expect(records[2]).toMatchObject({
         time: 3000n,
@@ -245,7 +246,7 @@ describe("Bucket", () => {
         contentType: "application/octet-stream",
         labels: { label1: "value1", label2: "value2" },
       });
-      expect(await records[2].read()).toEqual(u8("somedata3"));
+      expect(await records[2].read()).toEqual(Buffer.from("somedata3"));
 
       batch.clear();
       expect(batch.size()).toEqual(0n);
@@ -310,11 +311,11 @@ describe("Bucket", () => {
         expect(records.length).toEqual(3);
         expect(records[0].time).toEqual(2_000_000n);
         expect(records[0].size).toEqual(9n);
-        expect(await records[0].read()).toEqual(u8(contents[0]));
+        expect(await records[0].read()).toEqual(Buffer.from(contents[0]));
 
         expect(records[1].time).toEqual(3_000_000n);
         expect(records[1].size).toEqual(9n);
-        expect(await records[1].read()).toEqual(u8(contents[1]));
+        expect(await records[1].read()).toEqual(Buffer.from(contents[1]));
       },
     );
 
