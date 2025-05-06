@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Move to fetch API, [PR-99](https://github.com/reductstore/reduct-js/pull/99)
 
+### Fixed:
+
+- Return broken signature `Record.read() -> Buffer`, [PR-105](https://github.com/reductstore/reduct-js/pull/105)
+
 ## [1.5.0] - 2025-05-02
 
 ### Added:
