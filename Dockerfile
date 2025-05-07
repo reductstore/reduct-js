@@ -5,7 +5,6 @@ WORKDIR /src
 RUN npm install -g npm@10
 
 ADD package.json .
-ADD package-lock.json .
 
 RUN npm ci
 
