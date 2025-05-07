@@ -108,7 +108,7 @@ export class WritableRecord {
     size?: bigint | number,
   ): Promise<void> {
     let contentLength = BigInt(size ?? 0);
-    let data_to_send = data;
+    let dataToSend = data;
 
     if (data instanceof ReadableStream<Uint8Array>) {
       if (size === undefined) {
@@ -120,7 +120,7 @@ export class WritableRecord {
       // a hack for Node.js streams
       const stream = data as { readable: boolean; read: () => any };
       if (stream.readable) {
-        data_to_send = new ReadableStream<Uint8Array>({
+        dataToSend = new ReadableStream<Uint8Array>({
           async pull(controller) {
             const chunk = stream.read();
             if (chunk) {
@@ -154,7 +154,7 @@ export class WritableRecord {
 
     await this.httpClient.post(
       `/b/${bucketName}/${entryName}?ts=${options.ts}`,
-      data_to_send,
+      dataToSend,
       headers,
     );
   }
