@@ -96,16 +96,45 @@ export class WritableRecord {
 
   /**
    * Write data to record asynchronously
-   * @param data stream of buffer with data
+   * @param data stream or buffer with data
    * @param size size of data in bytes (only for streams)
    */
   public async write(
-    data: Buffer | string | ReadableStream<Uint8Array>,
+    data:
+      | Buffer
+      | string
+      | ReadableStream<Uint8Array>
+      | { readable: boolean; read: () => any },
     size?: bigint | number,
   ): Promise<void> {
-    let contentLength = size || 0;
-    if (!(data instanceof ReadableStream)) {
-      contentLength = data.length;
+    let contentLength = BigInt(size ?? 0);
+    let data_to_send = data;
+
+    if (data instanceof ReadableStream<Uint8Array>) {
+      if (size === undefined) {
+        throw new Error("Size must be set for stream");
+      }
+    } else if (data instanceof Buffer || typeof data === "string") {
+      contentLength = BigInt(data.length);
+    } else if (data["readable"] !== undefined) {
+      // a hack for Node.js streams
+      const stream = data as { readable: boolean; read: () => any };
+      if (stream.readable) {
+        data_to_send = new ReadableStream<Uint8Array>({
+          async pull(controller) {
+            const chunk = stream.read();
+            if (chunk) {
+              controller.enqueue(chunk);
+            } else {
+              controller.close();
+            }
+          },
+        });
+      } else {
+        throw new Error("Invalid stream");
+      }
+    } else {
+      throw new Error("Invalid data type");
     }
 
     const { bucketName, entryName, options } = this;
@@ -125,7 +154,7 @@ export class WritableRecord {
 
     await this.httpClient.post(
       `/b/${bucketName}/${entryName}?ts=${options.ts}`,
-      data,
+      data_to_send,
       headers,
     );
   }
