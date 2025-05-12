@@ -42,7 +42,7 @@ export const makeClient = (): Client => {
 
 export const it_api = (version: string, skip_browser = false) => {
   if (skip_browser && isBrowser) return it.skip;
-  const resp = request("HEAD", "http://localhost:8383/api/v1/alive");
+  const resp = request("HEAD", "http://127.0.0.1:8383/api/v1/alive");
   const api_version = resp.headers["x-reduct-api"] ?? "0.0";
   if (isCompatibale(version, api_version.toString())) {
     return it;

@@ -3,6 +3,7 @@ import { ServerInfo } from "../src/messages/ServerInfo";
 import { Bucket } from "../src/Bucket";
 import { QuotaType } from "../src/messages/BucketSettings";
 import { cleanStorage, it_api, it_env, makeClient } from "./utils/Helpers";
+import { HttpClient } from "../src/http/HttpClient";
 
 test("Client should raise network error", async () => {
   const client: Client = new Client("http://127.0.0.1:9999");
@@ -28,6 +29,16 @@ test("Client should raise an error with original error from http client", async 
     "original.message",
     "This operation was aborted",
   );
+});
+
+test("HTTP client should set dispatcher when verifySSL is false", () => {
+  const client = new HttpClient("http://localhost:8383", { verifySSL: false });
+  expect(client["dispatcher"]).toBeDefined();
+});
+
+test("HTTP client should NOT set dispatcher when verifySSL is true", () => {
+  const client = new HttpClient("http://localhost:8383", { verifySSL: true });
+  expect(client["dispatcher"]).toBeUndefined();
 });
 
 describe("Client", () => {
