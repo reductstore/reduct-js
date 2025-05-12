@@ -1,11 +1,23 @@
 import JSONbig from "json-bigint";
-import { Agent as HttpsAgent } from "https";
 import { ClientOptions } from "../Client";
 import { APIError } from "../APIError";
 import { isBrowser } from "../utils/env";
 import { Buffer } from "buffer";
 
 const bigJson = JSONbig({ alwaysParseAsBig: false, useNativeBigInt: true });
+
+let undiciAgent: any = null;
+
+if (!isBrowser) {
+  import("undici").then((undici) => {
+    const { Agent } = undici;
+    undiciAgent = new Agent({
+      connect: {
+        rejectUnauthorized: false,
+      },
+    });
+  });
+}
 
 export type ValidResponse = object | string | ReadableStream<Uint8Array>;
 
@@ -19,7 +31,7 @@ export class HttpClient {
   private baseURL: string;
   private timeout?: number;
   private headers: HeadersInit;
-  private agent?: HttpsAgent;
+  private dispatcher?: any;
 
   constructor(url: string, options: ClientOptions = {}) {
     this.baseURL = `${url}/api/v1`;
@@ -27,7 +39,7 @@ export class HttpClient {
     this.headers = { Authorization: `Bearer ${options.apiToken}` };
 
     if (!isBrowser && options.verifySSL === false) {
-      this.agent = new HttpsAgent({ rejectUnauthorized: false });
+      this.dispatcher = undiciAgent;
     }
   }
 
@@ -78,7 +90,7 @@ export class HttpClient {
       body: this.encodeBody(body),
       signal: signal,
       // @ts-ignore Node.js only
-      agent: this.agent,
+      dispatcher: this.dispatcher,
       duplex: body instanceof ReadableStream ? "half" : undefined,
     };
 
