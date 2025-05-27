@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix compatibility with Node.js streams, [PR-106](https://github.com/reductstore/reduct-js/pull/106)
 - Fix SSL configuration for Node.js, [PR-107](https://github.com/reductstore/reduct-js/pull/107)
 
-## [1.5.0] - 2025-05-02
+## [1.15.0] - 2025-05-02
 
 ### Added:
 
