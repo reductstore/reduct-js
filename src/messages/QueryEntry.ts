@@ -49,19 +49,26 @@ export class QueryOptions {
   /** Time to live in seconds */
   ttl?: number;
   /** Include records with label
-   *  @deprecated: use when instead
+   *  @deprecated: use when instead. Will be remove in v1.16.0
    * */
   include?: LabelMap;
   /** Exclude records with label
-   *  @deprecated: use when instead
+   *  @deprecated: use when instead. Will be remove in v1.16.0
    * */
   exclude?: LabelMap;
-  /** Return only one record per S second */
+  /** Return only one record per S second
+   * @deprecated: use $each_t operator in when instead. Will be remove in v1.18.0
+   * */
   eachS?: number;
-  /** Return only one record per N records */
+  /** Return only one record per N records
+   *  @deprecated: use $each_n operator in when instead. Will be remove in v1.18.0
+   * */
   eachN?: number;
-  /** Limit number of records */
+  /** Limit number of records
+   *  @deprecated: use $limit operator in when instead. Will be remove in v1.18.0
+   * */
   limit?: number;
+
   /** Don't stop query until TTL is reached */
   continuous?: boolean;
   /** Poll interval for new records only for continue=true */

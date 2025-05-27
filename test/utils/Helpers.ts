@@ -1,5 +1,5 @@
 import { Bucket } from "../../src/Bucket";
-import { Client, isCompatibale } from "../../src/Client";
+import { Client, isCompatible } from "../../src/Client";
 import * as process from "process";
 // @ts-ignore
 import request from "sync-request";
@@ -44,7 +44,7 @@ export const it_api = (version: string, skip_browser = false) => {
   if (skip_browser && isBrowser) return it.skip;
   const resp = request("HEAD", "http://127.0.0.1:8383/api/v1/alive");
   const api_version = resp.headers["x-reduct-api"] ?? "0.0";
-  if (isCompatibale(version, api_version.toString())) {
+  if (isCompatible(version, api_version.toString())) {
     return it;
   } else {
     return it.skip;

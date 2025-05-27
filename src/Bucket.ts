@@ -7,7 +7,6 @@ import { APIError } from "./APIError";
 import { Batch, BatchType } from "./Batch";
 import { QueryOptions, QueryType } from "./messages/QueryEntry";
 import { HttpClient } from "./http/HttpClient";
-import { isCompatibale } from "./Client";
 
 /**
  * Options for writing records
@@ -133,19 +132,12 @@ export class Bucket {
     stop?: bigint,
     options?: QueryOptions,
   ): Promise<number> {
-    if (options !== undefined && options.when !== undefined) {
-      const { data } = await this.httpClient.post<{ removed_records: number }>(
-        `/b/${this.name}/${entry}/q`,
-        QueryOptions.serialize(QueryType.REMOVE, options),
-      );
-      return Promise.resolve(data["removed_records"]);
-    } else {
-      const ret = this.parse_query_params(start, stop, options);
-      const { data } = await this.httpClient.delete<{
-        removed_records: number;
-      }>(`/b/${this.name}/${entry}/q?${ret.query}`);
-      return Promise.resolve(data["removed_records"]);
-    }
+    options = options ?? {};
+    const { data } = await this.httpClient.post<{ removed_records: number }>(
+      `/b/${this.name}/${entry}/q`,
+      QueryOptions.serialize(QueryType.REMOVE, options, start, stop),
+    );
+    return Promise.resolve(data["removed_records"]);
   }
 
   /**
@@ -279,136 +271,43 @@ export class Bucket {
     stop?: bigint,
     options?: number | QueryOptions,
   ): AsyncGenerator<ReadableRecord> {
-    let id;
-    let header_api_version;
     let continuous = false;
     let pollInterval = 1;
     let head = false;
-    if (
-      options !== undefined &&
-      typeof options === "object" &&
-      ("when" in options || "ext" in options)
-    ) {
-      const { data, headers } = await this.httpClient.post<{ id: string }>(
-        `/b/${this.name}/${entry}/q`,
-        QueryOptions.serialize(QueryType.QUERY, options, start, stop),
-      );
-      ({ id } = data);
-      header_api_version = String(headers.get("x-reduct-api"));
-      continuous = options.continuous ?? false;
-      pollInterval = options.pollInterval ?? 1;
-      head = options.head ?? false;
-    } else {
-      // TODO: remove this block after 1.xx
-      const ret = this.parse_query_params(start, stop, options);
 
-      const url = `/b/${this.name}/${entry}/q?` + ret.query;
-      const { data, headers } = await this.httpClient.get<{ id: string }>(url);
-      ({ id } = data);
-      header_api_version = String(headers.get("x-reduct-api"));
-      ({ continuous, pollInterval, head } = ret);
+    let _options: QueryOptions;
+    if (options !== undefined && typeof options === "number") {
+      _options = {
+        ttl: options,
+        continuous: false,
+        pollInterval: 1,
+        head: false,
+      };
+    } else {
+      _options = options ?? {};
     }
 
-    if (isCompatibale("1.5", header_api_version)) {
-      yield* this.fetchAndParseBatchedRecords(
-        entry,
-        id,
-        continuous,
-        pollInterval,
-        head,
-      );
-    } else {
-      yield* this.fetchAndParseSingleRecord(
-        entry,
-        id,
-        continuous,
-        pollInterval,
-        head,
-      );
-    }
+    const { data } = await this.httpClient.post<{ id: string }>(
+      `/b/${this.name}/${entry}/q`,
+      QueryOptions.serialize(QueryType.QUERY, _options, start, stop),
+    );
+
+    const { id } = data;
+    continuous = _options.continuous ?? false;
+    pollInterval = _options.pollInterval ?? 1;
+    head = _options.head ?? false;
+
+    yield* this.fetchAndParseBatchedRecords(
+      entry,
+      id,
+      continuous,
+      pollInterval,
+      head,
+    );
   }
 
   getName(): string {
     return this.name;
-  }
-
-  private parse_query_params(
-    start?: bigint,
-    stop?: bigint,
-    options?: QueryOptions | number,
-  ) {
-    let continueQuery = false;
-    let poolInterval = 1;
-    const params: string[] = [];
-    let head = false;
-
-    if (start !== undefined) {
-      params.push(`start=${start}`);
-    }
-
-    if (stop !== undefined) {
-      params.push(`stop=${stop}`);
-    }
-
-    if (options !== undefined) {
-      if (typeof options === "number") {
-        params.push(`ttl=${options}`);
-      } else {
-        // Build query string from options
-        if (options.ttl !== undefined) {
-          params.push(`ttl=${options.ttl}`);
-        }
-
-        for (const [key, value] of Object.entries(
-          options.include ? options.include : {},
-        )) {
-          params.push(`include-${key}=${value}`);
-        }
-
-        for (const [key, value] of Object.entries(
-          options.exclude ? options.exclude : {},
-        )) {
-          params.push(`exclude-${key}=${value}`);
-        }
-
-        if (options.eachS !== undefined) {
-          params.push(`each_s=${options.eachS}`);
-        }
-
-        if (options.eachN !== undefined) {
-          params.push(`each_n=${options.eachN}`);
-        }
-
-        if (options.limit !== undefined) {
-          params.push(`limit=${options.limit}`);
-        }
-
-        if (options.continuous !== undefined) {
-          params.push(`continuous=${options.continuous ? "true" : "false"}`);
-          continueQuery = options.continuous;
-
-          if (options.pollInterval !== undefined) {
-            // eslint-disable-next-line prefer-destructuring
-            poolInterval = options.pollInterval;
-          }
-
-          // Set default TTL for continue query as 2 * poolInterval
-          if (options.ttl === undefined) {
-            params.push(`ttl=${poolInterval * 2}`);
-          }
-        }
-        continueQuery = options.continuous ?? false;
-        poolInterval = options.pollInterval ?? 1;
-        head = options.head ?? false;
-      }
-    }
-
-    return {
-      continuous: continueQuery,
-      pollInterval: poolInterval,
-      head: head,
-      query: params.join("&"),
-    };
   }
 
   private async *fetchAndParseSingleRecord(

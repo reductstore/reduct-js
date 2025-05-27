@@ -3,6 +3,7 @@ import { ClientOptions } from "../Client";
 import { APIError } from "../APIError";
 import { isBrowser } from "../utils/env";
 import { Buffer } from "buffer";
+import { PACKAGE_VERSION } from "../version";
 
 const bigJson = JSONbig({ alwaysParseAsBig: false, useNativeBigInt: true });
 
@@ -105,6 +106,14 @@ export class HttpClient {
       throw new APIError(err.message, undefined, err);
     });
 
+    const apiVersionHeader = response.headers.get("x-reduct-api");
+    if (!apiVersionHeader)
+      throw new APIError("Server did not provide API version", undefined, {
+        response,
+      });
+
+    checkServeApiVersion(apiVersionHeader);
+
     if (!response.ok) {
       const message =
         response.headers.get("x-reduct-error") || response.statusText;
@@ -198,3 +207,25 @@ export class HttpClient {
     return this.request("HEAD", url);
   }
 }
+
+const checkServeApiVersion = (serverApiVersion: string) => {
+  const [server_major, server_minor] = serverApiVersion
+    .split(".")
+    .map((v) => parseInt(v));
+
+  const [client_major, client_minor] = PACKAGE_VERSION.split(".").map((v) =>
+    parseInt(v),
+  );
+
+  if (server_major !== client_major) {
+    throw new APIError(
+      `Incompatible server API version: ${serverApiVersion}. Client version: ${PACKAGE_VERSION}. Please update your client.`,
+    );
+  }
+
+  if (server_minor + 2 < client_minor) {
+    console.error(
+      `Server API version ${serverApiVersion} is too old for this client version ${PACKAGE_VERSION}. Please update your server.`,
+    );
+  }
+};

@@ -1,12 +1,12 @@
 {
   "name": "reduct-js",
-  "version": "1.15.0",
+  "version": "1.16.0",
   "description": "ReductStore Client SDK for Javascript/NodeJS/Typescript",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",
   "scripts": {
     "test": "jest --runInBand --forceExit",
-    "tsc": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
+    "tsc": "node -p \"'export const PACKAGE_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts && tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
     "lint": "eslint . --ext .ts",
     "fmt": "prettier --write .",
     "fmt:check": "prettier --check .",
