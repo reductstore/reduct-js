@@ -1,5 +1,5 @@
 import { Bucket } from "../../src/Bucket";
-import { Client, isCompatible } from "../../src/Client";
+import { Client } from "../../src/Client";
 import * as process from "process";
 // @ts-ignore
 import request from "sync-request";
@@ -61,3 +61,17 @@ export const it_env = (name: string) => {
 };
 
 export const u8 = (s: string) => new TextEncoder().encode(s);
+
+const isCompatible = (
+  min_version?: string,
+  current_version?: string,
+): boolean => {
+  if (min_version === undefined || current_version === undefined) {
+    return false;
+  }
+
+  const [a_major, a_minor] = min_version.split(".").map((v) => parseInt(v));
+  const [b_major, b_minor] = current_version.split(".").map((v) => parseInt(v));
+
+  return a_major === b_major && a_minor <= b_minor;
+};
