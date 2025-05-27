@@ -78,13 +78,13 @@ describe("Client", () => {
       const info: ServerInfo = await client.getInfo();
       expect(info.license).toEqual({
         deviceNumber: 1,
-        diskQuota: 0,
-        expiryDate: Date.parse("2035-01-01T00:00:00.000Z"),
+        diskQuota: 1,
+        expiryDate: 1778852143696,
         fingerprint:
-          "df92c95a7c9b56c2af99b290c39d8471c3e6cbf9dc33dc9bdb4116b98d465cc9",
-        invoice: "xxxxxx",
-        licensee: "ReductStore,LLC",
-        plan: "UNLIMITED",
+          "21e2608b7d47f7fba623d714c3e14b73cd1fe3578f4010ef26bcbedfc42a4c92",
+        invoice: "---",
+        licensee: "ReductSoftware",
+        plan: "STANDARD",
       });
     },
   );
