@@ -15,4 +15,9 @@ const main = async () => {
   console.log(await record.readAsString());
 };
 
-main().then(() => console.log("done"));
+main()
+  .then(() => console.log("done"))
+  .catch((err) => {
+    console.error("Error:", err);
+    process.exit(1);
+  });

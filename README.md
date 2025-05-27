@@ -17,7 +17,7 @@ data stored in ReductStore.
 
 - Based on the Fetch API
 - Promise-based API for easy asynchronous programming
-- Support for [ReductStore HTTP API v1.15](https://www.reduct.store/docs/http-api)
+- Support for [ReductStore HTTP API v1.16](https://www.reduct.store/docs/http-api)
 - Token-based authentication for secure access to the database
 - Labeling for read-write operations and querying
 - Batch operations for efficient data processing
@@ -93,3 +93,16 @@ For more examples, see the [Guides](https://www.reduct.store/docs/guides) sectio
 
 - The SDK doesn't support steaming data to the server in JavaScript. The `WriteableRecord.write` method
   is not implemented and will throw a Fetch error.
+
+## Supported ReductStore Versions and Backward Compatibility
+
+The library is backward compatible with the previous versions. However, some methods have been deprecated and will be
+removed in the future releases. Please refer to the [Changelog](CHANGELOG.md) for more details.
+The SDK supports the following ReductStore API versions:
+
+- v1.16
+- v1.15
+- v1.14
+
+It can work with newer and older versions, but it is not guaranteed that all features will work as expected because
+the API may change and some features may be deprecated or the SDK may not support them yet.

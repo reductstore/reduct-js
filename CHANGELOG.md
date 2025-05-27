@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes:
+
+- Drop support for legacy code and ReductStore API versions below 1.13, [PR-110](https://github.com/reductstore/reduct-js/pull/110)
+
+### Added
+
+- Check server API version and warn if it's too old, [PR-110](https://github.com/reductstore/reduct-js/pull/110)
+
 ### Changed:
 
 - Move to fetch API, [PR-99](https://github.com/reductstore/reduct-js/pull/99)
@@ -17,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix compatibility with Node.js streams, [PR-106](https://github.com/reductstore/reduct-js/pull/106)
 - Fix SSL configuration for Node.js, [PR-107](https://github.com/reductstore/reduct-js/pull/107)
 
-## [1.5.0] - 2025-05-02
+## [1.15.0] - 2025-05-02
 
 ### Added:
 
