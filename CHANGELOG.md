@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 1.16.0-beta.1 - 2025-06-17
+
 ### Breaking Changes:
 
 - Drop support for legacy code and ReductStore API versions below 1.13, [PR-110](https://github.com/reductstore/reduct-js/pull/110)
