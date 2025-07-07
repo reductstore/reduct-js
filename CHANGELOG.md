@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Avoid bundling Node-only module undici in browser builds, [PR-112](https://github.com/reductstore/reduct-js/pull/112)
+
 ## 1.16.0-beta.1 - 2025-06-17
 
 ### Breaking Changes:
