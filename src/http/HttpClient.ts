@@ -10,7 +10,7 @@ const bigJson = JSONbig({ alwaysParseAsBig: false, useNativeBigInt: true });
 let undiciAgent: any = null;
 
 if (!isBrowser) {
-  import("undici").then((undici) => {
+  import(/* webpackIgnore: true */ "undici").then((undici) => {
     const { Agent } = undici;
     undiciAgent = new Agent({
       connect: {
