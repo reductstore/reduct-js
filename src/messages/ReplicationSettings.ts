@@ -60,11 +60,13 @@ export class ReplicationSettings {
 
   /**
    * Replicate a record every S seconds
+   * @deprecated: use $each_t instead
    */
   readonly eachS?: number;
 
   /**
    * Replicate every Nth record
+   * @deprecated use $each_n instead
    */
   readonly eachN?: bigint;
 
