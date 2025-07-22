@@ -330,7 +330,7 @@ describe("Bucket", () => {
       expect(records.length).toEqual(1);
 
       await expect(
-        all(bucket.query("entry-2", undefined, undefined, 0)),
+        all(bucket.query("entry-2", undefined, undefined, { ttl: 0 })),
       ).rejects.toHaveProperty("status", 404);
     });
 
