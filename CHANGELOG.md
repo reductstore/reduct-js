@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Removed
+
+- Deprecated `include\exclude` parameters in `QueryOptions`, [PR-114](https://github.com/reductstore/reduct-js/pull/114)
+
 ## 1.16.0-beta.2 - 2025-07-09
 
 ### Fixed

@@ -1,5 +1,3 @@
-import { LabelMap } from "../Record";
-
 export enum QueryType {
   QUERY,
   REMOVE,
@@ -13,10 +11,6 @@ export interface QueryEntry {
   /** Stop query at (Unix timestamp in microseconds) */
   stop?: bigint;
 
-  /** Include records with label */
-  include?: Record<string, string>;
-  /** Exclude records with label */
-  exclude?: Record<string, string>;
   /** Return a record every S seconds */
   each_s?: number;
   /** Return a record every N records */
@@ -48,14 +42,6 @@ export interface QueryEntry {
 export class QueryOptions {
   /** Time to live in seconds */
   ttl?: number;
-  /** Include records with label
-   *  @deprecated: use when instead. Will be remove in v1.16.0
-   * */
-  include?: LabelMap;
-  /** Exclude records with label
-   *  @deprecated: use when instead. Will be remove in v1.16.0
-   * */
-  exclude?: LabelMap;
   /** Return only one record per S second
    * @deprecated: use $each_t operator in when instead. Will be remove in v1.18.0
    * */
@@ -93,8 +79,6 @@ export class QueryOptions {
       stop: stop,
       query_type: QueryType[queryType],
       ttl: data.ttl,
-      include: data.include as Record<string, string>,
-      exclude: data.exclude as Record<string, string>,
       each_s: data.eachS,
       each_n: data.eachN,
       limit: data.limit,

@@ -254,7 +254,7 @@ export class Bucket {
    * @param entry {string} name of the entry
    * @param start {BigInt} start point of the time period
    * @param stop {BigInt} stop point of the time period
-   * @param options {number | QueryOptions}  if number it is TTL of query on the server side, otherwise it is options for query
+   * @param options {QueryOptions} options options for query
    * @example
    * for await (const record in bucket.query("entry-1", start, stop)) {
    *   console.log(record.ts, record.size);
@@ -269,24 +269,13 @@ export class Bucket {
     entry: string,
     start?: bigint,
     stop?: bigint,
-    options?: number | QueryOptions,
+    options?: QueryOptions,
   ): AsyncGenerator<ReadableRecord> {
     let continuous = false;
     let pollInterval = 1;
     let head = false;
 
-    let _options: QueryOptions;
-    if (options !== undefined && typeof options === "number") {
-      _options = {
-        ttl: options,
-        continuous: false,
-        pollInterval: 1,
-        head: false,
-      };
-    } else {
-      _options = options ?? {};
-    }
-
+    const _options = options ?? {};
     const { data } = await this.httpClient.post<{ id: string }>(
       `/b/${this.name}/${entry}/q`,
       QueryOptions.serialize(QueryType.QUERY, _options, start, stop),
@@ -308,32 +297,6 @@ export class Bucket {
 
   getName(): string {
     return this.name;
-  }
-
-  private async *fetchAndParseSingleRecord(
-    entry: string,
-    id: string,
-    continueQuery: boolean,
-    pollInterval: number,
-    head: boolean,
-  ) {
-    while (true) {
-      try {
-        const record = await this.readRecord(entry, head, undefined, id);
-        yield record;
-      } catch (e) {
-        if (e instanceof APIError && e.status === 204) {
-          if (continueQuery) {
-            await new Promise((resolve) =>
-              setTimeout(resolve, pollInterval * 1000),
-            );
-            continue;
-          }
-          return;
-        }
-        throw e;
-      }
-    }
   }
 
   private async readRecord(
@@ -372,7 +335,7 @@ export class Bucket {
       headers.get("content-type") ?? "application/octet-stream";
     const contentLength = BigInt(headers.get("content-length") ?? 0);
     const timestamp = BigInt(headers.get("x-reduct-time") ?? 0);
-    const last = headers.get("x-reduct-last") === "1";
+    const last = true;
 
     let stream: ReadableStream<Uint8Array>;
 
