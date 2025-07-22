@@ -335,7 +335,7 @@ export class Bucket {
       headers.get("content-type") ?? "application/octet-stream";
     const contentLength = BigInt(headers.get("content-length") ?? 0);
     const timestamp = BigInt(headers.get("x-reduct-time") ?? 0);
-    const last = headers.get("x-reduct-last") === "1";
+    const last = true;
 
     let stream: ReadableStream<Uint8Array>;
 
