@@ -7,6 +7,7 @@ import { APIError } from "./APIError";
 import { Batch, BatchType } from "./Batch";
 import { QueryOptions, QueryType } from "./messages/QueryEntry";
 import { HttpClient } from "./http/HttpClient";
+import { QueryLinkOptions } from "./messages/QueryLink";
 
 /**
  * Options for writing records
@@ -562,6 +563,42 @@ export class Bucket {
    */
   async beginUpdateBatch(entry: string): Promise<Batch> {
     return new Batch(this.name, entry, this.httpClient, BatchType.UPDATE);
+  }
+
+  /**
+   * Create a query link for downloading records
+   * @param entry name of the entry
+   * @param start start point of the time period for the query
+   * @param stop stop point of the time period for the query
+   * @param query options for the query
+   * @param recordIndex index of the record to download (0 for the first record, 1 for the second, etc.)
+   * @param expireAt expiration time of the link. Default is 24 hours from now
+   * @param fileName name of the file to download. Default is `${entry}_${recordIndex}.bin`
+   */
+  async createQueryLink(
+    entry: string,
+    start?: bigint,
+    stop?: bigint,
+    query?: QueryOptions,
+    recordIndex?: number,
+    expireAt?: Date,
+    fileName?: string,
+  ): Promise<string> {
+    const queryLinkOptions = {
+      bucket: this.name,
+      entry,
+      query: query ?? {},
+      index: recordIndex ?? 0,
+      expireAt: expireAt ?? new Date(Date.now() + 24 * 3600 * 1000),
+    } as QueryLinkOptions;
+
+    const file = fileName ?? `${entry}_${recordIndex ?? 0}.bin`;
+    const { data } = await this.httpClient.post<{ link: string }>(
+      `/links/${file}}`,
+      QueryLinkOptions.serialize(queryLinkOptions, start, stop),
+    );
+
+    return data.link;
   }
 }
 

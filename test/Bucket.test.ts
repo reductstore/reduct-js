@@ -577,4 +577,74 @@ describe("Bucket", () => {
       });
     });
   });
+
+  describe("queryLink", () => {
+    it_api("1.17")("should create and use a query link", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      const link = await bucket.createQueryLink(
+        "entry-1",
+        undefined,
+        undefined,
+        {
+          when: { $limit: 1 },
+        },
+      );
+
+      const resp = await fetch(link);
+      expect(await resp.text()).toEqual("somedata1");
+    });
+
+    it_api("1.17")("should create a query link with record index", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      const link = await bucket.createQueryLink(
+        "entry-2",
+        undefined,
+        undefined,
+        {
+          when: { $limit: 2 },
+        },
+        1,
+      );
+
+      const resp = await fetch(link);
+      expect(await resp.text()).toEqual("somedata3");
+    });
+
+    it_api("1.17")("should create a query link with expire date", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      const link = await bucket.createQueryLink(
+        "entry-2",
+        undefined,
+        undefined,
+        {
+          when: { $limit: 2 },
+        },
+        undefined,
+        new Date(Date.now() - 60000), // link already expired
+      );
+
+      const resp = await fetch(link);
+      expect(resp.status).toEqual(422);
+    });
+
+    it_api("1.17")(
+      "should create a query link with custom file name",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const link = await bucket.createQueryLink(
+          "entry-2",
+          undefined,
+          undefined,
+          {
+            when: { $limit: 2 },
+          },
+          undefined,
+          undefined,
+          "custom-name.txt",
+        );
+
+        expect(link.includes("/links/custom-name.txt")).toBeTruthy();
+      },
+    );
+  });
 });
