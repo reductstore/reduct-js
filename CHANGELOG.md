@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 1.17.0-beta.1 - 2025-08-19
+
 ### Added
 
 - Implement `Bucket.createQueryLink` method, [PR-115](https://github.com/reductstore/reduct-js/pull/115)
