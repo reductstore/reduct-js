@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Correct share link URL with extra characters at the end, [PR-117](https://github.com/reductstore/reduct-js/pull/117)
+
 ## 1.17.0-beta.1 - 2025-08-19
 
 ### Added
