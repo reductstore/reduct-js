@@ -594,7 +594,7 @@ export class Bucket {
 
     const file = fileName ?? `${entry}_${recordIndex ?? 0}.bin`;
     const { data } = await this.httpClient.post<{ link: string }>(
-      `/links/${file}}`,
+      `/links/${file}`,
       QueryLinkOptions.serialize(queryLinkOptions, start, stop),
     );
 
