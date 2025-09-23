@@ -646,5 +646,26 @@ describe("Bucket", () => {
         expect(link.includes("/links/custom-name.txt")).toBeTruthy();
       },
     );
+    it_api("1.17")(
+      "should have start of URL parameters after the file name",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const link = await bucket.createQueryLink(
+          "entry-2",
+          undefined,
+          undefined,
+          {
+            when: { $limit: 2 },
+          },
+          undefined,
+          undefined,
+          "custom-name.txt",
+        );
+
+        const parts = link.split("custom-name.txt");
+        expect(parts.length).toEqual(2);
+        expect(parts[1].startsWith("?")).toBeTruthy();
+      },
+    );
   });
 });
