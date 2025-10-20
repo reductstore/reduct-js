@@ -6,7 +6,7 @@ export class OriginalReplicationSettings {
   src_bucket = "";
   dst_bucket = "";
   dst_host = "";
-  dst_token = "";
+  dst_token?: string;
   entries: string[] = [];
   include?: Record<string, string>;
   exclude?: Record<string, string>;
@@ -37,7 +37,7 @@ export class ReplicationSettings {
   /**
    * Destination token. Must have write access to the destination bucket.
    */
-  readonly dstToken: string = "";
+  readonly dstToken?: string;
 
   /**
    * List of entries to replicate. If empty, all entries are replicated. Wildcards are supported.

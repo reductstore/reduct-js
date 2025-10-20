@@ -9,7 +9,6 @@ describe("Replication", () => {
     srcBucket: "test-bucket-1",
     dstBucket: "test-bucket-2",
     dstHost: "http://localhost:8383",
-    dstToken: "***", // it is not possible to get token from the server
     entries: [],
     include: {},
     exclude: {},
@@ -35,7 +34,7 @@ describe("Replication", () => {
     expect(replications).toHaveLength(0);
   });
 
-  it_api("1.8")("should create a replication", async () => {
+  it_api("1.17")("should create a replication", async () => {
     await client.createReplication("test-replication", settings);
 
     const replications = await client.getReplicationList();
@@ -65,14 +64,13 @@ describe("Replication", () => {
     expect(replications).toHaveLength(0);
   });
 
-  it_api("1.14")("should update a replication", async () => {
+  it_api("1.17")("should update a replication", async () => {
     await client.createReplication("test-replication", settings);
 
     const newSettings = {
       srcBucket: "test-bucket-1",
       dstBucket: "test-bucket-2",
       dstHost: "http://localhost:8383",
-      dstToken: "***",
       entries: ["entry-1", "entry-2"],
       when: { "&label": { $eq: "value" } },
     };
