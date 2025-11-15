@@ -14,6 +14,8 @@ export class QueryLinkOptions {
   query: QueryOptions = {};
   /** expiration time as UNIX timestamp in seconds */
   expireAt: Date = new Date(0);
+  /** base url for link generation */
+  baseUrl?: string;
 
   static serialize(
     options: QueryLinkOptions,
@@ -31,6 +33,7 @@ export class QueryLinkOptions {
         stop,
       ),
       expire_at: Math.floor(options.expireAt.getTime() / 1000),
+      base_url: options.baseUrl,
     };
   }
 }
@@ -41,4 +44,5 @@ export type OriginalCreateQueryLink = {
   index?: number;
   query: any;
   expire_at: number;
+  base_url?: string;
 };
