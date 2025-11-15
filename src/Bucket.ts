@@ -574,6 +574,7 @@ export class Bucket {
    * @param recordIndex index of the record to download (0 for the first record, 1 for the second, etc.)
    * @param expireAt expiration time of the link. Default is 24 hours from now
    * @param fileName name of the file to download. Default is `${entry}_${recordIndex}.bin`
+   * @param baseUrl base url for link generation. If not set, the server's base url will be used
    */
   async createQueryLink(
     entry: string,
@@ -583,6 +584,7 @@ export class Bucket {
     recordIndex?: number,
     expireAt?: Date,
     fileName?: string,
+    baseUrl?: string,
   ): Promise<string> {
     const queryLinkOptions = {
       bucket: this.name,
@@ -590,6 +592,7 @@ export class Bucket {
       query: query ?? {},
       index: recordIndex ?? 0,
       expireAt: expireAt ?? new Date(Date.now() + 24 * 3600 * 1000),
+      baseUrl,
     } as QueryLinkOptions;
 
     const file = fileName ?? `${entry}_${recordIndex ?? 0}.bin`;
