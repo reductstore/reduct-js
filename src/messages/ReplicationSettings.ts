@@ -2,6 +2,12 @@
  * Replication settings
  */
 
+import {
+  DEFAULT_REPLICATION_MODE,
+  parseReplicationMode,
+  ReplicationMode,
+} from "./ReplicationMode";
+
 export class OriginalReplicationSettings {
   src_bucket = "";
   dst_bucket = "";
@@ -13,6 +19,7 @@ export class OriginalReplicationSettings {
   each_s?: number;
   each_n?: bigint;
   when?: any;
+  mode?: ReplicationMode;
 }
 
 /**
@@ -75,6 +82,11 @@ export class ReplicationSettings {
    */
   readonly when?: any;
 
+  /**
+   * Replication mode
+   */
+  readonly mode?: ReplicationMode;
+
   static parse(data: OriginalReplicationSettings): ReplicationSettings {
     return {
       srcBucket: data.src_bucket,
@@ -87,6 +99,7 @@ export class ReplicationSettings {
       eachS: data.each_s,
       eachN: data.each_n ? BigInt(data.each_n) : data.each_n,
       when: data.when,
+      mode: parseReplicationMode(data.mode),
     };
   }
 
@@ -98,7 +111,11 @@ export class ReplicationSettings {
       dst_token: data.dstToken,
       each_s: data.eachS,
       each_n: data.eachN,
-      ...data,
+      entries: data.entries,
+      include: data.include,
+      exclude: data.exclude,
+      when: data.when,
+      mode: data.mode ?? DEFAULT_REPLICATION_MODE,
     };
   }
 }

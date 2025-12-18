@@ -14,6 +14,7 @@ import {
   FullReplicationInfoResponse,
   OriginalReplicationInfo,
 } from "./messages/ReplicationInfo";
+import { ReplicationMode } from "./messages/ReplicationMode";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
 import { HttpClient } from "./http/HttpClient";
 
@@ -223,6 +224,16 @@ export class Client {
       `/replications/${name}`,
       ReplicationSettings.serialize(settings),
     );
+  }
+
+  /**
+   * Update replication mode without changing settings
+   * @param name name of the replication
+   * @param mode new mode: enabled, paused, or disabled
+   * @return {Promise<void>}
+   */
+  async setReplicationMode(name: string, mode: ReplicationMode): Promise<void> {
+    await this.httpClient.patch(`/replications/${name}/mode`, { mode });
   }
 
   /**
