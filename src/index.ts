@@ -8,6 +8,7 @@ import { EntryInfo } from "./messages/EntryInfo";
 import { Token, TokenPermissions } from "./messages/Token";
 import { ReplicationInfo } from "./messages/ReplicationInfo";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
+import { ReplicationMode } from "./messages/ReplicationMode";
 import { FullReplicationInfo } from "./messages/ReplicationInfo";
 import { Batch } from "./Batch";
 import { QueryOptions } from "./messages/QueryEntry";
@@ -28,6 +29,7 @@ export {
   TokenPermissions,
   ReplicationInfo,
   ReplicationSettings,
+  ReplicationMode,
   FullReplicationInfo,
   Batch,
 };

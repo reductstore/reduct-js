@@ -3,12 +3,18 @@ import {
   ReplicationSettings,
 } from "./ReplicationSettings";
 import { Diagnostics, OriginalDiagnostics } from "./Diagnostics";
+import {
+  DEFAULT_REPLICATION_MODE,
+  parseReplicationMode,
+  ReplicationMode,
+} from "./ReplicationMode";
 
 /**
  * Original Replication Info
  */
 export class OriginalReplicationInfo {
   name = "";
+  mode: ReplicationMode = DEFAULT_REPLICATION_MODE;
   is_active = false;
   is_provisioned = false;
   pending_records = 0n;
@@ -29,6 +35,11 @@ export class ReplicationInfo {
   readonly isActive: boolean = false;
 
   /**
+   * Replication mode
+   */
+  readonly mode: ReplicationMode = DEFAULT_REPLICATION_MODE;
+
+  /**
    * Replication is provisioned
    */
   readonly isProvisioned: boolean = false;
@@ -41,6 +52,7 @@ export class ReplicationInfo {
   static parse(data: OriginalReplicationInfo): ReplicationInfo {
     return {
       name: data.name,
+      mode: parseReplicationMode(data.mode),
       isActive: data.is_active,
       isProvisioned: data.is_provisioned,
       pendingRecords: BigInt(data.pending_records),

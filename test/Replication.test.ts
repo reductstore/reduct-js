@@ -12,6 +12,7 @@ describe("Replication", () => {
     entries: [],
     include: {},
     exclude: {},
+    mode: "enabled" as const,
   };
 
   beforeEach((done) => {
@@ -43,6 +44,7 @@ describe("Replication", () => {
     const replication = await client.getReplication("test-replication");
     expect(replication.info).toMatchObject({
       name: "test-replication",
+      mode: "enabled",
       isActive: true,
       isProvisioned: false,
       pendingRecords: 0n,
@@ -73,6 +75,7 @@ describe("Replication", () => {
       dstHost: "http://localhost:8383",
       entries: ["entry-1", "entry-2"],
       when: { "&label": { $eq: "value" } },
+      mode: "enabled" as const,
     };
     await client.updateReplication("test-replication", newSettings);
 
@@ -85,6 +88,7 @@ describe("Replication", () => {
       ...settings,
       eachN: 10n,
       eachS: 10,
+      mode: "enabled" as const,
     });
 
     const replication = await client.getReplication("test-replication");
@@ -92,6 +96,21 @@ describe("Replication", () => {
       ...settings,
       eachN: 10n,
       eachS: 10,
+    });
+  });
+
+  it_api("1.18")("should set replication mode", async () => {
+    await client.createReplication("test-replication", settings);
+
+    await client.setReplicationMode("test-replication", "paused");
+
+    const replication = await client.getReplication("test-replication");
+    expect(replication.info.mode).toBe("paused");
+    expect(replication.settings.mode).toBe("paused");
+    expect(replication.settings).toMatchObject({
+      srcBucket: settings.srcBucket,
+      dstBucket: settings.dstBucket,
+      dstHost: settings.dstHost,
     });
   });
 });
