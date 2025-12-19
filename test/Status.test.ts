@@ -90,4 +90,34 @@ describe("Status", () => {
     const info = EntryInfo.parse(original);
     expect(info.status).toEqual(Status.READY);
   });
+
+  it("should default to READY for invalid status values in BucketInfo", () => {
+    const original: OriginalBucketInfo = {
+      name: "test-bucket",
+      entry_count: "5",
+      size: "1024",
+      oldest_record: "1000000",
+      latest_record: "2000000",
+      is_provisioned: false,
+      status: "INVALID_STATUS",
+    };
+
+    const info = BucketInfo.parse(original);
+    expect(info.status).toEqual(Status.READY);
+  });
+
+  it("should default to READY for invalid status values in EntryInfo", () => {
+    const original = {
+      name: "test-entry",
+      block_count: "3",
+      record_count: "10",
+      size: "512",
+      oldest_record: "1000000",
+      latest_record: "2000000",
+      status: "INVALID_STATUS",
+    };
+
+    const info = EntryInfo.parse(original);
+    expect(info.status).toEqual(Status.READY);
+  });
 });

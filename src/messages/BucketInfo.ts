@@ -1,5 +1,12 @@
 import { Status } from "./Status";
 
+function parseStatus(status?: string): Status {
+  if (status === "DELETING") {
+    return Status.DELETING;
+  }
+  return Status.READY;
+}
+
 /**
  * Represents information about a bucket
  */
@@ -47,7 +54,7 @@ export class BucketInfo {
       oldestRecord: BigInt(bucket.oldest_record),
       latestRecord: BigInt(bucket.latest_record),
       isProvisioned: bucket.is_provisioned ?? false,
-      status: bucket.status ? (bucket.status as Status) : Status.READY,
+      status: parseStatus(bucket.status),
     };
   }
 }
