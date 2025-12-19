@@ -1,11 +1,4 @@
-import { Status } from "./Status";
-
-function parseStatus(status?: string): Status {
-  if (status === "DELETING") {
-    return Status.DELETING;
-  }
-  return Status.READY;
-}
+import { Status, parseStatus } from "./Status";
 
 /**
  * Information about entry
