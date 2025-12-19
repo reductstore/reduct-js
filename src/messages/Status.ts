@@ -11,8 +11,12 @@ export enum Status {
  * Defaults to READY for undefined or invalid values.
  */
 export function parseStatus(status?: string): Status {
-  if (status === "DELETING") {
+  if (status === Status.DELETING) {
     return Status.DELETING;
   }
+  if (status === Status.READY) {
+    return Status.READY;
+  }
+  // Default to READY for undefined or unknown values
   return Status.READY;
 }
