@@ -34,3 +34,4 @@ Contributor notes for the ReductStore JavaScript/TypeScript SDK. Keep changes sc
 
 - Use short, imperative subjects and reference issues/PRs when relevant (e.g., `Add baseUrl argument (#123)`); avoid committing generated `lib` diffs without a matching source change.
 - PRs should state what changed and why, list key commands run (`npm run tsc`, `npm test`, `npm run lint`), and link related issues. Include doc updates for user-facing API shifts and CHANGELOG entries for release-worthy changes.
+- **CHANGELOG.md must be updated for every PR** (bug fixes, features, docs) following the format from the [PR template](https://github.com/reductstore/.github/blob/main/.github/pull_request_template.md). Add entries under the "Unreleased" section using the appropriate category (Added, Changed, Deprecated, Removed, Fixed, Security).

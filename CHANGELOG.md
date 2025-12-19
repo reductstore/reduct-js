@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support for replication mode, [PR-124](https://github.com/reductstore/reduct-js/pull/124)
 
+### Fixed
+
+- Export `ReplicationMode` as runtime namespace for ESM/JavaScript usage, [PR-127](https://github.com/reductstore/reduct-js/pull/127)
+
 ## 1.17.1 - 2025-11-15
 
 ### Added
