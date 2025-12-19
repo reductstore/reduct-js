@@ -9,7 +9,7 @@ export type ReplicationMode = "enabled" | "paused" | "disabled";
  * @example
  * // TypeScript type usage:
  * const mode: ReplicationMode = "enabled";
- * 
+ *
  * // JavaScript runtime constant usage:
  * import { ReplicationMode } from 'reduct-js';
  * const mode = ReplicationMode.ENABLED; // "enabled"
