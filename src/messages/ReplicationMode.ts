@@ -14,7 +14,7 @@ export type ReplicationMode = "enabled" | "paused" | "disabled";
  * import { ReplicationMode } from 'reduct-js';
  * const mode = ReplicationMode.ENABLED; // "enabled"
  */
-// eslint-disable-next-line @typescript-eslint/no-namespace
+// eslint-disable-next-line @typescript-eslint/no-namespace -- Required for dual type/runtime export pattern
 export namespace ReplicationMode {
   export const ENABLED = "enabled";
   export const PAUSED = "paused";
