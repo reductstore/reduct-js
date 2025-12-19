@@ -1,3 +1,5 @@
+import { Status } from "./Status";
+
 /**
  * Represents information about a bucket
  */
@@ -32,6 +34,11 @@ export class BucketInfo {
    */
   readonly isProvisioned?: boolean = false;
 
+  /**
+   * Current status of the bucket (READY or DELETING)
+   */
+  readonly status: Status = Status.READY;
+
   static parse(bucket: OriginalBucketInfo): BucketInfo {
     return {
       name: bucket.name,
@@ -40,6 +47,7 @@ export class BucketInfo {
       oldestRecord: BigInt(bucket.oldest_record),
       latestRecord: BigInt(bucket.latest_record),
       isProvisioned: bucket.is_provisioned ?? false,
+      status: bucket.status ? (bucket.status as Status) : Status.READY,
     };
   }
 }
@@ -51,4 +59,5 @@ export type OriginalBucketInfo = {
   oldest_record: string;
   latest_record: string;
   is_provisioned?: boolean;
+  status?: string;
 };

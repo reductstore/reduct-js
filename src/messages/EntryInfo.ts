@@ -1,3 +1,5 @@
+import { Status } from "./Status";
+
 /**
  * Information about entry
  */
@@ -32,6 +34,11 @@ export class EntryInfo {
    */
   readonly latestRecord: bigint = 0n;
 
+  /**
+   * Current status of the entry (READY or DELETING)
+   */
+  readonly status: Status = Status.READY;
+
   static parse(bucket: Original): EntryInfo {
     return {
       name: bucket.name,
@@ -40,6 +47,7 @@ export class EntryInfo {
       size: BigInt(bucket.size),
       oldestRecord: BigInt(bucket.oldest_record),
       latestRecord: BigInt(bucket.latest_record),
+      status: bucket.status ? (bucket.status as Status) : Status.READY,
     };
   }
 }
@@ -51,4 +59,5 @@ type Original = {
   size: string;
   oldest_record: string;
   latest_record: string;
+  status?: string;
 };
