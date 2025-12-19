@@ -4,6 +4,7 @@ import { Bucket } from "../src/Bucket";
 import { QuotaType } from "../src/messages/BucketSettings";
 import { cleanStorage, it_api, it_env, makeClient } from "./utils/Helpers";
 import { HttpClient } from "../src/http/HttpClient";
+import { Status } from "../src/messages/Status";
 
 test("Client should raise network error", async () => {
   const client: Client = new Client("http://127.0.0.1:9999");
@@ -98,6 +99,9 @@ describe("Client", () => {
     expect(buckets.length).toBeGreaterThanOrEqual(2);
     expect(buckets.map((bucket) => bucket.name)).toContain("bucket_1");
     expect(buckets.map((bucket) => bucket.name)).toContain("bucket_2");
+    buckets.forEach((bucket) => {
+      expect(bucket.status).toEqual(Status.READY);
+    });
   });
 
   it("should get bucket", async () => {

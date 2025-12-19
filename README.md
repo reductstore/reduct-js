@@ -21,7 +21,6 @@ data stored in ReductStore.
 - Token-based authentication for secure access to the database
 - Labeling for read-write operations and querying
 - Batch operations for efficient data processing
-- Non-blocking bucket and entry deletions with status tracking (READY/DELETING)
 
 ## Getting Started
 
