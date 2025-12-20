@@ -4,6 +4,7 @@ import { Bucket } from "../src/Bucket";
 import { QuotaType } from "../src/messages/BucketSettings";
 import { cleanStorage, it_api, it_env, makeClient } from "./utils/Helpers";
 import { HttpClient } from "../src/http/HttpClient";
+import { Status } from "../src/messages/Status";
 
 test("Client should raise network error", async () => {
   const client: Client = new Client("http://127.0.0.1:9999");
@@ -98,6 +99,9 @@ describe("Client", () => {
     expect(buckets.length).toBeGreaterThanOrEqual(2);
     expect(buckets.map((bucket) => bucket.name)).toContain("bucket_1");
     expect(buckets.map((bucket) => bucket.name)).toContain("bucket_2");
+    buckets.forEach((bucket) => {
+      expect(bucket.status).toEqual(Status.READY);
+    });
   });
 
   it("should get bucket", async () => {
@@ -161,15 +165,27 @@ describe("Client", () => {
   it("should remove a bucket", async () => {
     const bucket = await client.createBucket("bucket");
     await bucket.remove();
-    await expect(client.getBucket("bucket")).rejects.toMatchObject({
-      status: 404,
-    });
+
+    // After removal, bucket should return 404 (deleted) or 409 (being deleted)
+    try {
+      await client.getBucket("bucket");
+      throw new Error("Expected an error but got none");
+    } catch (error: any) {
+      expect([404, 409]).toContain(error.status);
+    }
   });
 
   it("should remove a bucket with error", async () => {
     const bucket = await client.createBucket("bucket");
     await bucket.remove();
-    await expect(bucket.remove()).rejects.toMatchObject({ status: 404 });
+
+    // Trying to remove again should return 404 (deleted) or 409 (being deleted)
+    try {
+      await bucket.remove();
+      throw new Error("Expected an error but got none");
+    } catch (error: any) {
+      expect([404, 409]).toContain(error.status);
+    }
   });
 
   it("should try to create a bucket and get when it exists", async () => {

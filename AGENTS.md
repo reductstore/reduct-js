@@ -35,3 +35,10 @@ Contributor notes for the ReductStore JavaScript/TypeScript SDK. Keep changes sc
 - Use short, imperative subjects and reference issues/PRs when relevant (e.g., `Add baseUrl argument (#123)`); avoid committing generated `lib` diffs without a matching source change.
 - PRs should state what changed and why, list key commands run (`npm run tsc`, `npm test`, `npm run lint`), and link related issues. Include doc updates for user-facing API shifts and CHANGELOG entries for release-worthy changes.
 - **CHANGELOG.md must be updated for every PR** (bug fixes, features, docs) following the format from the [PR template](https://github.com/reductstore/.github/blob/main/.github/pull_request_template.md). Add entries under the "Unreleased" section using the appropriate category (Added, Changed, Deprecated, Removed, Fixed, Security).
+- **PR links in CHANGELOG**: Always use the format `[PR-XX](https://github.com/reductstore/reduct-js/pull/XX)` where XX is the PR number. This should be added when the PR number is known (typically by the maintainer before merging).
+- **Do not create examples** for new features unless explicitly requested in the issue description.
+- **Do not update README** unless explicitly requested in the issue description or necessary for the change.
+- **Always run formatter check** (`npm run fmt:check`) before committing changes. If formatting issues are found, run `npm run fmt` to fix them automatically.
+- **Always run linter** (`npm run lint`) before committing changes. If the linter fails with "command not found", ensure dependencies are properly installed with `npm install`.
+- **Verify CI checks**: After pushing changes, monitor the CI pipeline to ensure all checks pass, including format, build, lint, and tests.
+- **Test with multiple ReductStore versions**: Ensure changes work with both `reduct/store:main` (new features) and `reduct/store:latest` (stable version) when testing locally.

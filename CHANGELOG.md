@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support for replication mode, [PR-124](https://github.com/reductstore/reduct-js/pull/124)
+- Add `Status` enum and `status` field to `BucketInfo` and `EntryInfo` for non-blocking deletions, [PR-128](https://github.com/reductstore/reduct-js/pull/128)
 
 ### Fixed
 

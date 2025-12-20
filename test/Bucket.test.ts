@@ -11,6 +11,7 @@ import { QuotaType } from "../src/messages/BucketSettings";
 import { ReadableRecord } from "../src/Record";
 import { APIError } from "../src/APIError";
 import { Buffer } from "buffer";
+import { Status } from "../src/messages/Status";
 
 describe("Bucket", () => {
   const client: Client = makeClient();
@@ -55,6 +56,7 @@ describe("Bucket", () => {
       expect(info.entryCount).toEqual(2n);
       expect(info.oldestRecord).toEqual(1000_000n);
       expect(info.latestRecord).toEqual(4000_000n);
+      expect(info.status).toEqual(Status.READY);
     });
 
     it("should get/set settings", async () => {
@@ -80,7 +82,12 @@ describe("Bucket", () => {
 
     it("should get list of entries", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
-      await expect(bucket.getEntryList()).resolves.toEqual([
+      const entries = await bucket.getEntryList();
+
+      expect(entries).toHaveLength(2);
+      expect(entries[0].status).toEqual(Status.READY);
+      expect(entries[1].status).toEqual(Status.READY);
+      expect(entries).toEqual([
         {
           blockCount: 1n,
           latestRecord: 1000000n,
@@ -88,6 +95,7 @@ describe("Bucket", () => {
           oldestRecord: 1000000n,
           recordCount: 1n,
           size: 90n,
+          status: Status.READY,
         },
         {
           blockCount: 1n,
@@ -96,6 +104,7 @@ describe("Bucket", () => {
           oldestRecord: 2000000n,
           recordCount: 3n,
           size: 127n,
+          status: Status.READY,
         },
       ]);
     });
@@ -439,9 +448,14 @@ describe("Bucket", () => {
     it_api("1.6")("should remove entry", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       await bucket.removeEntry("entry-1");
-      await expect(bucket.beginRead("entry-1")).rejects.toMatchObject({
-        status: 404,
-      });
+
+      // After removal, entry should return 404 (deleted) or 409 (being deleted)
+      try {
+        await bucket.beginRead("entry-1");
+        throw new Error("Expected an error but got none");
+      } catch (error: any) {
+        expect([404, 409]).toContain(error.status);
+      }
     });
 
     it_api("1.12")("should remove a record", async () => {

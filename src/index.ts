@@ -5,6 +5,7 @@ import { ServerInfo, LicenseInfo } from "./messages/ServerInfo";
 import { BucketSettings, QuotaType } from "./messages/BucketSettings";
 import { BucketInfo } from "./messages/BucketInfo";
 import { EntryInfo } from "./messages/EntryInfo";
+import { Status } from "./messages/Status";
 import { Token, TokenPermissions } from "./messages/Token";
 import { ReplicationInfo } from "./messages/ReplicationInfo";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
@@ -25,6 +26,7 @@ export {
   QuotaType,
   BucketInfo,
   EntryInfo,
+  Status,
   Token,
   TokenPermissions,
   ReplicationInfo,
