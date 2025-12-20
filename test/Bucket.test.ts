@@ -452,7 +452,7 @@ describe("Bucket", () => {
       // After removal, entry should return 404 (deleted) or 409 (being deleted)
       try {
         await bucket.beginRead("entry-1");
-        fail("Expected an error but got none");
+        throw new Error("Expected an error but got none");
       } catch (error: any) {
         expect([404, 409]).toContain(error.status);
       }

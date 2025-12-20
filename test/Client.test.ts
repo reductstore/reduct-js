@@ -169,7 +169,7 @@ describe("Client", () => {
     // After removal, bucket should return 404 (deleted) or 409 (being deleted)
     try {
       await client.getBucket("bucket");
-      fail("Expected an error but got none");
+      throw new Error("Expected an error but got none");
     } catch (error: any) {
       expect([404, 409]).toContain(error.status);
     }
@@ -182,7 +182,7 @@ describe("Client", () => {
     // Trying to remove again should return 404 (deleted) or 409 (being deleted)
     try {
       await bucket.remove();
-      fail("Expected an error but got none");
+      throw new Error("Expected an error but got none");
     } catch (error: any) {
       expect([404, 409]).toContain(error.status);
     }
