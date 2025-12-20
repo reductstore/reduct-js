@@ -38,6 +38,7 @@ Contributor notes for the ReductStore JavaScript/TypeScript SDK. Keep changes sc
 - **PR links in CHANGELOG**: Always use the format `[PR-XX](https://github.com/reductstore/reduct-js/pull/XX)` where XX is the PR number. This should be added when the PR number is known (typically by the maintainer before merging).
 - **Do not create examples** for new features unless explicitly requested in the issue description.
 - **Do not update README** unless explicitly requested in the issue description or necessary for the change.
+- **Always run formatter check** (`npm run fmt:check`) before committing changes. If formatting issues are found, run `npm run fmt` to fix them automatically.
 - **Always run linter** (`npm run lint`) before committing changes. If the linter fails with "command not found", ensure dependencies are properly installed with `npm install`.
 - **Verify CI checks**: After pushing changes, monitor the CI pipeline to ensure all checks pass, including format, build, lint, and tests.
 - **Test with multiple ReductStore versions**: Ensure changes work with both `reduct/store:main` (new features) and `reduct/store:latest` (stable version) when testing locally.

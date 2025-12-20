@@ -83,7 +83,7 @@ describe("Bucket", () => {
     it("should get list of entries", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const entries = await bucket.getEntryList();
-      
+
       expect(entries).toHaveLength(2);
       expect(entries[0].status).toEqual(Status.READY);
       expect(entries[1].status).toEqual(Status.READY);
