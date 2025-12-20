@@ -165,15 +165,27 @@ describe("Client", () => {
   it("should remove a bucket", async () => {
     const bucket = await client.createBucket("bucket");
     await bucket.remove();
-    await expect(client.getBucket("bucket")).rejects.toMatchObject({
-      status: 404,
-    });
+
+    // After removal, bucket should return 404 (deleted) or 409 (being deleted)
+    try {
+      await client.getBucket("bucket");
+      fail("Expected an error but got none");
+    } catch (error: any) {
+      expect([404, 409]).toContain(error.status);
+    }
   });
 
   it("should remove a bucket with error", async () => {
     const bucket = await client.createBucket("bucket");
     await bucket.remove();
-    await expect(bucket.remove()).rejects.toMatchObject({ status: 404 });
+
+    // Trying to remove again should return 404 (deleted) or 409 (being deleted)
+    try {
+      await bucket.remove();
+      fail("Expected an error but got none");
+    } catch (error: any) {
+      expect([404, 409]).toContain(error.status);
+    }
   });
 
   it("should try to create a bucket and get when it exists", async () => {

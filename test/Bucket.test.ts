@@ -448,9 +448,14 @@ describe("Bucket", () => {
     it_api("1.6")("should remove entry", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       await bucket.removeEntry("entry-1");
-      await expect(bucket.beginRead("entry-1")).rejects.toMatchObject({
-        status: 404,
-      });
+
+      // After removal, entry should return 404 (deleted) or 409 (being deleted)
+      try {
+        await bucket.beginRead("entry-1");
+        fail("Expected an error but got none");
+      } catch (error: any) {
+        expect([404, 409]).toContain(error.status);
+      }
     });
 
     it_api("1.12")("should remove a record", async () => {
