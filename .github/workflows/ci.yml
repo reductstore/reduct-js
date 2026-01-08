@@ -141,6 +141,17 @@ jobs:
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
-      - run: |
-          npm i
-          npm publish
+      - run: npm i
+      - name: Determine npm tag
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [[ "$VERSION" == *"-beta"* ]]; then
+            echo "NPM_TAG=beta" >> "$GITHUB_ENV"
+          fi
+      - name: Publish package
+        run: |
+          if [[ -n "${NPM_TAG}" ]]; then
+            npm publish --tag "${NPM_TAG}"
+          else
+            npm publish
+          fi
