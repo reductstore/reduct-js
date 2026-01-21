@@ -263,6 +263,20 @@ describe("Bucket", () => {
       expect(batch.lastAccessTime()).toEqual(0);
     });
 
+    it("should return batch items in numeric timestamp order", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      const batch = await bucket.beginWriteBatch("entry-order");
+
+      batch.add(10n, "data10");
+      batch.add(1n, "data1");
+      batch.add(11n, "data11");
+      batch.add(2n, "data2");
+      batch.add(3n, "data3");
+
+      const timestamps = [...batch.items()].map(([ts]) => ts);
+      expect(timestamps).toEqual([1n, 2n, 3n, 10n, 11n]);
+    });
+
     it_api("1.7", true)(
       "should write a batch of records with errors",
       async () => {
