@@ -300,6 +300,21 @@ describe("Bucket", () => {
   });
 
   describe("query", () => {
+    it("should query records in numeric timestamp order", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+
+      for (const ts of [10n, 1n, 11n, 2n, 3n]) {
+        const rec = await bucket.beginWrite("entry-query-order", ts);
+        await rec.write(`data${ts}`);
+      }
+
+      const records: ReadableRecord[] = await all(
+        bucket.query("entry-query-order"),
+      );
+      const timestamps = records.map((r) => r.time);
+      expect(timestamps).toEqual([1n, 2n, 3n, 10n, 11n]);
+    });
+
     it("should query batched big blobs", async () => {
       const bigBlob1 = crypto.randomBytes(16_000_000);
       const bigBlob2 = crypto.randomBytes(16_000_000);
