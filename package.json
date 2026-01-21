@@ -6,6 +6,7 @@
   "module": "lib/esm/index.js",
   "scripts": {
     "test": "jest --runInBand --forceExit",
+    "test:debug": "jest --runInBand --detectOpenHandles",
     "tsc": "node -p \"'export const PACKAGE_VERSION = ' + JSON.stringify(require('./package.json').version) + ';'\" > src/version.ts && tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
     "lint": "eslint . --ext .ts",
     "fmt": "prettier --write .",
