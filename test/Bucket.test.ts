@@ -16,34 +16,29 @@ import { Status } from "../src/messages/Status";
 describe("Bucket", () => {
   const client: Client = makeClient();
 
-  beforeEach((done) => {
-    cleanStorage(client)
-      .then(() =>
-        client
-          .createBucket("bucket", {
-            maxBlockSize: 64000000n,
-            maxBlockRecords: 256n,
-            quotaSize: 0n,
-            quotaType: QuotaType.NONE,
-          })
-          .then(async (bucket: Bucket) => {
-            let rec = await bucket.beginWrite("entry-1", {
-              ts: 1000_000n,
-              labels: { label1: "label1", label2: 100n, label3: true },
-            });
-            await rec.write("somedata1");
+  beforeEach(async () => {
+    await cleanStorage(client);
+    const bucket = await client.createBucket("bucket", {
+      maxBlockSize: 64000000n,
+      maxBlockRecords: 256n,
+      quotaSize: 0n,
+      quotaType: QuotaType.NONE,
+    });
 
-            rec = await bucket.beginWrite("entry-2", 2000_000n);
-            await rec.write("somedata2");
+    let rec = await bucket.beginWrite("entry-1", {
+      ts: 1000_000n,
+      labels: { label1: "label1", label2: 100n, label3: true },
+    });
+    await rec.write("somedata1");
 
-            rec = await bucket.beginWrite("entry-2", 3000_000n);
-            await rec.write("somedata3");
+    rec = await bucket.beginWrite("entry-2", 2000_000n);
+    await rec.write("somedata2");
 
-            rec = await bucket.beginWrite("entry-2", 4000_000n);
-            await rec.write("somedata4");
-          }),
-      )
-      .then(() => done());
+    rec = await bucket.beginWrite("entry-2", 3000_000n);
+    await rec.write("somedata3");
+
+    rec = await bucket.beginWrite("entry-2", 4000_000n);
+    await rec.write("somedata4");
   });
 
   describe("general", () => {
