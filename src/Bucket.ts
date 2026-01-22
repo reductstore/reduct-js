@@ -5,6 +5,7 @@ import { EntryInfo } from "./messages/EntryInfo";
 import { LabelMap, ReadableRecord, WritableRecord } from "./Record";
 import { APIError } from "./APIError";
 import { Batch, BatchType } from "./Batch";
+import { RecordBatch } from "./RecordBatch";
 import { QueryOptions, QueryType } from "./messages/QueryEntry";
 import { HttpClient } from "./http/HttpClient";
 import { QueryLinkOptions } from "./messages/QueryLink";
@@ -438,6 +439,18 @@ export class Bucket {
    */
   async beginWriteBatch(entry: string): Promise<Batch> {
     return new Batch(this.name, entry, this.httpClient, BatchType.WRITE);
+  }
+
+  /**
+   * Create a new batch for writing records to multiple entries.
+   * @example
+   * const batch = await bucket.beginWriteRecordBatch();
+   * batch.add("entry-1", 1000n, "data");
+   * batch.add("entry-2", 2000n, "data");
+   * await batch.write();
+   */
+  beginWriteRecordBatch(): RecordBatch {
+    return new RecordBatch(this.name, this.httpClient);
   }
 
   /**

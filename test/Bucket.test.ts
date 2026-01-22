@@ -258,6 +258,64 @@ describe("Bucket", () => {
       expect(batch.lastAccessTime()).toEqual(0);
     });
 
+    it_api("1.18", true)(
+      "should write a record batch to multiple entries",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const batch = await bucket.beginWriteRecordBatch();
+        batch.add("entry-batch-1", 1000n, "alpha", "text/plain", {
+          label: "a",
+        });
+        batch.add("entry-batch-2", 2000n, "beta");
+
+        const errors = await batch.write();
+        expect(errors.size).toEqual(0);
+
+        const recordsEntry1: ReadableRecord[] = await all(
+          bucket.query("entry-batch-1"),
+        );
+        expect(recordsEntry1.length).toEqual(1);
+        expect(recordsEntry1[0]).toMatchObject({
+          time: 1000n,
+          size: 5n,
+          contentType: "text/plain",
+          labels: { label: "a" },
+        });
+        expect(await recordsEntry1[0].read()).toEqual(Buffer.from("alpha"));
+
+        const recordsEntry2: ReadableRecord[] = await all(
+          bucket.query("entry-batch-2"),
+        );
+        expect(recordsEntry2.length).toEqual(1);
+        expect(recordsEntry2[0]).toMatchObject({
+          time: 2000n,
+          size: 4n,
+          contentType: "application/octet-stream",
+          labels: {},
+        });
+        expect(await recordsEntry2[0].read()).toEqual(Buffer.from("beta"));
+      },
+    );
+
+    it_api("1.18", true)("should parse record batch errors", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      const batch = bucket.beginWriteRecordBatch();
+
+      batch.add("entry-1", 1000_000n, "dup");
+      batch.add("entry-1", 1500_000n, "ok");
+
+      const errors = await batch.write();
+      expect(errors.size).toEqual(1);
+      const entryErrors = errors.get("entry-1");
+      expect(entryErrors).toBeDefined();
+      expect(entryErrors?.get(1000_000n)).toEqual(
+        new APIError("A record with timestamp 1000000 already exists", 409),
+      );
+
+      const records: ReadableRecord[] = await all(bucket.query("entry-1"));
+      expect(records.some((record) => record.time === 1500_000n)).toEqual(true);
+    });
+
     it("should return batch items in numeric timestamp order", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const batch = await bucket.beginWriteBatch("entry-order");
