@@ -1,42 +1,77 @@
-import { Bucket } from "../../src/Bucket";
 import { Client } from "../../src/Client";
 import * as process from "process";
 // @ts-ignore
 import request from "sync-request";
 import { isBrowser } from "../../src/utils/env";
+import { Status } from "../../src/messages/Status";
+
+const DELETE_TIMEOUT_MS = 15000;
+const DELETE_POLL_INTERVAL_MS = 200;
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const waitForBucketRemoval = async (
+  client: Client,
+  name: string,
+): Promise<void> => {
+  const deadline = Date.now() + DELETE_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    const buckets = await client.getBucketList();
+    const bucketInfo = buckets.find((bucket) => bucket.name === name);
+    if (!bucketInfo) {
+      return;
+    }
+
+    if (bucketInfo.status !== Status.DELETING) {
+      try {
+        const bucket = await client.getBucket(name);
+        await bucket.remove();
+      } catch {
+        console.warn(`Bucket '${name}' removal failed, retrying...`);
+      }
+    }
+
+    await delay(DELETE_POLL_INTERVAL_MS);
+  }
+
+  throw new Error(`Timed out waiting for bucket '${name}' deletion`);
+};
 
 /**
  * Remove all buckets
  * @param client
  */
 export const cleanStorage = async (client: Client): Promise<void> => {
-  return client
-    .getBucketList()
-    .then((buckets) => {
-      return Promise.all(
-        buckets.map((info) => {
-          return client.getBucket(info.name).then((bucket: Bucket) => {
-            return bucket.remove();
-          });
-        }),
-      );
-    })
-    .then(() => client.getTokenList())
-    .then((tokens) => {
-      return Promise.all(
-        tokens
-          .filter((token) => token.name != "init-token")
-          .map((token) => {
-            return client.deleteToken(token.name);
-          }),
-      );
-    })
-    .then(() => Promise.resolve());
+  // Delete buckets sequentially to avoid race conditions
+  const buckets = await client.getBucketList();
+  for (const info of buckets) {
+    try {
+      const bucket = await client.getBucket(info.name);
+      await bucket.remove();
+    } catch {
+      // Ignore errors (bucket may have been removed by a test)
+    }
+
+    await waitForBucketRemoval(client, info.name);
+  }
+
+  // Delete tokens sequentially
+  const tokens = await client.getTokenList();
+  for (const token of tokens) {
+    if (token.name !== "init-token") {
+      try {
+        await client.deleteToken(token.name);
+      } catch {
+        // Ignore errors (token may have been removed by a test)
+      }
+    }
+  }
 };
 
 export const makeClient = (): Client => {
   return new Client("http://127.0.0.1:8383", {
     apiToken: process.env.RS_API_TOKEN,
+    timeout: 10000,
   });
 };
 

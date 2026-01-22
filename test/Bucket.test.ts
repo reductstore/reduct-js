@@ -16,34 +16,29 @@ import { Status } from "../src/messages/Status";
 describe("Bucket", () => {
   const client: Client = makeClient();
 
-  beforeEach((done) => {
-    cleanStorage(client)
-      .then(() =>
-        client
-          .createBucket("bucket", {
-            maxBlockSize: 64000000n,
-            maxBlockRecords: 256n,
-            quotaSize: 0n,
-            quotaType: QuotaType.NONE,
-          })
-          .then(async (bucket: Bucket) => {
-            let rec = await bucket.beginWrite("entry-1", {
-              ts: 1000_000n,
-              labels: { label1: "label1", label2: 100n, label3: true },
-            });
-            await rec.write("somedata1");
+  beforeEach(async () => {
+    await cleanStorage(client);
+    const bucket = await client.createBucket("bucket", {
+      maxBlockSize: 64000000n,
+      maxBlockRecords: 256n,
+      quotaSize: 0n,
+      quotaType: QuotaType.NONE,
+    });
 
-            rec = await bucket.beginWrite("entry-2", 2000_000n);
-            await rec.write("somedata2");
+    let rec = await bucket.beginWrite("entry-1", {
+      ts: 1000_000n,
+      labels: { label1: "label1", label2: 100n, label3: true },
+    });
+    await rec.write("somedata1");
 
-            rec = await bucket.beginWrite("entry-2", 3000_000n);
-            await rec.write("somedata3");
+    rec = await bucket.beginWrite("entry-2", 2000_000n);
+    await rec.write("somedata2");
 
-            rec = await bucket.beginWrite("entry-2", 4000_000n);
-            await rec.write("somedata4");
-          }),
-      )
-      .then(() => done());
+    rec = await bucket.beginWrite("entry-2", 3000_000n);
+    await rec.write("somedata3");
+
+    rec = await bucket.beginWrite("entry-2", 4000_000n);
+    await rec.write("somedata4");
   });
 
   describe("general", () => {
@@ -263,6 +258,20 @@ describe("Bucket", () => {
       expect(batch.lastAccessTime()).toEqual(0);
     });
 
+    it("should return batch items in numeric timestamp order", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      const batch = await bucket.beginWriteBatch("entry-order");
+
+      batch.add(10n, "data10");
+      batch.add(1n, "data1");
+      batch.add(11n, "data11");
+      batch.add(2n, "data2");
+      batch.add(3n, "data3");
+
+      const timestamps = [...batch.items()].map(([ts]) => ts);
+      expect(timestamps).toEqual([1n, 2n, 3n, 10n, 11n]);
+    });
+
     it_api("1.7", true)(
       "should write a batch of records with errors",
       async () => {
@@ -286,6 +295,21 @@ describe("Bucket", () => {
   });
 
   describe("query", () => {
+    it("should query records in numeric timestamp order", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+
+      for (const ts of [10n, 1n, 11n, 2n, 3n]) {
+        const rec = await bucket.beginWrite("entry-query-order", ts);
+        await rec.write(`data${ts}`);
+      }
+
+      const records: ReadableRecord[] = await all(
+        bucket.query("entry-query-order"),
+      );
+      const timestamps = records.map((r) => r.time);
+      expect(timestamps).toEqual([1n, 2n, 3n, 10n, 11n]);
+    });
+
     it("should query batched big blobs", async () => {
       const bigBlob1 = crypto.randomBytes(16_000_000);
       const bigBlob2 = crypto.randomBytes(16_000_000);

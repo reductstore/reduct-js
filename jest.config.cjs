@@ -7,6 +7,9 @@ const { defaults } = require("jest-config");
 
 // eslint-disable-next-line no-undef
 module.exports = {
+  // Default timeout for tests (30 seconds to accommodate large blob tests and network latency)
+  testTimeout: 30000,
+
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 

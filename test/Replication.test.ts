@@ -15,19 +15,16 @@ describe("Replication", () => {
     mode: "enabled" as const,
   };
 
-  beforeEach((done) => {
-    cleanStorage(client)
-      .then(() => client.getReplicationList())
-      .then((replications) => {
-        return Promise.all(
-          replications.map((replication) => {
-            return client.deleteReplication(replication.name);
-          }),
-        );
-      })
-      .then(() => client.createBucket("test-bucket-1"))
-      .then(() => client.createBucket("test-bucket-2"))
-      .then(() => done());
+  beforeEach(async () => {
+    await cleanStorage(client);
+    const replications = await client.getReplicationList();
+    await Promise.all(
+      replications.map((replication) =>
+        client.deleteReplication(replication.name),
+      ),
+    );
+    await client.createBucket("test-bucket-1");
+    await client.createBucket("test-bucket-2");
   });
 
   it_api("1.8")("should get list of replications", async () => {
