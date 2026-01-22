@@ -79,49 +79,7 @@ async function* readBatchedRecords(
 
   const entriesHeader = responseHeaders.get(ENTRIES_HEADER);
   if (!entriesHeader) {
-    if (!entry) {
-      throw new Error("x-reduct-entries header is required");
-    }
-
-    const timeHeaders = [...responseHeaders.keys()]
-      .filter((k) => k.startsWith("x-reduct-time-"))
-      .sort((a, b) => {
-        const tsA = BigInt(a.slice(14));
-        const tsB = BigInt(b.slice(14));
-        return tsA < tsB ? -1 : tsA > tsB ? 1 : 0;
-      });
-    const total = timeHeaders.length;
-    let index = 0;
-
-    for (const h of timeHeaders) {
-      const tsStr = h.slice(14);
-      const value = responseHeaders.get(h);
-      if (!value)
-        throw new Error(`Invalid header ${h} with value ${value}`);
-
-      const { size, contentType, labels } = parseCsvRow(value);
-      const byteLen = Number(size);
-
-      index += 1;
-      const isLastInBatch = index === total;
-      const isLastInQuery =
-        responseHeaders.get("x-reduct-last") === "true" && isLastInBatch;
-
-      const stream = await createStream(byteLen, isLastInBatch);
-
-      yield new ReadableRecord(
-        entry,
-        BigInt(tsStr),
-        BigInt(byteLen),
-        isLastInQuery,
-        head,
-        stream,
-        labels,
-        contentType,
-      );
-    }
-
-    return;
+    throw new Error("x-reduct-entries header is required");
   }
 
   const startTsHeader = responseHeaders.get(START_TS_HEADER);
@@ -373,49 +331,6 @@ function resolveLabelName(
   }
 
   return raw;
-}
-
-function parseCsvRow(row: string): {
-  size: bigint;
-  contentType?: string;
-  labels: LabelMap;
-} {
-  const items: string[] = [];
-  let escaped = "";
-
-  for (const item of row.split(",")) {
-    if (item.startsWith('"') && !escaped) {
-      escaped = item.substring(1);
-    }
-
-    if (escaped) {
-      if (item.endsWith('"')) {
-        escaped = escaped.slice(0, -1);
-        items.push(escaped);
-        escaped = "";
-      } else {
-        escaped += `,${item}`;
-      }
-    } else {
-      items.push(item);
-    }
-  }
-
-  const size = BigInt(items.shift() || "0");
-  const contentType = items.shift();
-  const labels: LabelMap = {};
-
-  for (const item of items) {
-    if (!item) continue;
-    const parts = item.split("=");
-    labels[parts[0]] = parts[1] ?? "";
-  }
-
-  return {
-    size,
-    contentType,
-    labels,
-  };
 }
 
 function parseHeaderList(header: string): string[] {
