@@ -19,28 +19,7 @@ jobs:
       - run: npm i
       - run: npm run fmt:check
 
-  build:
-    runs-on: ubuntu-latest
-    needs:
-      - format
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build and export
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          tags: ${{github.repository}}:latest
-          outputs: type=docker,dest=/tmp/image.tar
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: image
-          path: /tmp/image.tar
-
   run_tests:
-    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -48,14 +27,14 @@ jobs:
         reductstore_version: ["main", "latest"]
         license: ["", "/workdir/lic.key"]
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: image
-          path: /tmp/
-
+      - uses: actions/checkout@v4
       - name: Generate license
         run: echo '${{secrets.LICENSE_KEY}}' > lic.key
+
+      - name: install node js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -76,24 +55,23 @@ jobs:
           docker load --input /tmp/image.tar
           docker image ls -a
       - name: Run tests
-        run: docker run --network=host
-          --env RS_API_TOKEN=${{ matrix.token }}
-          --env RS_LICENSE_PATH=${{matrix.license}}
-          ${{github.repository}} npm test
+        run: npm test
+        env:
+          RS_API_TOKEN: ${{ matrix.token }}
+          RS_LICENSE_PATH: ${{matrix.license}}
 
   run_examples:
-    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
         example: ["HelloWorld.js", "QuickStart.js", "Subscription.js"]
         reductstore_version: ["main", "latest"]
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+      - name: install node js 20
+        uses: actions/setup-node@v4
         with:
-          name: image
-          path: /tmp/
+          node-version: "20"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -115,21 +93,12 @@ jobs:
         run: docker run --network=host ${{github.repository}} node examples/${{matrix.example}}
 
   lint:
-    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: image
-          path: /tmp/
-
-      - name: Load image with tests
-        run: |
-          docker load --input /tmp/image.tar
-          docker image ls -a
+      - uses: actions/checkout@v4
+      - run: npm i
       - name: Run tests
-        run: docker run --network=host ${{github.repository}} npm run lint
+        run: npm run lint
 
   publish:
     needs: [run_tests, run_examples, lint]
