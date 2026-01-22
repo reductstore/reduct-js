@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Export `ReplicationMode` as runtime namespace for ESM/JavaScript usage, [PR-127](https://github.com/reductstore/reduct-js/pull/127)
 - Add beta npm tag handling in CI publishing
+- Fix typo in npm keyword: "reductstorre" to "reductstore", [PR-132](https://github.com/reductstore/reduct-js/pull/132)
 - Fix `Batch.items()` and `Bucket.query()` returning records in lexicographic order instead of numeric timestamp order, [PR-134](https://github.com/reductstore/reduct-js/pull/134)
 
 ## 1.17.1 - 2025-11-15
