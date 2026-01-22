@@ -268,7 +268,7 @@ describe("Bucket", () => {
         });
         batch.add("entry-batch-2", 2000n, "beta");
 
-        const errors = await batch.write();
+        const errors = await batch.send();
         expect(errors.size).toEqual(0);
 
         const recordsEntry1: ReadableRecord[] = await all(
@@ -304,7 +304,7 @@ describe("Bucket", () => {
       batch.add("entry-1", 1000_000n, "dup");
       batch.add("entry-1", 1500_000n, "ok");
 
-      const errors = await batch.write();
+      const errors = await batch.send();
       expect(errors.size).toEqual(1);
       const entryErrors = errors.get("entry-1");
       expect(entryErrors).toBeDefined();
@@ -584,6 +584,52 @@ describe("Bucket", () => {
       );
     });
 
+    it_api("1.18", true)(
+      "should remove records across entries in a record batch",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const batch = bucket.beginRemoveRecordBatch();
+        batch.addOnlyTimestamp("entry-1", 1000_000n);
+        batch.addOnlyTimestamp("entry-2", 2000_000n);
+
+        const errors = await batch.send();
+        expect(errors.size).toEqual(0);
+
+        await expect(
+          bucket.beginRead("entry-1", 1000_000n),
+        ).rejects.toMatchObject({
+          status: 404,
+        });
+        await expect(
+          bucket.beginRead("entry-2", 2000_000n),
+        ).rejects.toMatchObject({
+          status: 404,
+        });
+      },
+    );
+
+    it_api("1.18", true)(
+      "should parse errors from record batch removal",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const batch = bucket.beginRemoveRecordBatch();
+        batch.addOnlyTimestamp("entry-1", 1000_000n);
+        batch.addOnlyTimestamp("entry-2", 10_000_000n);
+
+        const errors = await batch.send();
+        expect(errors.get("entry-1")).toBeUndefined();
+        expect(errors.get("entry-2")?.get(10_000_000n)).toEqual(
+          new APIError("No record with timestamp 10000000", 404),
+        );
+
+        await expect(
+          bucket.beginRead("entry-1", 1000_000n),
+        ).rejects.toMatchObject({
+          status: 404,
+        });
+      },
+    );
+
     it_api("1.12", true)("should remove records by query", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const removed = await bucket.removeQuery(
@@ -686,6 +732,53 @@ describe("Bucket", () => {
         label3: "true",
       });
     });
+
+    it_api("1.18", true)(
+      "should update labels across entries in a record batch",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+
+        const batch = bucket.beginUpdateRecordBatch();
+        batch.addOnlyLabels("entry-1", 1000_000n, {
+          label1: "updated",
+          label2: "",
+        });
+        batch.addOnlyLabels("entry-2", 2000_000n, { label1: "value2" });
+
+        const errors = await batch.send();
+        expect(errors.size).toEqual(0);
+
+        const record1 = await bucket.beginRead("entry-1", 1000_000n);
+        expect(record1.labels).toEqual({ label1: "updated", label3: "true" });
+
+        const record2 = await bucket.beginRead("entry-2", 2000_000n);
+        expect(record2.labels).toEqual({ label1: "value2" });
+      },
+    );
+
+    it_api("1.18", true)(
+      "should parse errors from record batch updates",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+
+        const batch = bucket.beginUpdateRecordBatch();
+        batch.addOnlyLabels("entry-1", 1000_000n, { label1: "ok" });
+        batch.addOnlyLabels("entry-2", 10_000_000n, { label1: "missing" });
+
+        const errors = await batch.send();
+        expect(errors.get("entry-1")).toBeUndefined();
+        expect(errors.get("entry-2")?.get(10_000_000n)).toEqual(
+          new APIError("No record with timestamp 10000000", 404),
+        );
+
+        const record1 = await bucket.beginRead("entry-1", 1000_000n);
+        expect(record1.labels).toEqual({
+          label1: "ok",
+          label2: "100",
+          label3: "true",
+        });
+      },
+    );
   });
 
   describe("rename", () => {

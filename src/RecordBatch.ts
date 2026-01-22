@@ -22,19 +22,31 @@ type RecordBatchMeta = {
   labels: Record<string, string>;
 };
 
+export enum RecordBatchType {
+  WRITE,
+  UPDATE,
+  REMOVE,
+}
+
 /**
  * Batch of records to write them in one request (batch protocol v2).
  */
 export class RecordBatch {
   private readonly bucketName: string;
   private readonly httpClient: HttpClient;
+  private readonly type: RecordBatchType;
   private readonly records: Map<string, RecordBatchItem>;
   private totalSize: bigint;
   private lastAccess: number;
 
-  public constructor(bucketName: string, httpClient: HttpClient) {
+  public constructor(
+    bucketName: string,
+    httpClient: HttpClient,
+    type: RecordBatchType,
+  ) {
     this.bucketName = bucketName;
     this.httpClient = httpClient;
+    this.type = type;
     this.records = new Map();
     this.totalSize = 0n;
     this.lastAccess = 0;
@@ -55,6 +67,9 @@ export class RecordBatch {
     contentType?: string,
     labels?: LabelMap,
   ): void {
+    if (this.type !== RecordBatchType.WRITE) {
+      throw new Error("Record batch write only accepts data payloads.");
+    }
     const _contentType = contentType ?? "application/octet-stream";
     const _labels = labels ?? {};
     const _data: Buffer =
@@ -74,39 +89,121 @@ export class RecordBatch {
   }
 
   /**
-   * Write batch of records to bucket (Multi-entry API).
+   * Add labels to batch for update.
+   * @param entry name of entry
+   * @param ts timestamp of record as a UNIX timestamp in microseconds
+   * @param labels labels to update
    */
-  public async write(): Promise<Map<string, Map<bigint, APIError>>> {
+  public addOnlyLabels(entry: string, ts: bigint, labels: LabelMap): void {
+    if (this.type !== RecordBatchType.UPDATE) {
+      throw new Error("Record batch update only accepts label-only updates.");
+    }
+    const _labels = labels ?? {};
+    this.lastAccess = Date.now();
+
+    const key = `${entry}\u0000${ts.toString()}`;
+    this.records.set(key, {
+      entry,
+      timestamp: ts,
+      data: Buffer.from(""),
+      contentType: "",
+      labels: _labels,
+    });
+  }
+
+  /**
+   * Add timestamps to batch for removal.
+   * @param entry name of entry
+   * @param ts timestamp of record as a UNIX timestamp in microseconds
+   */
+  public addOnlyTimestamp(entry: string, ts: bigint): void {
+    if (this.type !== RecordBatchType.REMOVE) {
+      throw new Error(
+        "Record batch removal only accepts timestamp-only updates.",
+      );
+    }
+    this.lastAccess = Date.now();
+
+    const key = `${entry}\u0000${ts.toString()}`;
+    this.records.set(key, {
+      entry,
+      timestamp: ts,
+      data: Buffer.from(""),
+      contentType: "",
+      labels: {},
+    });
+  }
+
+  /**
+   * Send batch request (Multi-entry API).
+   */
+  public async send(): Promise<Map<string, Map<bigint, APIError>>> {
     if (this.httpClient.apiVersion && this.httpClient.apiVersion["1"] < 18) {
       throw new Error(
         "Multi-entry batch API is not supported by the server. Requires API version >= 1.18.",
       );
     }
 
-    const { contentLength, headers } = makeHeadersV2(this);
-    const chunks: Buffer[] = [];
-    for (const [, record] of this.items()) {
-      chunks.push(record.data);
-    }
-
-    const stream = new ReadableStream<Uint8Array>({
-      start(ctrl) {
-        for (const chunk of chunks) {
-          ctrl.enqueue(chunk);
+    switch (this.type) {
+      case RecordBatchType.WRITE: {
+        const { contentLength, headers, entries, startTs } =
+          makeHeadersV2(this);
+        const chunks: Buffer[] = [];
+        for (const [, record] of this.items()) {
+          chunks.push(record.data);
         }
-        ctrl.close();
-      },
-    });
 
-    headers["Content-Length"] = contentLength.toString();
+        const stream = new ReadableStream<Uint8Array>({
+          start(ctrl) {
+            for (const chunk of chunks) {
+              ctrl.enqueue(chunk);
+            }
+            ctrl.close();
+          },
+        });
 
-    const response = await this.httpClient.post(
-      `/io/${this.bucketName}/write`,
-      stream,
-      headers,
-    );
+        headers["Content-Length"] = contentLength.toString();
 
-    return parseErrorsFromHeadersV2(response.headers);
+        const response = await this.httpClient.post(
+          `/io/${this.bucketName}/write`,
+          stream,
+          headers,
+        );
+
+        return parseErrorsFromHeadersV2WithMeta(
+          response.headers,
+          entries,
+          startTs,
+        );
+      }
+      case RecordBatchType.UPDATE: {
+        const { headers, entries, startTs } = makeUpdateHeadersV2(this);
+        const response = await this.httpClient.patch(
+          `/io/${this.bucketName}/update`,
+          "",
+          headers,
+        );
+
+        return parseErrorsFromHeadersV2WithMeta(
+          response.headers,
+          entries,
+          startTs,
+        );
+      }
+      case RecordBatchType.REMOVE: {
+        const { headers, entries, startTs } = makeRemoveHeadersV2(this);
+        const response = await this.httpClient.delete(
+          `/io/${this.bucketName}/remove`,
+          headers,
+        );
+
+        return parseErrorsFromHeadersV2WithMeta(
+          response.headers,
+          entries,
+          startTs,
+        );
+      }
+    }
   }
 
   /**
@@ -172,6 +269,8 @@ type PreparedRecords = {
 function makeHeadersV2(batch: RecordBatch): {
   contentLength: bigint;
   headers: Record<string, string>;
+  entries: string[];
+  startTs: bigint;
 } {
   const recordHeaders: Record<string, string> = {};
   let contentLength = 0n;
@@ -181,7 +280,7 @@ function makeHeadersV2(batch: RecordBatch): {
     recordHeaders[ENTRIES_HEADER] = "";
     recordHeaders[START_TS_HEADER] = "0";
     recordHeaders["Content-Type"] = "application/octet-stream";
-    return { contentLength, headers: recordHeaders };
+    return { contentLength, headers: recordHeaders, entries: [], startTs: 0n };
   }
 
   const { entries, startTs, indexedRecords } = prepareRecordsV2(records);
@@ -231,7 +330,94 @@ function makeHeadersV2(batch: RecordBatch): {
   }
 
   recordHeaders["Content-Type"] = "application/octet-stream";
-  return { contentLength, headers: recordHeaders };
+  return {
+    contentLength,
+    headers: recordHeaders,
+    entries,
+    startTs,
+  };
+}
+
+function makeUpdateHeadersV2(batch: RecordBatch): {
+  headers: Record<string, string>;
+  entries: string[];
+  startTs: bigint;
+} {
+  const recordHeaders: Record<string, string> = {};
+  const records = batch.items();
+
+  if (records.length === 0) {
+    recordHeaders[ENTRIES_HEADER] = "";
+    recordHeaders[START_TS_HEADER] = "0";
+    return { headers: recordHeaders, entries: [], startTs: 0n };
+  }
+
+  const { entries, startTs, indexedRecords } = prepareRecordsV2(records);
+  const lastLabels = new Map<number, Record<string, string>>();
+
+  recordHeaders[ENTRIES_HEADER] = entries
+    .map((entry) => encodeHeaderComponent(entry))
+    .join(",");
+  recordHeaders[START_TS_HEADER] = startTs.toString();
+
+  for (const [entryIndex, timestamp, record] of indexedRecords) {
+    if (record.data.length > 0) {
+      throw new Error("Record batch update does not accept data payloads.");
+    }
+    const currentLabels = normalizeLabels(record.labels);
+    const labelDelta = buildLabelDeltaRaw(
+      currentLabels,
+      lastLabels.get(entryIndex),
+    );
+
+    if (labelDelta.length === 0) {
+      throw new Error(
+        "Record batch update requires at least one label update.",
+      );
+    }
+
+    const delta = timestamp - startTs;
+    recordHeaders[`${HEADER_PREFIX}${entryIndex}-${delta.toString()}`] =
+      `0,,${labelDelta}`;
+    lastLabels.set(entryIndex, currentLabels);
+  }
+
+  return { headers: recordHeaders, entries, startTs };
+}
+
+function makeRemoveHeadersV2(batch: RecordBatch): {
+  headers: Record<string, string>;
+  entries: string[];
+  startTs: bigint;
+} {
+  const recordHeaders: Record<string, string> = {};
+  const records = batch.items();
+
+  if (records.length === 0) {
+    recordHeaders[ENTRIES_HEADER] = "";
+    recordHeaders[START_TS_HEADER] = "0";
+    return { headers: recordHeaders, entries: [], startTs: 0n };
+  }
+
+  const { entries, startTs, indexedRecords } = prepareRecordsV2(records);
+
+  recordHeaders[ENTRIES_HEADER] = entries
+    .map((entry) => encodeHeaderComponent(entry))
+    .join(",");
+  recordHeaders[START_TS_HEADER] = startTs.toString();
+
+  for (const [entryIndex, timestamp, record] of indexedRecords) {
+    if (record.data.length > 0) {
+      throw new Error("Record batch removal does not accept data payloads.");
+    }
+    if (Object.keys(record.labels).length > 0) {
+      throw new Error("Record batch removal does not accept label updates.");
+    }
+    const delta = timestamp - startTs;
+    recordHeaders[`${HEADER_PREFIX}${entryIndex}-${delta.toString()}`] = "0,";
+  }
+
+  return { headers: recordHeaders, entries, startTs };
 }
 
 function prepareRecordsV2(
@@ -324,6 +510,40 @@ function buildLabelDelta(
   return ops.map(([idx, value]) => `${idx}=${value}`).join(",");
 }
 
+function buildLabelDeltaRaw(
+  labels: Record<string, string>,
+  previousLabels: Record<string, string> | undefined,
+): string {
+  const ops: Array<[string, string]> = [];
+
+  if (!previousLabels) {
+    const keys = Object.keys(labels).sort();
+    for (const key of keys) {
+      ops.push([key, formatLabelValue(labels[key])]);
+    }
+  } else {
+    const keys = new Set(Object.keys(previousLabels));
+    for (const key of Object.keys(labels)) {
+      keys.add(key);
+    }
+    const sorted = [...keys].sort();
+    for (const key of sorted) {
+      const prev = previousLabels[key];
+      const curr = labels[key];
+      if (prev === curr) {
+        continue;
+      }
+      if (curr === undefined) {
+        ops.push([key, ""]);
+      } else {
+        ops.push([key, formatLabelValue(curr)]);
+      }
+    }
+  }
+
+  return ops.map(([key, value]) => `${key}=${value}`).join(",");
+}
+
 function normalizeLabels(labels: LabelMap): Record<string, string> {
   const normalized: Record<string, string> = {};
   for (const [key, value] of Object.entries(labels)) {
@@ -375,56 +595,11 @@ function encodeHeaderComponent(value: string): string {
   return encoded;
 }
 
-function decodeHeaderComponent(encoded: string): string {
-  const bytes: number[] = [];
-  for (let i = 0; i < encoded.length; i += 1) {
-    const ch = encoded[i];
-    if (ch === "%") {
-      if (i + 2 >= encoded.length) {
-        throw new Error(`Invalid encoding in header value: '${encoded}'`);
-      }
-      const hex = encoded.slice(i + 1, i + 3);
-      if (!/^[0-9A-Fa-f]{2}$/.test(hex)) {
-        throw new Error(`Invalid encoding in header value: '${encoded}'`);
-      }
-      bytes.push(Number.parseInt(hex, 16));
-      i += 2;
-    } else {
-      bytes.push(ch.charCodeAt(0));
-    }
-  }
-
-  return new TextDecoder().decode(new Uint8Array(bytes));
-}
-
-function parseHeaderList(header: string): string[] {
-  const trimmed = header.trim();
-  if (!trimmed) {
-    throw new Error("x-reduct-entries header is required");
-  }
-  return trimmed.split(",").map((item) => decodeHeaderComponent(item.trim()));
-}
-
-function parseErrorsFromHeadersV2(
+function parseErrorsFromHeadersV2WithMeta(
   headers: Headers,
+  entries: string[],
+  startTs: bigint,
 ): Map<string, Map<bigint, APIError>> {
-  const entriesHeader = headers.get(ENTRIES_HEADER);
-  if (!entriesHeader) {
-    throw new Error("x-reduct-entries header is required");
-  }
-  const entries = parseHeaderList(entriesHeader);
-
-  const startTsHeader = headers.get(START_TS_HEADER);
-  if (!startTsHeader) {
-    throw new Error("x-reduct-start-ts header is required");
-  }
-  let startTs: bigint;
-  try {
-    startTs = BigInt(startTsHeader);
-  } catch {
-    throw new Error("Invalid batched header");
-  }
-
   const errors = new Map<string, Map<bigint, APIError>>();
   for (const [rawName, value] of headers.entries()) {
     const name = rawName.toLowerCase();

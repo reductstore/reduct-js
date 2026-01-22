@@ -5,7 +5,7 @@ import { EntryInfo } from "./messages/EntryInfo";
 import { LabelMap, ReadableRecord, WritableRecord } from "./Record";
 import { APIError } from "./APIError";
 import { Batch, BatchType } from "./Batch";
-import { RecordBatch } from "./RecordBatch";
+import { RecordBatch, RecordBatchType } from "./RecordBatch";
 import { QueryOptions, QueryType } from "./messages/QueryEntry";
 import { HttpClient } from "./http/HttpClient";
 import { QueryLinkOptions } from "./messages/QueryLink";
@@ -447,10 +447,10 @@ export class Bucket {
    * const batch = await bucket.beginWriteRecordBatch();
    * batch.add("entry-1", 1000n, "data");
    * batch.add("entry-2", 2000n, "data");
-   * await batch.write();
+   * await batch.send();
    */
   beginWriteRecordBatch(): RecordBatch {
-    return new RecordBatch(this.name, this.httpClient);
+    return new RecordBatch(this.name, this.httpClient, RecordBatchType.WRITE);
   }
 
   /**
@@ -459,6 +459,25 @@ export class Bucket {
    */
   async beginUpdateBatch(entry: string): Promise<Batch> {
     return new Batch(this.name, entry, this.httpClient, BatchType.UPDATE);
+  }
+
+  /**
+   * Create a new batch for updating records across multiple entries.
+   * @example
+   * const batch = bucket.beginUpdateRecordBatch();
+   * batch.addOnlyLabels("entry-1", 1000n, { label1: "value1", label2: "" });
+   * batch.addOnlyLabels("entry-2", 2000n, { label1: "value2" });
+   * await batch.send();
+   */
+  beginUpdateRecordBatch(): RecordBatch {
+    return new RecordBatch(this.name, this.httpClient, RecordBatchType.UPDATE);
+  }
+
+  /**
+   * Create a new batch for removing records across multiple entries.
+   */
+  beginRemoveRecordBatch(): RecordBatch {
+    return new RecordBatch(this.name, this.httpClient, RecordBatchType.REMOVE);
   }
 
   /**
