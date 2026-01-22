@@ -39,7 +39,7 @@ const read = async () => {
 };
 
 const main = async () => {
-  await Promise.all([read(), write()]);
+  await Promise.all([write(), read()]);
   console.log("done");
 };
 
