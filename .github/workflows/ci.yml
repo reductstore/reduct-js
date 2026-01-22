@@ -84,7 +84,7 @@ jobs:
         run: sleep 3
 
       - name: Run example
-        run: node examples/${{matrix.example}}
+        run: npm run tsc && node examples/${{matrix.example}}
 
   lint:
     runs-on: ubuntu-latest
