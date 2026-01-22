@@ -124,21 +124,46 @@ export class Bucket {
 
   /**
    * Remove records by query
-   * @param entry {string} name of the entry
+   * @param entry {string | string[]} name of the entry or entries
    * @param start {BigInt} start point of the time period, if undefined, the query starts from the first record
    * @param stop  {BigInt} stop point of the time period. If undefined, the query stops at the last record
    * @param options {QueryOptions} options for query. You can use only include, exclude, eachS, eachN other options are ignored
    */
   async removeQuery(
-    entry: string,
+    entry: string | string[],
     start?: bigint,
     stop?: bigint,
     options?: QueryOptions,
   ): Promise<number> {
-    options = options ?? {};
+    const entries = Array.isArray(entry) ? entry : [entry];
+    const localOptions = options ?? {};
+
+    let queryUrl = `/b/${this.name}/${entry}/q`;
+    let queryBody = QueryOptions.serialize(
+      QueryType.REMOVE,
+      localOptions,
+      start,
+      stop,
+    );
+
+    if (this.httpClient.apiVersion && this.httpClient.apiVersion["1"] >= 18) {
+      queryUrl = `/io/${this.name}/q`;
+      queryBody = QueryOptions.serialize(
+        QueryType.REMOVE,
+        localOptions,
+        start,
+        stop,
+        entries,
+      );
+    } else if (entries.length > 1) {
+      throw new Error(
+        "Multiple entries require ReductStore API version >= 1.18",
+      );
+    }
+
     const { data } = await this.httpClient.post<{ removed_records: number }>(
-      `/b/${this.name}/${entry}/q`,
-      QueryOptions.serialize(QueryType.REMOVE, options, start, stop),
+      queryUrl,
+      queryBody,
     );
     return Promise.resolve(data["removed_records"]);
   }
@@ -253,7 +278,6 @@ export class Bucket {
 
   /**
    * Query records for a time interval as generator
-   * @param entry entry name
    * @param entry {string | string[]} name of the entry or entries
    * @param start {BigInt} start point of the time period
    * @param stop {BigInt} stop point of the time period
@@ -301,9 +325,8 @@ export class Bucket {
         entries,
       );
     } else if (entries.length > 1) {
-      throw new APIError(
+      throw new Error(
         "Multiple entries require ReductStore API version >= 1.18",
-        400,
       );
     }
 

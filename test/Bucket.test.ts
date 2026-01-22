@@ -547,6 +547,28 @@ describe("Bucket", () => {
       expect(records[1].time).toEqual(4000000n);
     });
 
+    it_api("1.18", true)(
+      "should remove records by query across multiple entries",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const removed = await bucket.removeQuery(
+          ["entry-1", "entry-2"],
+          0n,
+          3_000_000n,
+        );
+
+        expect(removed).toEqual(2);
+        await expect(bucket.beginRead("entry-1")).rejects.toMatchObject({
+          status: 404,
+        });
+
+        const records: ReadableRecord[] = await all(bucket.query("entry-2"));
+        expect(records.length).toEqual(2);
+        expect(records[0].time).toEqual(3000000n);
+        expect(records[1].time).toEqual(4000000n);
+      },
+    );
+
     it_api("1.13")("should remove records by condition", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const removed = await bucket.removeQuery(
