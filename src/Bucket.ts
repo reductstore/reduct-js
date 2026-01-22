@@ -450,17 +450,17 @@ export class Bucket {
 
   /**
    * Create a query link for downloading records
-   * @param entry name of the entry
+   * @param entry name of the entry or entries
    * @param start start point of the time period for the query
    * @param stop stop point of the time period for the query
    * @param query options for the query
    * @param recordIndex index of the record to download (0 for the first record, 1 for the second, etc.)
    * @param expireAt expiration time of the link. Default is 24 hours from now
-   * @param fileName name of the file to download. Default is `${entry}_${recordIndex}.bin`
+   * @param fileName name of the file to download. Default is `${entry}_${recordIndex}.bin` or `${bucket}_${recordIndex}.bin` for multi-entry
    * @param baseUrl base url for link generation. If not set, the server's base url will be used
    */
   async createQueryLink(
-    entry: string,
+    entry: string | string[],
     start?: bigint,
     stop?: bigint,
     query?: QueryOptions,
@@ -469,19 +469,41 @@ export class Bucket {
     fileName?: string,
     baseUrl?: string,
   ): Promise<string> {
+    const entries = Array.isArray(entry) ? entry : [entry];
+    const entryName = entries[0] ?? "";
+    if (Array.isArray(entry)) {
+      if (this.httpClient.apiVersion && this.httpClient.apiVersion["1"] < 18) {
+        throw new Error(
+          "Multiple entries require ReductStore API version >= 1.18",
+        );
+      }
+      if (entries.length == 0) {
+        throw new Error("At least one entry must be specified");
+      }
+    }
+
     const queryLinkOptions = {
       bucket: this.name,
-      entry,
+      entry: entryName,
       query: query ?? {},
       index: recordIndex ?? 0,
       expireAt: expireAt ?? new Date(Date.now() + 24 * 3600 * 1000),
       baseUrl,
     } as QueryLinkOptions;
 
-    const file = fileName ?? `${entry}_${recordIndex ?? 0}.bin`;
+    const entriesForQuery = Array.isArray(entry) ? entries : [];
+
+    const file =
+      fileName ??
+      `${entryName.length == 0 ? this.name : entryName}_${recordIndex ?? 0}.bin`;
     const { data } = await this.httpClient.post<{ link: string }>(
       `/links/${file}`,
-      QueryLinkOptions.serialize(queryLinkOptions, start, stop),
+      QueryLinkOptions.serialize(
+        queryLinkOptions,
+        start,
+        stop,
+        entriesForQuery,
+      ),
     );
 
     return data.link;

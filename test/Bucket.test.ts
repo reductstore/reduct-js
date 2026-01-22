@@ -674,6 +674,24 @@ describe("Bucket", () => {
       expect(await resp.text()).toEqual("somedata1");
     });
 
+    it_api("1.18")(
+      "should create and use a query link across multiple entries",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const link = await bucket.createQueryLink(
+          ["entry-1", "entry-2"],
+          undefined,
+          undefined,
+          {
+            when: { $limit: 1 },
+          },
+        );
+
+        const resp = await fetch(link);
+        expect(await resp.text()).toEqual("somedata1");
+      },
+    );
+
     it_api("1.17")("should create a query link with record index", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const link = await bucket.createQueryLink(

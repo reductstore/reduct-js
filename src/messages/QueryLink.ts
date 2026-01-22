@@ -6,7 +6,7 @@ import { QueryOptions, QueryType } from "./QueryEntry";
 export class QueryLinkOptions {
   /** bucket name */
   bucket = "";
-  /** entry name */
+  /** entry name (or bucket name for multi-entry queries) */
   entry = "";
   /** record index */
   index = 0;
@@ -21,6 +21,7 @@ export class QueryLinkOptions {
     options: QueryLinkOptions,
     start?: bigint,
     stop?: bigint,
+    entries?: string[],
   ): OriginalCreateQueryLink {
     return {
       bucket: options.bucket,
@@ -31,6 +32,7 @@ export class QueryLinkOptions {
         options.query,
         start,
         stop,
+        entries,
       ),
       expire_at: Math.floor(options.expireAt.getTime() / 1000),
       base_url: options.baseUrl,
