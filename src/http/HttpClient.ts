@@ -86,14 +86,19 @@ export class HttpClient {
       }, timeout);
     }
 
+    const encodedBody = this.encodeBody(body);
+    const hasReadableStream =
+      typeof ReadableStream !== "undefined" &&
+      encodedBody instanceof ReadableStream;
+
     const init: RequestInit = {
       method,
       headers: { ...this.headers, ...headers },
-      body: this.encodeBody(body),
+      body: encodedBody,
       signal: signal,
       // @ts-ignore Node.js only
       dispatcher: this.dispatcher,
-      duplex: body instanceof ReadableStream ? "half" : undefined,
+      duplex: hasReadableStream ? "half" : undefined,
     };
 
     const response = await fetch(`${this.baseURL}${url}`, init).catch((err) => {
