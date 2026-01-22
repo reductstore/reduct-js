@@ -38,4 +38,4 @@ const read = async () => {
   }
 };
 
-Promise.all([write(), read()]).then(() => console.log("done"));
+Promise.all([read(), write()]).then(() => console.log("done"));
