@@ -45,8 +45,8 @@ test("HTTP client should NOT set dispatcher when verifySSL is true", () => {
 describe("Client", () => {
   const client: Client = makeClient();
 
-  beforeEach((done) => {
-    cleanStorage(client).then(() => done());
+  beforeEach(async () => {
+    await cleanStorage(client);
   });
 
   it("should get information about the server", async () => {

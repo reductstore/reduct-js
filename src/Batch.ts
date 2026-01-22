@@ -184,7 +184,11 @@ export class Batch {
   items(): IterableIterator<
     [bigint, { data: Buffer; contentType: string; labels: LabelMap }]
   > {
-    return new Map([...this.records.entries()].sort()).entries();
+    return new Map(
+      [...this.records.entries()].sort((a, b) =>
+        a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0,
+      ),
+    ).entries();
   }
 
   /**

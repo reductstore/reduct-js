@@ -473,9 +473,13 @@ export class Bucket {
       return out;
     }
 
-    const timeHeaders = [...headers.keys()].filter((k) =>
-      k.startsWith("x-reduct-time-"),
-    );
+    const timeHeaders = [...headers.keys()]
+      .filter((k) => k.startsWith("x-reduct-time-"))
+      .sort((a, b) => {
+        const tsA = BigInt(a.slice(14));
+        const tsB = BigInt(b.slice(14));
+        return tsA < tsB ? -1 : tsA > tsB ? 1 : 0;
+      });
     const total = timeHeaders.length;
     let index = 0;
 
