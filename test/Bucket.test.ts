@@ -367,6 +367,26 @@ describe("Bucket", () => {
       ).rejects.toHaveProperty("status", 404);
     });
 
+    it_api("1.18", true)(
+      "should query records across multiple entries",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const records: ReadableRecord[] = await all(
+          bucket.query(["entry-1", "entry-2"]),
+        );
+
+        const entryTimePairs = records.map((record) => {
+          return { entry: record.entry, time: record.time };
+        });
+        expect(entryTimePairs).toEqual([
+          { entry: "entry-1", time: 1_000_000n },
+          { entry: "entry-2", time: 2_000_000n },
+          { entry: "entry-2", time: 3_000_000n },
+          { entry: "entry-2", time: 4_000_000n },
+        ]);
+      },
+    );
+
     it_api("1.6", true)("should query limited number of query", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const records: ReadableRecord[] = await all(

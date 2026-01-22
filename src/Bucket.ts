@@ -8,6 +8,8 @@ import { Batch, BatchType } from "./Batch";
 import { QueryOptions, QueryType } from "./messages/QueryEntry";
 import { HttpClient } from "./http/HttpClient";
 import { QueryLinkOptions } from "./messages/QueryLink";
+import { fetchAndParseBatchV1 } from "./batch/BatchV1";
+import { fetchAndParseBatchV2 } from "./batch/BatchV2";
 
 /**
  * Options for writing records
@@ -252,7 +254,7 @@ export class Bucket {
   /**
    * Query records for a time interval as generator
    * @param entry entry name
-   * @param entry {string} name of the entry
+   * @param entry {string | string[]} name of the entry or entries
    * @param start {BigInt} start point of the time period
    * @param stop {BigInt} stop point of the time period
    * @param options {QueryOptions} options options for query
@@ -267,32 +269,58 @@ export class Bucket {
    * }
    */
   async *query(
-    entry: string,
+    entry: string | string[],
     start?: bigint,
     stop?: bigint,
     options?: QueryOptions,
   ): AsyncGenerator<ReadableRecord> {
-    let continuous = false;
-    let pollInterval = 1;
-    let head = false;
-
     const _options = options ?? {};
-    const { data } = await this.httpClient.post<{ id: string }>(
-      `/b/${this.name}/${entry}/q`,
-      QueryOptions.serialize(QueryType.QUERY, _options, start, stop),
+    const continuous = _options.continuous ?? false;
+    const pollInterval = _options.pollInterval ?? 1;
+    const head = _options.head ?? false;
+
+    const entries = Array.isArray(entry) ? entry : [entry];
+
+    let fetcher = fetchAndParseBatchV1;
+    let queryUrl = `/b/${this.name}/${entry}/q`;
+    let queryBody = QueryOptions.serialize(
+      QueryType.QUERY,
+      _options,
+      start,
+      stop,
     );
 
-    const { id } = data;
-    continuous = _options.continuous ?? false;
-    pollInterval = _options.pollInterval ?? 1;
-    head = _options.head ?? false;
+    if (this.httpClient.apiVersion && this.httpClient.apiVersion["1"] >= 18) {
+      fetcher = fetchAndParseBatchV2;
+      queryUrl = `/io/${this.name}/q`;
+      queryBody = QueryOptions.serialize(
+        QueryType.QUERY,
+        _options,
+        start,
+        stop,
+        entries,
+      );
+    } else if (entries.length > 1) {
+      throw new APIError(
+        "Multiple entries require ReductStore API version >= 1.18",
+        400,
+      );
+    }
 
-    yield* this.fetchAndParseBatchedRecords(
-      entry,
+    const { data } = await this.httpClient.post<{ id: string }>(
+      queryUrl,
+      queryBody,
+    );
+    const { id } = data;
+
+    yield* fetcher(
+      this.name,
+      entries[0] ?? "",
       id,
       continuous,
       pollInterval,
       head,
+      this.httpClient,
     );
   }
 
@@ -370,6 +398,7 @@ export class Bucket {
     }
 
     return new ReadableRecord(
+      entry,
       timestamp,
       contentLength,
       last,
@@ -378,179 +407,6 @@ export class Bucket {
       labels,
       contentType,
     );
-  }
-
-  private async *fetchAndParseBatchedRecords(
-    entry: string,
-    id: string,
-    continueQuery: boolean,
-    poolInterval: number,
-    head: boolean,
-  ) {
-    while (true) {
-      try {
-        for await (const record of this.readBatchedRecords(entry, head, id)) {
-          yield record;
-
-          if (record.last) {
-            return;
-          }
-        }
-      } catch (e) {
-        if (e instanceof APIError && e.status === 204) {
-          if (continueQuery) {
-            await new Promise((resolve) =>
-              setTimeout(resolve, poolInterval * 1000),
-            );
-            continue;
-          }
-          return;
-        }
-        throw e;
-      }
-    }
-  }
-
-  private async *readBatchedRecords(
-    entry: string,
-    head: boolean,
-    id: string,
-  ): AsyncGenerator<ReadableRecord> {
-    const url = `/b/${this.name}/${entry}/batch?q=${id}`;
-    const resp = head
-      ? await this.httpClient.head(url)
-      : await this.httpClient.get(url);
-
-    if (resp.status === 204) {
-      throw new APIError(
-        resp.headers.get("x-reduct-error") ?? "No content",
-        204,
-      );
-    }
-
-    const { headers, data: body } = resp;
-
-    let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
-    if (!head && body instanceof ReadableStream) {
-      reader = body.getReader();
-    }
-
-    let leftover: Uint8Array | null = null;
-
-    async function readExactly(len: number): Promise<Uint8Array> {
-      if (!reader) throw new Error("Reader is not available");
-      const parts: Uint8Array[] = [];
-      let filled = 0;
-
-      if (leftover) {
-        const take = Math.min(leftover.length, len);
-        parts.push(leftover.subarray(0, take));
-        filled += take;
-        leftover = leftover.length > take ? leftover.subarray(take) : null;
-      }
-
-      while (filled < len) {
-        const { value, done } = await reader.read();
-        if (done) throw new Error("Unexpected EOF while batching records");
-
-        const need = len - filled;
-        if (value.length > need) {
-          parts.push(value.subarray(0, need));
-          leftover = value.subarray(need);
-          filled = len;
-        } else {
-          parts.push(value);
-          filled += value.length;
-        }
-      }
-
-      const out = new Uint8Array(len);
-      let off = 0;
-      for (const p of parts) {
-        out.set(p, off);
-        off += p.length;
-      }
-      return out;
-    }
-
-    const timeHeaders = [...headers.keys()]
-      .filter((k) => k.startsWith("x-reduct-time-"))
-      .sort((a, b) => {
-        const tsA = BigInt(a.slice(14));
-        const tsB = BigInt(b.slice(14));
-        return tsA < tsB ? -1 : tsA > tsB ? 1 : 0;
-      });
-    const total = timeHeaders.length;
-    let index = 0;
-
-    for (const h of timeHeaders) {
-      const tsStr = h.slice(14);
-      const value = headers.get(h);
-      if (!value)
-        throw new APIError(`Invalid header ${h} with value ${value}`, 500);
-
-      const { size, contentType, labels } = parseCsvRow(value);
-      const byteLen = Number(size);
-
-      index += 1;
-      const isLastInBatch = index === total;
-      const isLastInQuery =
-        headers.get("x-reduct-last") === "true" && isLastInBatch;
-
-      let bytes: Uint8Array;
-
-      let stream: ReadableStream<Uint8Array>;
-      if (!reader) {
-        stream = new ReadableStream<Uint8Array>({
-          start(ctrl) {
-            ctrl.close();
-          },
-        });
-      } else if (isLastInBatch) {
-        // Last record in batch must be stramed
-        // because it can be very large
-        stream = new ReadableStream<Uint8Array>({
-          start(ctrl) {
-            if (leftover) {
-              ctrl.enqueue(leftover);
-            }
-          },
-
-          async pull(ctrl) {
-            if (!reader) {
-              throw new Error("Reader is not available");
-            }
-
-            const { value, done: isDone } = await reader.read();
-            if (value) {
-              ctrl.enqueue(value);
-            }
-
-            if (isDone) {
-              ctrl.close();
-            }
-          },
-        });
-      } else {
-        bytes = await readExactly(byteLen);
-        stream = new ReadableStream<Uint8Array>({
-          start(ctrl) {
-            if (bytes.length) ctrl.enqueue(bytes);
-            ctrl.close();
-          },
-        });
-      }
-
-      yield new ReadableRecord(
-        BigInt(tsStr),
-        BigInt(byteLen),
-        isLastInQuery,
-        head,
-        stream,
-        labels,
-        contentType,
-      );
-    }
   }
 
   /**
@@ -607,51 +463,4 @@ export class Bucket {
 
     return data.link;
   }
-}
-
-function parseCsvRow(row: string): {
-  size: bigint;
-  contentType?: string;
-  labels: LabelMap;
-} {
-  const items: string[] = [];
-  let escaped = "";
-
-  for (const item of row.split(",")) {
-    if (item.startsWith('"') && !escaped) {
-      escaped = item.substring(1);
-    }
-
-    if (escaped) {
-      if (item.endsWith('"')) {
-        escaped = escaped.slice(0, -1);
-        items.push(escaped);
-        escaped = "";
-      } else {
-        escaped += item;
-      }
-    } else {
-      items.push(item);
-    }
-  }
-
-  const size = BigInt(items[0]);
-  // eslint-disable-next-line prefer-destructuring
-  const contentType = items[1];
-  const labels: LabelMap = {};
-
-  for (const item of items.slice(2)) {
-    if (!item.includes("=")) {
-      continue;
-    }
-
-    const [key, value] = item.split("=", 2);
-    labels[key] = value;
-  }
-
-  return {
-    size,
-    contentType,
-    labels,
-  };
 }

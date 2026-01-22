@@ -9,6 +9,7 @@ export type LabelMap = Record<string, string | number | boolean | bigint>;
  */
 export class ReadableRecord {
   public readonly time: bigint;
+  public readonly entry: string;
   public readonly size: bigint;
   public readonly last: boolean;
   public readonly stream: ReadableStream<Uint8Array>;
@@ -21,6 +22,7 @@ export class ReadableRecord {
    * @internal
    */
   public constructor(
+    entry: string,
     time: bigint,
     size: bigint,
     last: boolean,
@@ -35,6 +37,7 @@ export class ReadableRecord {
     this.stream = stream;
     this.labels = labels;
     this.contentType = contentType;
+    this.entry = entry;
   }
 
   /**
