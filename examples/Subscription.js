@@ -41,6 +41,7 @@ const read = async () => {
 const main = async () => {
   await Promise.all([write(), read()]);
   console.log("done");
+  process.exitCode = 0;
 };
 
 main().catch((err) => {
