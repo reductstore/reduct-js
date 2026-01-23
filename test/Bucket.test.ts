@@ -544,6 +544,18 @@ describe("Bucket", () => {
         status: 422,
       });
     });
+
+    it_api("1.18", true)(
+      "should handle empty batch in multi-entry query",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        // Query a non-existent entry in multi-entry mode
+        const records: ReadableRecord[] = await all(
+          bucket.query(["non-existent-entry"]),
+        );
+        expect(records.length).toEqual(0);
+      },
+    );
   });
 
   describe("remove", () => {

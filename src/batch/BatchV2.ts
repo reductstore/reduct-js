@@ -82,6 +82,11 @@ async function* readBatchedRecords(
     throw new Error("x-reduct-entries header is required");
   }
 
+  // Handle empty batch - server sends empty entries header
+  if (entriesHeader.trim() === "") {
+    return;
+  }
+
   const startTsHeader = responseHeaders.get(START_TS_HEADER);
   if (!startTsHeader) {
     throw new Error("x-reduct-start-ts header is required");
