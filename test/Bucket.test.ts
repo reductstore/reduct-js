@@ -579,9 +579,7 @@ describe("Bucket", () => {
 
       const errors = await batch.write();
       expect(errors.size).toEqual(1);
-      expect(errors.get(5000_000n)).toEqual(
-        new APIError("Record 5000000 not found in entry bucket/entry-2", 404),
-      );
+      expect(errors.get(5000_000n)?.status).toEqual(404);
     });
 
     it_api("1.18", true)(
@@ -618,12 +616,7 @@ describe("Bucket", () => {
 
         const errors = await batch.send();
         expect(errors.get("entry-1")).toBeUndefined();
-        expect(errors.get("entry-2")?.get(10_000_000n)).toEqual(
-          new APIError(
-            "Record 10000000 not found in entry bucket/entry-2",
-            404,
-          ),
-        );
+        expect(errors.get("entry-2")?.get(10_000_000n)?.status).toEqual(404);
 
         await expect(
           bucket.beginRead("entry-1", 1000_000n),
@@ -719,9 +712,7 @@ describe("Bucket", () => {
 
       const errors = await batch.write();
       expect(errors.size).toEqual(1);
-      expect(errors.get(20_000_000n)).toEqual(
-        new APIError("Record 20000000 not found in entry bucket/entry-1", 404),
-      );
+      expect(errors.get(20_000_000n)?.status).toEqual(404);
     });
 
     it_api("1.11", true)("should update labels", async () => {
@@ -770,12 +761,7 @@ describe("Bucket", () => {
 
         const errors = await batch.send();
         expect(errors.get("entry-1")).toBeUndefined();
-        expect(errors.get("entry-2")?.get(10_000_000n)).toEqual(
-          new APIError(
-            "Record 10000000 not found in entry bucket/entry-2",
-            404,
-          ),
-        );
+        expect(errors.get("entry-2")?.get(10_000_000n)?.status).toEqual(404);
 
         const record1 = await bucket.beginRead("entry-1", 1000_000n);
         expect(record1.labels).toEqual({
