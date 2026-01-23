@@ -79,7 +79,9 @@ async function* readBatchedRecords(
 
   const entriesHeader = responseHeaders.get(ENTRIES_HEADER);
   if (!entriesHeader) {
-    throw new Error(`x-reduct-entries header is required: ${entriesHeader}`);
+    throw new Error(
+      `x-reduct-entries header is required: ${entriesHeader}, body: ${body}, status: ${resp.status}`,
+    );
   }
 
   const startTsHeader = responseHeaders.get(START_TS_HEADER);
