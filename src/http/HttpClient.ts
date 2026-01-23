@@ -96,10 +96,17 @@ export class HttpClient {
       headers: { ...this.headers, ...headers },
       body: encodedBody,
       signal: signal,
-      // @ts-ignore Node.js only
-      dispatcher: this.dispatcher,
-      duplex: hasReadableStream ? "half" : undefined,
     };
+
+    if (this.dispatcher) {
+      // @ts-ignore Node.js only
+      init.dispatcher = this.dispatcher;
+    }
+
+    if (hasReadableStream) {
+      // @ts-ignore Node.js only
+      init.duplex = "half";
+    }
 
     const response = await fetch(`${this.baseURL}${url}`, init).catch((err) => {
       if (abortedByTimeout)
