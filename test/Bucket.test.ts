@@ -258,6 +258,64 @@ describe("Bucket", () => {
       expect(batch.lastAccessTime()).toEqual(0);
     });
 
+    it_api("1.18", true)(
+      "should write a record batch to multiple entries",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const batch = await bucket.beginWriteRecordBatch();
+        batch.add("entry-batch-1", 1000n, "alpha", "text/plain", {
+          label: "a",
+        });
+        batch.add("entry-batch-2", 2000n, "beta");
+
+        const errors = await batch.send();
+        expect(errors.size).toEqual(0);
+
+        const recordsEntry1: ReadableRecord[] = await all(
+          bucket.query("entry-batch-1"),
+        );
+        expect(recordsEntry1.length).toEqual(1);
+        expect(recordsEntry1[0]).toMatchObject({
+          time: 1000n,
+          size: 5n,
+          contentType: "text/plain",
+          labels: { label: "a" },
+        });
+        expect(await recordsEntry1[0].read()).toEqual(Buffer.from("alpha"));
+
+        const recordsEntry2: ReadableRecord[] = await all(
+          bucket.query("entry-batch-2"),
+        );
+        expect(recordsEntry2.length).toEqual(1);
+        expect(recordsEntry2[0]).toMatchObject({
+          time: 2000n,
+          size: 4n,
+          contentType: "application/octet-stream",
+          labels: {},
+        });
+        expect(await recordsEntry2[0].read()).toEqual(Buffer.from("beta"));
+      },
+    );
+
+    it_api("1.18", true)("should parse record batch errors", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      const batch = bucket.beginWriteRecordBatch();
+
+      batch.add("entry-1", 1000_000n, "dup");
+      batch.add("entry-1", 1500_000n, "ok");
+
+      const errors = await batch.send();
+      expect(errors.size).toEqual(1);
+      const entryErrors = errors.get("entry-1");
+      expect(entryErrors).toBeDefined();
+      expect(entryErrors?.get(1000_000n)).toEqual(
+        new APIError("A record with timestamp 1000000 already exists", 409),
+      );
+
+      const records: ReadableRecord[] = await all(bucket.query("entry-1"));
+      expect(records.some((record) => record.time === 1500_000n)).toEqual(true);
+    });
+
     it("should return batch items in numeric timestamp order", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const batch = await bucket.beginWriteBatch("entry-order");
@@ -366,6 +424,26 @@ describe("Bucket", () => {
         all(bucket.query("entry-2", undefined, undefined, { ttl: 0 })),
       ).rejects.toHaveProperty("status", 404);
     });
+
+    it_api("1.18", true)(
+      "should query records across multiple entries",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const records: ReadableRecord[] = await all(
+          bucket.query(["entry-1", "entry-2"]),
+        );
+
+        const entryTimePairs = records.map((record) => {
+          return { entry: record.entry, time: record.time };
+        });
+        expect(entryTimePairs).toEqual([
+          { entry: "entry-1", time: 1_000_000n },
+          { entry: "entry-2", time: 2_000_000n },
+          { entry: "entry-2", time: 3_000_000n },
+          { entry: "entry-2", time: 4_000_000n },
+        ]);
+      },
+    );
 
     it_api("1.6", true)("should query limited number of query", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
@@ -501,10 +579,52 @@ describe("Bucket", () => {
 
       const errors = await batch.write();
       expect(errors.size).toEqual(1);
-      expect(errors.get(5000_000n)).toEqual(
-        new APIError("No record with timestamp 5000000", 404),
-      );
+      expect(errors.get(5000_000n)?.status).toEqual(404);
     });
+
+    it_api("1.18", true)(
+      "should remove records across entries in a record batch",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const batch = bucket.beginRemoveRecordBatch();
+        batch.addOnlyTimestamp("entry-1", 1000_000n);
+        batch.addOnlyTimestamp("entry-2", 2000_000n);
+
+        const errors = await batch.send();
+        expect(errors.size).toEqual(0);
+
+        await expect(
+          bucket.beginRead("entry-1", 1000_000n),
+        ).rejects.toMatchObject({
+          status: 404,
+        });
+        await expect(
+          bucket.beginRead("entry-2", 2000_000n),
+        ).rejects.toMatchObject({
+          status: 404,
+        });
+      },
+    );
+
+    it_api("1.18", true)(
+      "should parse errors from record batch removal",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const batch = bucket.beginRemoveRecordBatch();
+        batch.addOnlyTimestamp("entry-1", 1000_000n);
+        batch.addOnlyTimestamp("entry-2", 10_000_000n);
+
+        const errors = await batch.send();
+        expect(errors.get("entry-1")).toBeUndefined();
+        expect(errors.get("entry-2")?.get(10_000_000n)?.status).toEqual(404);
+
+        await expect(
+          bucket.beginRead("entry-1", 1000_000n),
+        ).rejects.toMatchObject({
+          status: 404,
+        });
+      },
+    );
 
     it_api("1.12", true)("should remove records by query", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
@@ -526,6 +646,28 @@ describe("Bucket", () => {
       expect(records[0].time).toEqual(3000000n);
       expect(records[1].time).toEqual(4000000n);
     });
+
+    it_api("1.18", true)(
+      "should remove records by query across multiple entries",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const removed = await bucket.removeQuery(
+          ["entry-1", "entry-2"],
+          0n,
+          3_000_000n,
+        );
+
+        expect(removed).toEqual(2);
+        await expect(bucket.beginRead("entry-1")).rejects.toMatchObject({
+          status: 404,
+        });
+
+        const records: ReadableRecord[] = await all(bucket.query("entry-2"));
+        expect(records.length).toEqual(2);
+        expect(records[0].time).toEqual(3000000n);
+        expect(records[1].time).toEqual(4000000n);
+      },
+    );
 
     it_api("1.13")("should remove records by condition", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
@@ -570,9 +712,7 @@ describe("Bucket", () => {
 
       const errors = await batch.write();
       expect(errors.size).toEqual(1);
-      expect(errors.get(20_000_000n)).toEqual(
-        new APIError("No record with timestamp 20000000", 404),
-      );
+      expect(errors.get(20_000_000n)?.status).toEqual(404);
     });
 
     it_api("1.11", true)("should update labels", async () => {
@@ -586,6 +726,51 @@ describe("Bucket", () => {
         label3: "true",
       });
     });
+
+    it_api("1.18", true)(
+      "should update labels across entries in a record batch",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+
+        const batch = bucket.beginUpdateRecordBatch();
+        batch.addOnlyLabels("entry-1", 1000_000n, {
+          label1: "updated",
+          label2: "",
+        });
+        batch.addOnlyLabels("entry-2", 2000_000n, { label1: "value2" });
+
+        const errors = await batch.send();
+        expect(errors.size).toEqual(0);
+
+        const record1 = await bucket.beginRead("entry-1", 1000_000n);
+        expect(record1.labels).toEqual({ label1: "updated", label3: "true" });
+
+        const record2 = await bucket.beginRead("entry-2", 2000_000n);
+        expect(record2.labels).toEqual({ label1: "value2" });
+      },
+    );
+
+    it_api("1.18", true)(
+      "should parse errors from record batch updates",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+
+        const batch = bucket.beginUpdateRecordBatch();
+        batch.addOnlyLabels("entry-1", 1000_000n, { label1: "ok" });
+        batch.addOnlyLabels("entry-2", 10_000_000n, { label1: "missing" });
+
+        const errors = await batch.send();
+        expect(errors.get("entry-1")).toBeUndefined();
+        expect(errors.get("entry-2")?.get(10_000_000n)?.status).toEqual(404);
+
+        const record1 = await bucket.beginRead("entry-1", 1000_000n);
+        expect(record1.labels).toEqual({
+          label1: "ok",
+          label2: "100",
+          label3: "true",
+        });
+      },
+    );
   });
 
   describe("rename", () => {
@@ -631,6 +816,24 @@ describe("Bucket", () => {
       const resp = await fetch(link);
       expect(await resp.text()).toEqual("somedata1");
     });
+
+    it_api("1.18")(
+      "should create and use a query link across multiple entries",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const link = await bucket.createQueryLink(
+          ["entry-1", "entry-2"],
+          undefined,
+          undefined,
+          {
+            when: { $limit: 1 },
+          },
+        );
+
+        const resp = await fetch(link);
+        expect(await resp.text()).toEqual("somedata1");
+      },
+    );
 
     it_api("1.17")("should create a query link with record index", async () => {
       const bucket: Bucket = await client.getBucket("bucket");

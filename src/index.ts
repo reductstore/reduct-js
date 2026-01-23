@@ -12,6 +12,7 @@ import { ReplicationSettings } from "./messages/ReplicationSettings";
 import { ReplicationMode } from "./messages/ReplicationMode";
 import { FullReplicationInfo } from "./messages/ReplicationInfo";
 import { Batch } from "./Batch";
+import { RecordBatch, RecordBatchType } from "./RecordBatch";
 import { QueryOptions } from "./messages/QueryEntry";
 
 export {
@@ -34,4 +35,6 @@ export {
   ReplicationMode,
   FullReplicationInfo,
   Batch,
+  RecordBatch,
+  RecordBatchType,
 };

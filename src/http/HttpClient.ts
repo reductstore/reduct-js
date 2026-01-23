@@ -30,9 +30,10 @@ export type FetchResult<T extends ValidResponse = ValidResponse> = {
 
 export class HttpClient {
   private baseURL: string;
-  private timeout?: number;
-  private headers: HeadersInit;
-  private dispatcher?: any;
+  private readonly timeout?: number;
+  private readonly headers: HeadersInit;
+  private readonly dispatcher?: any;
+  public apiVersion?: [number, number];
 
   constructor(url: string, options: ClientOptions = {}) {
     this.baseURL = `${url}/api/v1`;
@@ -85,15 +86,30 @@ export class HttpClient {
       }, timeout);
     }
 
+    const encodedBody = this.encodeBody(body);
+    const hasReadableStream =
+      typeof ReadableStream !== "undefined" &&
+      encodedBody instanceof ReadableStream;
+
     const init: RequestInit = {
       method,
       headers: { ...this.headers, ...headers },
-      body: this.encodeBody(body),
       signal: signal,
-      // @ts-ignore Node.js only
-      dispatcher: this.dispatcher,
-      duplex: body instanceof ReadableStream ? "half" : undefined,
     };
+
+    if (encodedBody !== undefined) {
+      init.body = encodedBody;
+    }
+
+    if (this.dispatcher) {
+      // @ts-ignore Node.js only
+      init.dispatcher = this.dispatcher;
+    }
+
+    if (hasReadableStream) {
+      // @ts-ignore Node.js only
+      init.duplex = "half";
+    }
 
     const response = await fetch(`${this.baseURL}${url}`, init).catch((err) => {
       if (abortedByTimeout)
@@ -112,7 +128,7 @@ export class HttpClient {
         response,
       });
 
-    checkServeApiVersion(apiVersionHeader);
+    this.apiVersion = checkServeApiVersion(apiVersionHeader);
 
     if (!response.ok) {
       const message =
@@ -168,8 +184,9 @@ export class HttpClient {
   // ---------- helpers ----------
   get<T extends ValidResponse = ValidResponse>(
     url: string,
+    headers?: HeadersInit,
   ): Promise<FetchResult<T>> {
-    return this.request<T>("GET", url);
+    return this.request<T>("GET", url, undefined, headers);
   }
 
   post<T extends ValidResponse = ValidResponse>(
@@ -203,12 +220,15 @@ export class HttpClient {
     return this.request<T>("DELETE", url, undefined, headers);
   }
 
-  head(url: string): Promise<FetchResult<Record<string, never>>> {
-    return this.request("HEAD", url);
+  head(
+    url: string,
+    headers?: HeadersInit,
+  ): Promise<FetchResult<Record<string, never>>> {
+    return this.request("HEAD", url, undefined, headers);
   }
 }
 
-const checkServeApiVersion = (serverApiVersion: string) => {
+const checkServeApiVersion = (serverApiVersion: string): [number, number] => {
   const [server_major, server_minor] = serverApiVersion
     .split(".")
     .map((v) => parseInt(v));
@@ -228,4 +248,6 @@ const checkServeApiVersion = (serverApiVersion: string) => {
       `Server API version ${serverApiVersion} is too old for this client version ${PACKAGE_VERSION}. Please update your server.`,
     );
   }
+
+  return [server_major, server_minor];
 };

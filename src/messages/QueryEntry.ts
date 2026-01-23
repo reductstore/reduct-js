@@ -6,6 +6,9 @@ export enum QueryType {
 export interface QueryEntry {
   query_type: string;
 
+  /** List of entries to query */
+  entries?: string[];
+
   /** Start query from (Unix timestamp in microseconds) */
   start?: bigint;
   /** Stop query at (Unix timestamp in microseconds) */
@@ -73,11 +76,13 @@ export class QueryOptions {
     data: QueryOptions,
     start?: bigint,
     stop?: bigint,
+    entries?: string[],
   ): QueryEntry {
     return {
       start: start,
       stop: stop,
       query_type: QueryType[queryType],
+      entries,
       ttl: data.ttl,
       each_s: data.eachS,
       each_n: data.eachN,

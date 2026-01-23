@@ -10,7 +10,7 @@ data stored in ReductStore.
 
 ## Requirements
 
-- Node.js 18 or later
+- Node.js 20 or later
 - TypeScript 4.6 or later
 
 ## Features
