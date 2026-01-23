@@ -580,7 +580,7 @@ describe("Bucket", () => {
       const errors = await batch.write();
       expect(errors.size).toEqual(1);
       expect(errors.get(5000_000n)).toEqual(
-        new APIError("No record with timestamp 5000000", 404),
+        new APIError("Record 5000000 not found in entry bucket/entry-2", 404),
       );
     });
 
@@ -619,7 +619,10 @@ describe("Bucket", () => {
         const errors = await batch.send();
         expect(errors.get("entry-1")).toBeUndefined();
         expect(errors.get("entry-2")?.get(10_000_000n)).toEqual(
-          new APIError("No record with timestamp 10000000", 404),
+          new APIError(
+            "Record 10000000 not found in entry bucket/entry-2",
+            404,
+          ),
         );
 
         await expect(
@@ -717,7 +720,7 @@ describe("Bucket", () => {
       const errors = await batch.write();
       expect(errors.size).toEqual(1);
       expect(errors.get(20_000_000n)).toEqual(
-        new APIError("No record with timestamp 20000000", 404),
+        new APIError("Record 20000000 not found in entry bucket/entry-1", 404),
       );
     });
 
@@ -768,7 +771,10 @@ describe("Bucket", () => {
         const errors = await batch.send();
         expect(errors.get("entry-1")).toBeUndefined();
         expect(errors.get("entry-2")?.get(10_000_000n)).toEqual(
-          new APIError("No record with timestamp 10000000", 404),
+          new APIError(
+            "Record 10000000 not found in entry bucket/entry-2",
+            404,
+          ),
         );
 
         const record1 = await bucket.beginRead("entry-1", 1000_000n);
