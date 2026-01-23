@@ -41,10 +41,10 @@ const read = async () => {
 const main = async () => {
   await Promise.all([write(), read()]);
   console.log("done");
-  process.exitCode = 0;
+  process.exit(0);
 };
 
 main().catch((err) => {
   console.error(err);
-  process.exitCode = 1;
+  process.exit(1);
 });
