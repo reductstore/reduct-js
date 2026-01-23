@@ -94,9 +94,12 @@ export class HttpClient {
     const init: RequestInit = {
       method,
       headers: { ...this.headers, ...headers },
-      body: encodedBody,
       signal: signal,
     };
+
+    if (encodedBody !== undefined) {
+      init.body = encodedBody;
+    }
 
     if (this.dispatcher) {
       // @ts-ignore Node.js only
