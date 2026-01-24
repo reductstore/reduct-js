@@ -40,6 +40,8 @@ export async function* fetchAndParseBatchV2(
           return;
         }
       }
+      // If readBatchedRecords completes without yielding records (empty batch), the query is done
+      return;
     } catch (e) {
       if (e instanceof APIError && e.status === 204) {
         if (continueQuery) {
@@ -75,10 +77,8 @@ async function* readBatchedRecords(
 
   const { headers: responseHeaders, data: body } = resp;
 
-  const { createStream } = createBatchStreamReader(head, body);
-
   const entriesHeader = responseHeaders.get(ENTRIES_HEADER);
-  if (!entriesHeader) {
+  if (entriesHeader === null) {
     throw new Error("x-reduct-entries header is required");
   }
 
@@ -86,6 +86,8 @@ async function* readBatchedRecords(
   if (entriesHeader.trim() === "") {
     return;
   }
+
+  const { createStream } = createBatchStreamReader(head, body);
 
   const startTsHeader = responseHeaders.get(START_TS_HEADER);
   if (!startTsHeader) {
