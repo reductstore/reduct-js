@@ -40,8 +40,6 @@ export async function* fetchAndParseBatchV2(
           return;
         }
       }
-      // If readBatchedRecords completes without yielding records (empty batch), the query is done
-      return;
     } catch (e) {
       if (e instanceof APIError && e.status === 204) {
         if (continueQuery) {
