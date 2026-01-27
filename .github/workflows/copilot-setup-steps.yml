@@ -23,11 +23,6 @@ jobs:
         image: reduct/store:main
         ports:
           - 8383:8383
-        options: >-
-          --health-cmd "curl -f http://localhost:8383/api/v1/alive || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - name: Checkout code
