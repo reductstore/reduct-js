@@ -27,6 +27,7 @@ export async function* fetchAndParseBatchV2(
 ) {
   while (true) {
     try {
+      let yielded = false;
       for await (const record of readBatchedRecords(
         bucket,
         entry,
@@ -34,11 +35,16 @@ export async function* fetchAndParseBatchV2(
         id,
         httpClient,
       )) {
+        yielded = true;
         yield record;
 
         if (record.last) {
           return;
         }
+      }
+
+      if (!yielded) {
+        return;
       }
     } catch (e) {
       if (e instanceof APIError && e.status === 204) {
@@ -75,12 +81,17 @@ async function* readBatchedRecords(
 
   const { headers: responseHeaders, data: body } = resp;
 
-  const { createStream } = createBatchStreamReader(head, body);
-
   const entriesHeader = responseHeaders.get(ENTRIES_HEADER);
-  if (!entriesHeader) {
+  if (entriesHeader === null) {
     throw new Error("x-reduct-entries header is required");
   }
+
+  // Handle empty batch - server sends empty entries header
+  if (entriesHeader.trim() === "") {
+    return;
+  }
+
+  const { createStream } = createBatchStreamReader(head, body);
 
   const startTsHeader = responseHeaders.get(START_TS_HEADER);
   if (!startTsHeader) {

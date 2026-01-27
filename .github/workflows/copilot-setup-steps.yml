@@ -1,0 +1,50 @@
+name: "Copilot Setup Steps"
+
+# Automatically run the setup steps when they are changed to allow for easy validation
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    services:
+      reductstore:
+        image: reduct/store:main
+        ports:
+          - 8383:8383
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install JavaScript dependencies
+        run: npm install
+
+      - name: Wait for ReductStore to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -f http://localhost:8383/api/v1/alive; then
+              echo "ReductStore is ready"
+              exit 0
+            fi
+            echo "Waiting for ReductStore..."
+            sleep 1
+          done
+          echo "ReductStore failed to start"
+          exit 1

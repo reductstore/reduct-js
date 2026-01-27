@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add beta npm tag handling in CI publishing
 - Fix typo in npm keyword: "reductstorre" to "reductstore", [PR-132](https://github.com/reductstore/reduct-js/pull/132)
 - Fix `Batch.items()` and `Bucket.query()` returning records in lexicographic order instead of numeric timestamp order, [PR-134](https://github.com/reductstore/reduct-js/pull/134)
+- Fix SDK crash when multi-entry query receives empty batch response, [PR-139](https://github.com/reductstore/reduct-js/pull/139)
+- Stop BatchV2 query loop on empty batch responses to avoid hangs
 
 ## 1.17.1 - 2025-11-15
 
