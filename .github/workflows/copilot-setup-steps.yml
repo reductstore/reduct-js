@@ -20,7 +20,7 @@ jobs:
 
     services:
       reductstore:
-        image: reduct/store:latest
+        image: reduct/store:main
         ports:
           - 8383:8383
         options: >-
