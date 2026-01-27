@@ -27,6 +27,7 @@ export async function* fetchAndParseBatchV2(
 ) {
   while (true) {
     try {
+      let yielded = false;
       for await (const record of readBatchedRecords(
         bucket,
         entry,
@@ -34,11 +35,16 @@ export async function* fetchAndParseBatchV2(
         id,
         httpClient,
       )) {
+        yielded = true;
         yield record;
 
         if (record.last) {
           return;
         }
+      }
+
+      if (!yielded) {
+        return;
       }
     } catch (e) {
       if (e instanceof APIError && e.status === 204) {
