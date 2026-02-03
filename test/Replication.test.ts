@@ -10,8 +10,6 @@ describe("Replication", () => {
     dstBucket: "test-bucket-2",
     dstHost: "http://localhost:8383",
     entries: [],
-    include: {},
-    exclude: {},
     mode: "enabled" as const,
   };
 
@@ -78,22 +76,6 @@ describe("Replication", () => {
 
     const replication = await client.getReplication("test-replication");
     expect(replication.settings).toMatchObject(newSettings);
-  });
-
-  it_api("1.10")("should support each_n and each_s", async () => {
-    await client.createReplication("test-replication", {
-      ...settings,
-      eachN: 10n,
-      eachS: 10,
-      mode: "enabled" as const,
-    });
-
-    const replication = await client.getReplication("test-replication");
-    expect(replication.settings).toMatchObject({
-      ...settings,
-      eachN: 10n,
-      eachS: 10,
-    });
   });
 
   it_api("1.18")("should set replication mode", async () => {

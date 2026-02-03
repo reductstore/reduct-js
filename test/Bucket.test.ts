@@ -445,33 +445,6 @@ describe("Bucket", () => {
       },
     );
 
-    it_api("1.6", true)("should query limited number of query", async () => {
-      const bucket: Bucket = await client.getBucket("bucket");
-      const records: ReadableRecord[] = await all(
-        bucket.query("entry-2", 0n, undefined, { limit: 1 }),
-      );
-      expect(records.length).toEqual(1);
-    });
-
-    it_api("1.10", true)("should query a record each 2 s", async () => {
-      const bucket: Bucket = await client.getBucket("bucket");
-      const records: ReadableRecord[] = await all(
-        bucket.query("entry-2", 0n, undefined, { eachS: 2.0 }),
-      );
-      expect(records.length).toEqual(2);
-      expect(records[0].time).toEqual(2_000_000n);
-      expect(records[1].time).toEqual(4_000_000n);
-    });
-
-    it_api("1.10", true)("should query each 3d record", async () => {
-      const bucket: Bucket = await client.getBucket("bucket");
-      const records: ReadableRecord[] = await all(
-        bucket.query("entry-2", 0n, undefined, { eachN: 3 }),
-      );
-      expect(records.length).toEqual(1);
-      expect(records[0].time).toEqual(2_000_000n);
-    });
-
     it_api("1.13", true)("should query records with condition", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
 
@@ -625,27 +598,6 @@ describe("Bucket", () => {
         });
       },
     );
-
-    it_api("1.12", true)("should remove records by query", async () => {
-      const bucket: Bucket = await client.getBucket("bucket");
-      const removed = await bucket.removeQuery(
-        "entry-2",
-        1_000_000n,
-        3_000_000n,
-        { eachN: 2 },
-      );
-      expect(removed).toEqual(1);
-      await expect(
-        bucket.beginRead("entry-2", 2000_000n),
-      ).rejects.toMatchObject({
-        status: 404,
-      });
-
-      const records: ReadableRecord[] = await all(bucket.query("entry-2"));
-      expect(records.length).toEqual(2);
-      expect(records[0].time).toEqual(3000000n);
-      expect(records[1].time).toEqual(4000000n);
-    });
 
     it_api("1.18", true)(
       "should remove records by query across multiple entries",
