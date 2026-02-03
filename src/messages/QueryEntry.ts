@@ -14,13 +14,6 @@ export interface QueryEntry {
   /** Stop query at (Unix timestamp in microseconds) */
   stop?: bigint;
 
-  /** Return a record every S seconds */
-  each_s?: number;
-  /** Return a record every N records */
-  each_n?: number;
-  /** Limit the number of records returned */
-  limit?: number;
-
   /** TTL of query in seconds */
   ttl?: number;
   /** Retrieve only metadata */
@@ -84,9 +77,6 @@ export class QueryOptions {
       query_type: QueryType[queryType],
       entries,
       ttl: data.ttl,
-      each_s: data.eachS,
-      each_n: data.eachN,
-      limit: data.limit,
       continuous: data.continuous,
       when: data.when,
       strict: data.strict,
