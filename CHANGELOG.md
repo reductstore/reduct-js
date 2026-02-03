@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `Status` enum and `status` field to `BucketInfo` and `EntryInfo` for non-blocking deletions, [PR-128](https://github.com/reductstore/reduct-js/pull/128)
 - Add support for Multi-entry API, [PR-135](https://github.com/reductstore/reduct-js/pull/135)
 
+### Removed
+
+- Remove deprecated query/replication options (`eachS`, `eachN`, `limit`, `include`, `exclude`), [PR-140](https://github.com/reductstore/reduct-js/pull/140)
+
 ### Fixed
 
 - Export `ReplicationMode` as runtime namespace for ESM/JavaScript usage, [PR-127](https://github.com/reductstore/reduct-js/pull/127)
