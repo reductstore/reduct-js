@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 1.18.1 - 2026-02-05
+
+### Fixed
+
+- Disable keep-alive by default in Node.js clients to avoid hanging processes; add `Client.close()` for explicit cleanup, [PR-141](https://github.com/reductstore/reduct-js/pull/141)
+
 ## 1.18.0 - 2026-02-03
 
 ### Added
