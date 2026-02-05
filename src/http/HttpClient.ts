@@ -34,14 +34,41 @@ export class HttpClient {
   private readonly headers: HeadersInit;
   private readonly dispatcher?: any;
   public apiVersion?: [number, number];
+  private readonly keepAlive: boolean;
 
   constructor(url: string, options: ClientOptions = {}) {
     this.baseURL = `${url}/api/v1`;
     this.timeout = options.timeout;
-    this.headers = { Authorization: `Bearer ${options.apiToken}` };
+    this.keepAlive = options.keepAlive ?? false;
+    this.headers = {
+      Authorization: `Bearer ${options.apiToken}`,
+      ...(!isBrowser && !this.keepAlive ? { Connection: "close" } : {}),
+    };
 
     if (!isBrowser && options.verifySSL === false) {
       this.dispatcher = undiciAgent;
+    }
+  }
+
+  async close(): Promise<void> {
+    if (isBrowser) {
+      return;
+    }
+
+    if (this.dispatcher?.close) {
+      await this.dispatcher.close();
+      return;
+    }
+
+    // Fall back to closing the global dispatcher to release keep-alive sockets.
+    const undici = await import(/* webpackIgnore: true */ "undici");
+    const dispatcher = undici.getGlobalDispatcher?.();
+    if (dispatcher?.destroy) {
+      dispatcher.destroy();
+      return;
+    }
+    if (dispatcher?.close) {
+      await dispatcher.close();
     }
   }
 

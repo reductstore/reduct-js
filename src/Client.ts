@@ -25,6 +25,7 @@ export type ClientOptions = {
   apiToken?: string; // API token for authentication
   timeout?: number; // communication timeout
   verifySSL?: boolean; // verify SSL certificate
+  keepAlive?: boolean; // keep HTTP connections alive (Node.js)
 };
 
 export class Client {
@@ -47,6 +48,13 @@ export class Client {
   async getInfo(): Promise<ServerInfo> {
     const { data } = await this.httpClient.get<OriginalServerInfo>("/info");
     return ServerInfo.parse(data);
+  }
+
+  /**
+   * Close underlying HTTP resources (Node.js only).
+   */
+  async close(): Promise<void> {
+    await this.httpClient.close();
   }
 
   /**
