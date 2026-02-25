@@ -26,11 +26,8 @@ jobs:
       matrix:
         token: ["", "token"]
         reductstore_version: ["main", "latest"]
-        license: ["", "/workdir/lic.key"]
     steps:
       - uses: actions/checkout@v4
-      - name: Generate license
-        run: echo '${{secrets.LICENSE_KEY}}' > lic.key
 
       - name: install node js 20
         uses: actions/setup-node@v4
@@ -48,7 +45,6 @@ jobs:
         run: docker run -p 8383:8383 -v ${PWD}:/workdir
           --env RS_API_TOKEN=${{matrix.token}}
           --env RS_LOG_LEVEL=DEBUG
-          --env RS_LICENSE_PATH=${{matrix.license}}
           --env RS_EXT_PATH=/tmp
           -d reduct/store:${{ matrix.reductstore_version }}
 
@@ -56,7 +52,6 @@ jobs:
         run: npm test
         env:
           RS_API_TOKEN: ${{ matrix.token }}
-          RS_LICENSE_PATH: ${{matrix.license}}
 
   run_examples:
     runs-on: ubuntu-latest

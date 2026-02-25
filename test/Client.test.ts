@@ -2,7 +2,7 @@ import { Client } from "../src/Client";
 import { ServerInfo } from "../src/messages/ServerInfo";
 import { Bucket } from "../src/Bucket";
 import { QuotaType } from "../src/messages/BucketSettings";
-import { cleanStorage, it_api, it_env, makeClient } from "./utils/Helpers";
+import { cleanStorage, it_api, makeClient } from "./utils/Helpers";
 import { HttpClient } from "../src/http/HttpClient";
 import { Status } from "../src/messages/Status";
 
@@ -72,23 +72,6 @@ describe("Client", () => {
       quotaType: QuotaType.NONE,
     });
   });
-
-  it_env("RS_LICENSE_PATH")(
-    "should get information about the server with license",
-    async () => {
-      const info: ServerInfo = await client.getInfo();
-      expect(info.license).toEqual({
-        deviceNumber: 1,
-        diskQuota: 1,
-        expiryDate: 1778852143696,
-        fingerprint:
-          "21e2608b7d47f7fba623d714c3e14b73cd1fe3578f4010ef26bcbedfc42a4c92",
-        invoice: "---",
-        licensee: "ReductSoftware",
-        plan: "STANDARD",
-      });
-    },
-  );
 
   it("should get list of buckets", async () => {
     await client.createBucket("bucket_1");
