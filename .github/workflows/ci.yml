@@ -78,7 +78,17 @@ jobs:
         run: docker run -p 8383:8383 -v ${PWD}/data:/data -d reduct/store:${{ matrix.reductstore_version }}
 
       - name: Wait for ReductStore
-        run: sleep 3
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8383/api/v1/alive >/dev/null; then
+              echo "ReductStore is ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "ReductStore did not become ready in time"
+          docker logs $(docker ps -q --filter "ancestor=reduct/store:${{ matrix.reductstore_version }}") || true
+          exit 1
 
       - name: Run example
         run: npm run tsc && node examples/${{matrix.example}}
