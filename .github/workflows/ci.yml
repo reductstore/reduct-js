@@ -53,6 +53,14 @@ jobs:
         env:
           RS_API_TOKEN: ${{ matrix.token }}
 
+      - name: Print ReductStore logs
+        if: always()
+        run: |
+          for cid in $(docker ps -aq --filter "ancestor=reduct/store:${{ matrix.reductstore_version }}"); do
+            echo "===== Logs for container ${cid} ====="
+            docker logs "$cid" || true
+          done
+
   run_examples:
     runs-on: ubuntu-latest
     needs: format
@@ -92,6 +100,14 @@ jobs:
 
       - name: Run example
         run: npm run tsc && node examples/${{matrix.example}}
+
+      - name: Print ReductStore logs
+        if: always()
+        run: |
+          for cid in $(docker ps -aq --filter "ancestor=reduct/store:${{ matrix.reductstore_version }}"); do
+            echo "===== Logs for container ${cid} ====="
+            docker logs "$cid" || true
+          done
 
   lint:
     runs-on: ubuntu-latest
