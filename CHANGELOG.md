@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add entry attachments API in `Bucket` (`writeAttachments`, `readAttachments`, `removeAttachments`) with integration tests for API v1.19, [PR-142](https://github.com/reductstore/reduct-js/pull/142)
+
 ## 1.18.1 - 2026-02-05
 
 ### Fixed

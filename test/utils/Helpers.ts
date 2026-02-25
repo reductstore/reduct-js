@@ -86,15 +86,6 @@ export const it_api = (version: string, skip_browser = false) => {
   }
 };
 
-export const it_env = (name: string) => {
-  const variable = process.env[name];
-  if (variable !== undefined && variable.length > 0) {
-    return it;
-  } else {
-    return it.skip;
-  }
-};
-
 export const u8 = (s: string) => new TextEncoder().encode(s);
 
 const isCompatible = (

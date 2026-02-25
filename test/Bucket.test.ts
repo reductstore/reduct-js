@@ -725,6 +725,51 @@ describe("Bucket", () => {
     );
   });
 
+  describe("attachments", () => {
+    it_api("1.19", true)("should write and read attachments", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      await bucket.writeAttachments("entry-1", {
+        "meta-1": { enabled: true, values: [1, 2, 3] },
+        "meta-2": { name: "test" },
+      });
+
+      await expect(bucket.readAttachments("entry-1")).resolves.toEqual({
+        "meta-1": { enabled: true, values: [1, 2, 3] },
+        "meta-2": { name: "test" },
+      });
+    });
+
+    it_api("1.19", true)(
+      "should remove selected attachments from an entry",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        await bucket.writeAttachments("entry-1", {
+          "meta-1": { value: 1 },
+          "meta-2": { value: 2 },
+        });
+
+        await bucket.removeAttachments("entry-1", ["meta-1"]);
+        await expect(bucket.readAttachments("entry-1")).resolves.toEqual({
+          "meta-2": { value: 2 },
+        });
+      },
+    );
+
+    it_api("1.19", true)(
+      "should remove all attachments from an entry",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        await bucket.writeAttachments("entry-1", {
+          "meta-1": { value: 1 },
+          "meta-2": { value: 2 },
+        });
+
+        await bucket.removeAttachments("entry-1");
+        await expect(bucket.readAttachments("entry-1")).resolves.toEqual({});
+      },
+    );
+  });
+
   describe("rename", () => {
     it_api("1.12", true)("should rename entry", async () => {
       const bucket: Bucket = await client.getBucket("bucket");

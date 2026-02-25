@@ -540,4 +540,88 @@ export class Bucket {
 
     return data.link;
   }
+
+  /**
+   * Write attachments to an entry.
+   *
+   * Attachments are stored as JSON records in `${entry}/$meta` with `key` label.
+   *
+   * @param entry name of the source entry
+   * @param attachments map of attachment key to JSON-serializable content
+   */
+  async writeAttachments(
+    entry: string,
+    attachments: Record<string, unknown>,
+  ): Promise<void> {
+    const batch = this.beginWriteRecordBatch();
+    const entryName = `${entry}/$meta`;
+    const baseTs = BigInt(Date.now()) * 1000n;
+    let offset = 0n;
+
+    for (const [key, content] of Object.entries(attachments)) {
+      batch.add(
+        entryName,
+        baseTs + offset,
+        JSON.stringify(content),
+        "application/json",
+        { key },
+      );
+      offset += 1n;
+    }
+
+    await batch.send();
+  }
+
+  /**
+   * Read attachments from an entry.
+   *
+   * @param entry name of the source entry
+   * @return map of attachment key to decoded JSON value
+   */
+  async readAttachments(entry: string): Promise<Record<string, unknown>> {
+    const attachments: Record<string, unknown> = {};
+    const entryName = `${entry}/$meta`;
+
+    for await (const record of this.query(entryName)) {
+      if (record.labels["key"] === undefined) {
+        continue;
+      }
+
+      const key = record.labels["key"].toString();
+      attachments[key] = JSON.parse(await record.readAsString());
+    }
+
+    return attachments;
+  }
+
+  /**
+   * Remove attachments from an entry.
+   *
+   * If `attachmentKeys` is omitted, remove all attachments.
+   *
+   * @param entry name of the source entry
+   * @param attachmentKeys list of keys to remove
+   */
+  async removeAttachments(
+    entry: string,
+    attachmentKeys?: string[],
+  ): Promise<void> {
+    const entryName = `${entry}/$meta`;
+    const batch = this.beginUpdateRecordBatch();
+    const when =
+      attachmentKeys && attachmentKeys.length > 0
+        ? { $in: ["&key", ...attachmentKeys] }
+        : {};
+
+    for await (const attachment of this.query(entryName, undefined, undefined, {
+      when,
+    })) {
+      batch.addOnlyLabels(entryName, attachment.time, {
+        ...attachment.labels,
+        remove: "true",
+      });
+    }
+
+    await batch.send();
+  }
 }
