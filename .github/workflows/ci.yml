@@ -83,7 +83,7 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Run ReductStore
-        run: docker run -p 8383:8383 -v ${PWD}/data:/data -d reduct/store:${{ matrix.reductstore_version }}
+        run: docker run -p 8383:8383 -d reduct/store:${{ matrix.reductstore_version }}
 
       - name: Wait for ReductStore
         run: |
