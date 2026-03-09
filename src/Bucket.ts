@@ -610,7 +610,7 @@ export class Bucket {
     const batch = this.beginUpdateRecordBatch();
     const when =
       attachmentKeys && attachmentKeys.length > 0
-        ? { $in: ["&key", ...attachmentKeys] }
+        ? { $in: [{ "&key": { $cast: "string" } }, ...attachmentKeys] }
         : {};
 
     for await (const attachment of this.query(entryName, undefined, undefined, {

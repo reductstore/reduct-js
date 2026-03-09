@@ -768,6 +768,25 @@ describe("Bucket", () => {
         await expect(bucket.readAttachments("entry-1")).resolves.toEqual({});
       },
     );
+
+    it_api("1.19", true)(
+      "should remove attachments with numeric keys from an entry",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        await bucket.writeAttachments("entry-1", {
+          "1": { enabled: true, values: [1, 2, 3] },
+          "2.5": { name: "test" },
+        });
+
+        await expect(bucket.readAttachments("entry-1")).resolves.toEqual({
+          "1": { enabled: true, values: [1, 2, 3] },
+          "2.5": { name: "test" },
+        });
+
+        await bucket.removeAttachments("entry-1", ["1", "2.5"]);
+        await expect(bucket.readAttachments("entry-1")).resolves.toEqual({});
+      },
+    );
   });
 
   describe("rename", () => {

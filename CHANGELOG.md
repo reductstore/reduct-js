@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add entry attachments API in `Bucket` (`writeAttachments`, `readAttachments`, `removeAttachments`) with integration tests for API v1.19, [PR-142](https://github.com/reductstore/reduct-js/pull/142)
 
+### Fixed
+
+- Fix `Bucket.removeAttachments` for numeric attachment keys by casting `&key` to string in the filter condition, [PR-145](https://github.com/reductstore/reduct-js/pull/145)
+
 ## 1.18.1 - 2026-02-05
 
 ### Fixed
