@@ -608,6 +608,8 @@ export class Bucket {
   ): Promise<void> {
     const entryName = `${entry}/$meta`;
     const batch = this.beginUpdateRecordBatch();
+    // ReductStore uses Mongo-style operators (e.g. $in, $cast) in label filters,
+    // so escape keys that start with '$' to force literal matching.
     const escapedAttachmentKeys = attachmentKeys?.map((key) =>
       key.startsWith("$") ? `$${key}` : key,
     );
