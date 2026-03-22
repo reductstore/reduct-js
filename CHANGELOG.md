@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix `Bucket.removeAttachments` for numeric attachment keys by casting `&key` to string in the filter condition, [PR-145](https://github.com/reductstore/reduct-js/pull/145)
+- Fix `Bucket.removeAttachments` for attachment keys prefixed with `$` by escaping them in queries, [PR-XXX](https://github.com/reductstore/reduct-js/pull/XXX)
 
 ## 1.18.1 - 2026-02-05
 

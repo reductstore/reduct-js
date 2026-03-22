@@ -608,9 +608,14 @@ export class Bucket {
   ): Promise<void> {
     const entryName = `${entry}/$meta`;
     const batch = this.beginUpdateRecordBatch();
+    const escapedAttachmentKeys = attachmentKeys?.map((key) =>
+      key.startsWith("$") ? `$${key}` : key,
+    );
     const when =
-      attachmentKeys && attachmentKeys.length > 0
-        ? { $in: [{ "&key": { $cast: "string" } }, ...attachmentKeys] }
+      escapedAttachmentKeys && escapedAttachmentKeys.length > 0
+        ? {
+            $in: [{ "&key": { $cast: "string" } }, ...escapedAttachmentKeys],
+          }
         : {};
 
     for await (const attachment of this.query(entryName, undefined, undefined, {
