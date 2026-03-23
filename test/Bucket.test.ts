@@ -787,6 +787,23 @@ describe("Bucket", () => {
         await expect(bucket.readAttachments("entry-1")).resolves.toEqual({});
       },
     );
+
+    it_api("1.19", true)(
+      "should remove attachments whose keys start with $",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        await bucket.writeAttachments("entry-1", {
+          "meta-1": { value: 1 },
+          "meta-2": { value: 2 },
+          $system: { value: "test" },
+        });
+
+        await bucket.removeAttachments("entry-1", ["meta-1", "$system"]);
+        await expect(bucket.readAttachments("entry-1")).resolves.toEqual({
+          "meta-2": { value: 2 },
+        });
+      },
+    );
   });
 
   describe("rename", () => {
