@@ -5,22 +5,47 @@ import { Headers } from "undici";
 
 describe("BatchV2", () => {
   describe("fetchAndParseBatchV2", () => {
-    it("should handle empty batch response", async () => {
-      // Mock HttpClient
+    const buildEmptyBatchHeaders = () => {
       const headers = new Headers();
-      headers.set("x-reduct-entries", ""); // Empty entries header
+      headers.set("x-reduct-entries", "");
       headers.set("x-reduct-start-ts", "0");
+      return headers;
+    };
+
+    const buildSingleRecordBatchHeaders = () => {
+      const headers = new Headers();
+      headers.set("x-reduct-entries", "test-entry");
+      headers.set("x-reduct-start-ts", "1000");
+      headers.set("x-reduct-0-0", "4,text/plain,");
+      headers.set("x-reduct-last", "true");
+      return headers;
+    };
+
+    const buildDataStream = (value: string) =>
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(value));
+          controller.close();
+        },
+      });
+
+    it("should handle empty batch response", async () => {
+      const emptyBatchHeaders = buildEmptyBatchHeaders();
+      const batchWithDataHeaders = buildSingleRecordBatchHeaders();
 
       const mockHttpClient = {
-        get: jest.fn().mockResolvedValue({
-          status: 200,
-          headers: headers,
-          data: new ReadableStream<Uint8Array>({
-            start(controller) {
-              controller.close();
-            },
+        get: jest
+          .fn()
+          .mockResolvedValueOnce({
+            status: 200,
+            headers: emptyBatchHeaders,
+            data: buildDataStream(""),
+          })
+          .mockResolvedValueOnce({
+            status: 200,
+            headers: batchWithDataHeaders,
+            data: buildDataStream("test"),
           }),
-        }),
       } as unknown as HttpClient;
 
       const records: ReadableRecord[] = [];
@@ -36,24 +61,33 @@ describe("BatchV2", () => {
         records.push(record);
       }
 
-      expect(records.length).toBe(0);
+      expect(records.length).toBe(1);
+      expect(records[0].entry).toBe("test-entry");
+      expect(records[0].last).toBe(true);
+      await expect(records[0].readAsString()).resolves.toBe("test");
       expect(mockHttpClient.get).toHaveBeenCalledWith("/io/test-bucket/read", {
         "x-reduct-query-id": "query-id-123",
       });
+      expect(mockHttpClient.get).toHaveBeenCalledTimes(2);
     });
 
     it("should handle empty batch response with HEAD request", async () => {
-      // Mock HttpClient
-      const headers = new Headers();
-      headers.set("x-reduct-entries", ""); // Empty entries header
-      headers.set("x-reduct-start-ts", "0");
+      const emptyBatchHeaders = buildEmptyBatchHeaders();
+      const batchWithDataHeaders = buildSingleRecordBatchHeaders();
 
       const mockHttpClient = {
-        head: jest.fn().mockResolvedValue({
-          status: 200,
-          headers: headers,
-          data: undefined,
-        }),
+        head: jest
+          .fn()
+          .mockResolvedValueOnce({
+            status: 200,
+            headers: emptyBatchHeaders,
+            data: undefined,
+          })
+          .mockResolvedValueOnce({
+            status: 200,
+            headers: batchWithDataHeaders,
+            data: undefined,
+          }),
       } as unknown as HttpClient;
 
       const records: ReadableRecord[] = [];
@@ -69,10 +103,13 @@ describe("BatchV2", () => {
         records.push(record);
       }
 
-      expect(records.length).toBe(0);
+      expect(records.length).toBe(1);
+      expect(records[0].entry).toBe("test-entry");
+      expect(records[0].last).toBe(true);
       expect(mockHttpClient.head).toHaveBeenCalledWith("/io/test-bucket/read", {
         "x-reduct-query-id": "query-id-123",
       });
+      expect(mockHttpClient.head).toHaveBeenCalledTimes(2);
     });
 
     it("should handle 204 No Content response in continuous query", async () => {
@@ -90,18 +127,18 @@ describe("BatchV2", () => {
               data: undefined,
             });
           }
-          // Second call returns empty batch
-          const headers200 = new Headers();
-          headers200.set("x-reduct-entries", "");
-          headers200.set("x-reduct-start-ts", "0");
+          if (callCount === 2) {
+            return Promise.resolve({
+              status: 200,
+              headers: buildEmptyBatchHeaders(),
+              data: buildDataStream(""),
+            });
+          }
+
           return Promise.resolve({
             status: 200,
-            headers: headers200,
-            data: new ReadableStream<Uint8Array>({
-              start(controller) {
-                controller.close();
-              },
-            }),
+            headers: buildSingleRecordBatchHeaders(),
+            data: buildDataStream("test"),
           });
         }),
       } as unknown as HttpClient;
@@ -119,8 +156,11 @@ describe("BatchV2", () => {
         records.push(record);
       }
 
-      expect(records.length).toBe(0);
-      expect(mockHttpClient.get).toHaveBeenCalledTimes(2);
+      expect(records.length).toBe(1);
+      expect(records[0].entry).toBe("test-entry");
+      expect(records[0].last).toBe(true);
+      await expect(records[0].readAsString()).resolves.toBe("test");
+      expect(mockHttpClient.get).toHaveBeenCalledTimes(3);
     });
   });
 });
