@@ -27,7 +27,6 @@ export async function* fetchAndParseBatchV2(
 ) {
   while (true) {
     try {
-      let yielded = false;
       for await (const record of readBatchedRecords(
         bucket,
         entry,
@@ -35,16 +34,11 @@ export async function* fetchAndParseBatchV2(
         id,
         httpClient,
       )) {
-        yielded = true;
         yield record;
 
         if (record.last) {
           return;
         }
-      }
-
-      if (!yielded) {
-        return;
       }
     } catch (e) {
       if (e instanceof APIError && e.status === 204) {
@@ -86,8 +80,9 @@ async function* readBatchedRecords(
     throw new Error("x-reduct-entries header is required");
   }
 
-  // Handle empty batch - server sends empty entries header
   if (entriesHeader.trim() === "") {
+    // Handle empty batch - server sends empty entries header
+    // it still can be running, and we need to wait for next batch, so we should not treat it as an error
     return;
   }
 
