@@ -5,6 +5,7 @@ import { QuotaType } from "../src/messages/BucketSettings";
 import { cleanStorage, it_api, makeClient } from "./utils/Helpers";
 import { HttpClient } from "../src/http/HttpClient";
 import { Status } from "../src/messages/Status";
+import { Response } from "undici";
 
 test("Client should raise network error", async () => {
   const client: Client = new Client("http://127.0.0.1:9999");
@@ -40,6 +41,78 @@ test("HTTP client should set dispatcher when verifySSL is false", () => {
 test("HTTP client should NOT set dispatcher when verifySSL is true", () => {
   const client = new HttpClient("http://localhost:8383", { verifySSL: true });
   expect(client["dispatcher"]).toBeUndefined();
+});
+
+test("HTTP client should persist cookies when stickySessions is enabled", async () => {
+  const fetchMock = jest
+    .spyOn(globalThis, "fetch")
+    .mockResolvedValueOnce(
+      new Response("{}", {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "x-reduct-api": "1.19",
+          "set-cookie": "AWSALB=abc; Path=/; HttpOnly",
+        },
+      }) as unknown as globalThis.Response,
+    )
+    .mockResolvedValueOnce(
+      new Response("{}", {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "x-reduct-api": "1.19",
+        },
+      }) as unknown as globalThis.Response,
+    );
+
+  try {
+    const client = new HttpClient("http://localhost:8383", {
+      stickySessions: true,
+    });
+
+    await client.get("/info");
+    await client.get("/info");
+
+    const secondCallInit = fetchMock.mock.calls[1][1] as RequestInit;
+    const headers = secondCallInit.headers as Record<string, string>;
+    expect(headers.Cookie).toBe("AWSALB=abc");
+  } finally {
+    fetchMock.mockRestore();
+  }
+});
+
+test("HTTP client should use custom cookie jar when provided", async () => {
+  const jar = {
+    getCookieHeader: jest.fn().mockReturnValue("AWSALB=from-jar"),
+    setCookies: jest.fn(),
+  };
+
+  const fetchMock = jest.spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response("{}", {
+      status: 200,
+      headers: {
+        "content-type": "application/json",
+        "x-reduct-api": "1.19",
+      },
+    }) as unknown as globalThis.Response,
+  );
+
+  try {
+    const client = new HttpClient("http://localhost:8383", {
+      stickySessions: true,
+      cookieJar: jar,
+    });
+
+    await client.get("/info");
+
+    const callInit = fetchMock.mock.calls[0][1] as RequestInit;
+    const headers = callInit.headers as Record<string, string>;
+    expect(headers.Cookie).toBe("AWSALB=from-jar");
+    expect(jar.getCookieHeader).toHaveBeenCalled();
+  } finally {
+    fetchMock.mockRestore();
+  }
 });
 
 describe("Client", () => {
