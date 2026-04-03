@@ -10,14 +10,19 @@ const bigJson = JSONbig({ alwaysParseAsBig: false, useNativeBigInt: true });
 let undiciAgent: any = null;
 
 if (!isBrowser) {
-  import(/* webpackIgnore: true */ "undici").then((undici) => {
-    const { Agent } = undici;
+  try {
+    // Use require to load undici at runtime, avoiding static analysis by bundlers.
+    // "undici" is a Node.js-only dependency that is not available in browser environments.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { Agent } = require("undici");
     undiciAgent = new Agent({
       connect: {
         rejectUnauthorized: false,
       },
     });
-  });
+  } catch {
+    // undici not available (browser build or missing dep) — fall back to native fetch
+  }
 }
 
 export type ValidResponse = object | string | ReadableStream<Uint8Array>;
