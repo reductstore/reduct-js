@@ -1,5 +1,5 @@
 import JSONbig from "json-bigint";
-import { ClientOptions } from "../Client";
+import { ClientOptions, CookieJar } from "../Client";
 import { APIError } from "../APIError";
 import { isBrowser } from "../utils/env";
 import { Buffer } from "buffer";
@@ -28,6 +28,61 @@ export type FetchResult<T extends ValidResponse = ValidResponse> = {
   status: number;
 };
 
+class InMemoryCookieJar implements CookieJar {
+  private readonly cookies = new Map<string, string>();
+
+  getCookieHeader(): string | undefined {
+    if (this.cookies.size === 0) {
+      return undefined;
+    }
+
+    return Array.from(this.cookies.entries())
+      .map(([name, value]) => `${name}=${value}`)
+      .join("; ");
+  }
+
+  setCookies(setCookieHeaders: string[]): void {
+    for (const header of setCookieHeaders) {
+      const firstPair = header.split(";")[0]?.trim();
+      if (!firstPair) {
+        continue;
+      }
+
+      const equalPos = firstPair.indexOf("=");
+      if (equalPos <= 0) {
+        continue;
+      }
+
+      const name = firstPair.slice(0, equalPos).trim();
+      const value = firstPair.slice(equalPos + 1).trim();
+      if (!name) {
+        continue;
+      }
+
+      this.cookies.set(name, value);
+    }
+  }
+}
+
+const getSetCookieHeaders = (headers: Headers): string[] => {
+  const maybeUndiciHeaders = headers as Headers & {
+    getSetCookie?: () => string[];
+    raw?: () => Record<string, string[]>;
+  };
+
+  if (typeof maybeUndiciHeaders.getSetCookie === "function") {
+    return maybeUndiciHeaders.getSetCookie();
+  }
+
+  if (typeof maybeUndiciHeaders.raw === "function") {
+    const raw = maybeUndiciHeaders.raw();
+    return raw["set-cookie"] ?? [];
+  }
+
+  const single = headers.get("set-cookie");
+  return single ? [single] : [];
+};
+
 export class HttpClient {
   private baseURL: string;
   private readonly timeout?: number;
@@ -35,11 +90,17 @@ export class HttpClient {
   private readonly dispatcher?: any;
   public apiVersion?: [number, number];
   private readonly keepAlive: boolean;
+  private readonly stickySessions: boolean;
+  private readonly cookieJar?: CookieJar;
 
   constructor(url: string, options: ClientOptions = {}) {
     this.baseURL = `${url}/api/v1`;
     this.timeout = options.timeout;
     this.keepAlive = options.keepAlive ?? false;
+    this.stickySessions = options.stickySessions ?? !isBrowser;
+    this.cookieJar = this.stickySessions
+      ? (options.cookieJar ?? new InMemoryCookieJar())
+      : undefined;
     this.headers = {
       Authorization: `Bearer ${options.apiToken}`,
       ...(!isBrowser && !this.keepAlive ? { Connection: "close" } : {}),
@@ -118,11 +179,24 @@ export class HttpClient {
       typeof ReadableStream !== "undefined" &&
       encodedBody instanceof ReadableStream;
 
+    const requestHeaders: HeadersInit = { ...this.headers, ...headers };
+
+    if (this.stickySessions) {
+      const cookieHeader = this.cookieJar?.getCookieHeader();
+      if (cookieHeader) {
+        (requestHeaders as Record<string, string>)["Cookie"] = cookieHeader;
+      }
+    }
+
     const init: RequestInit = {
       method,
-      headers: { ...this.headers, ...headers },
+      headers: requestHeaders,
       signal: signal,
     };
+
+    if (isBrowser && this.stickySessions) {
+      init.credentials = "include";
+    }
 
     if (encodedBody !== undefined) {
       init.body = encodedBody;
@@ -148,6 +222,13 @@ export class HttpClient {
       if (signal.aborted) throw new APIError("Request aborted", undefined, err);
       throw new APIError(err.message, undefined, err);
     });
+
+    if (this.stickySessions) {
+      const setCookieHeaders = getSetCookieHeaders(response.headers);
+      if (setCookieHeaders.length > 0) {
+        this.cookieJar?.setCookies(setCookieHeaders);
+      }
+    }
 
     const apiVersionHeader = response.headers.get("x-reduct-api");
     if (!apiVersionHeader)

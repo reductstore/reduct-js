@@ -21,11 +21,18 @@ import { HttpClient } from "./http/HttpClient";
 /**
  * Options
  */
+export type CookieJar = {
+  getCookieHeader: () => string | undefined;
+  setCookies: (setCookieHeaders: string[]) => void;
+};
+
 export type ClientOptions = {
   apiToken?: string; // API token for authentication
   timeout?: number; // communication timeout
   verifySSL?: boolean; // verify SSL certificate
   keepAlive?: boolean; // keep HTTP connections alive (Node.js)
+  stickySessions?: boolean; // persist/replay cookies for sticky sessions (enabled by default in Node.js)
+  cookieJar?: CookieJar; // optional custom cookie jar for sticky sessions
 };
 
 export class Client {
