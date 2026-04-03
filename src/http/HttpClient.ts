@@ -11,16 +11,14 @@ let undiciAgent: any = null;
 
 if (!isBrowser) {
   try {
-    // Use Function constructor to hide the import from static analysis by bundlers.
+    // Use require to load undici at runtime, avoiding static analysis by bundlers.
     // "undici" is a Node.js-only dependency that is not available in browser environments.
-    const dynamicImport = new Function("m", "return import(m)");
-    dynamicImport("undici").then((undici: any) => {
-      const { Agent } = undici;
-      undiciAgent = new Agent({
-        connect: {
-          rejectUnauthorized: false,
-        },
-      });
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { Agent } = require("undici");
+    undiciAgent = new Agent({
+      connect: {
+        rejectUnauthorized: false,
+      },
     });
   } catch {
     // undici not available (browser build or missing dep) — fall back to native fetch
