@@ -8,6 +8,53 @@ export class OriginalTokenPermission {
 }
 
 /**
+ * Token create request with server-side names
+ */
+export class OriginalTokenCreateRequest {
+  permissions: OriginalTokenPermission = new OriginalTokenPermission();
+  expires_at?: string;
+  ttl?: number;
+  ip_allowlist?: string[];
+}
+
+/**
+ * Token create request
+ */
+export class TokenCreateRequest {
+  /**
+   * Permissions for the token
+   */
+  readonly permissions: TokenPermissions = new TokenPermissions();
+
+  /**
+   * Expiration time as unix timestamp in milliseconds
+   */
+  readonly expiresAt?: number;
+
+  /**
+   * Time to live in milliseconds
+   */
+  readonly ttl?: number;
+
+  /**
+   * List of IP addresses and CIDR ranges allowed to use the token
+   */
+  readonly ipAllowlist?: string[];
+
+  static serialize(data: TokenCreateRequest): OriginalTokenCreateRequest {
+    return {
+      permissions: TokenPermissions.serialize(data.permissions),
+      expires_at:
+        data.expiresAt !== undefined
+          ? new Date(data.expiresAt).toISOString()
+          : undefined,
+      ttl: data.ttl,
+      ip_allowlist: data.ipAllowlist,
+    };
+  }
+}
+
+/**
  * Token Permissions
  */
 export class TokenPermissions {
@@ -52,6 +99,11 @@ export class TokenPermissions {
 export class OriginalTokenInfo {
   name = "";
   created_at = "";
+  last_access?: string;
+  ttl?: number;
+  is_expired?: boolean;
+  expires_at?: string;
+  ip_allowlist?: string[];
   is_provisioned? = false;
   permissions?: OriginalTokenPermission = undefined;
 }
@@ -71,6 +123,31 @@ export class Token {
   readonly createdAt: number = 0;
 
   /**
+   * Last access time of the token as unix timestamp in milliseconds
+   */
+  readonly lastAccess?: number;
+
+  /**
+   * Time to live in milliseconds
+   */
+  readonly ttl?: number;
+
+  /**
+   * True if the token is expired
+   */
+  readonly isExpired?: boolean;
+
+  /**
+   * Expiration time as unix timestamp in milliseconds
+   */
+  readonly expiresAt?: number;
+
+  /**
+   * List of IP addresses and CIDR ranges allowed to use the token
+   */
+  readonly ipAllowlist?: string[];
+
+  /**
    * Is the token provisioned, and you can't remove it or change it
    */
   readonly isProvisioned?: boolean = false;
@@ -84,6 +161,11 @@ export class Token {
     return {
       name: data.name,
       createdAt: Date.parse(data.created_at),
+      lastAccess: data.last_access ? Date.parse(data.last_access) : undefined,
+      ttl: data.ttl,
+      isExpired: data.is_expired,
+      expiresAt: data.expires_at ? Date.parse(data.expires_at) : undefined,
+      ipAllowlist: data.ip_allowlist,
       isProvisioned: data.is_provisioned ?? false,
       permissions: data.permissions
         ? TokenPermissions.parse(data.permissions)
