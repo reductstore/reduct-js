@@ -7,7 +7,12 @@ import { APIError } from "./APIError";
 import { BucketInfo, OriginalBucketInfo } from "./messages/BucketInfo";
 import { BucketSettings } from "./messages/BucketSettings";
 import { Bucket } from "./Bucket";
-import { Token, TokenPermissions, OriginalTokenInfo } from "./messages/Token";
+import {
+  Token,
+  TokenPermissions,
+  OriginalTokenInfo,
+  TokenCreateRequest,
+} from "./messages/Token";
 import {
   FullReplicationInfo,
   ReplicationInfo,
@@ -125,7 +130,7 @@ export class Client {
   /**
    * Create a new access token
    * @param name name of the token
-   * @param permissions permissions for the token
+   * @param permissionsOrRequest permissions or token create request
    * @return {Promise<string>} the token
    *
    * @example
@@ -135,11 +140,34 @@ export class Client {
 
   async createToken(
     name: string,
-    permissions: TokenPermissions,
+    permissionsOrRequest: TokenPermissions | TokenCreateRequest,
   ): Promise<string> {
+    const request: TokenCreateRequest =
+      "permissions" in permissionsOrRequest
+        ? (permissionsOrRequest as TokenCreateRequest)
+        : ({ permissions: permissionsOrRequest } as TokenCreateRequest);
+
+    const body =
+      this.httpClient.apiVersion && this.httpClient.apiVersion[1] < 19
+        ? TokenPermissions.serialize(request.permissions)
+        : TokenCreateRequest.serialize(request);
+
     const { data } = await this.httpClient.post<{ value: string }>(
       `/tokens/${name}`,
-      TokenPermissions.serialize(permissions),
+      body,
+    );
+    return data.value;
+  }
+
+  /**
+   * Rotate a token by name
+   * @param name name of the token
+   * @return {Promise<string>} new token value
+   */
+  async rotateToken(name: string): Promise<string> {
+    const { data } = await this.httpClient.post<{ value: string }>(
+      `/tokens/${name}/rotate`,
+      {},
     );
     return data.value;
   }

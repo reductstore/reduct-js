@@ -1,6 +1,10 @@
 import { Client } from "../src/Client";
-import { cleanStorage, makeClient } from "./utils/Helpers";
-import { TokenPermissions, Token } from "../src/messages/Token";
+import { cleanStorage, makeClient, it_api } from "./utils/Helpers";
+import {
+  TokenPermissions,
+  Token,
+  TokenCreateRequest,
+} from "../src/messages/Token";
 
 const describe_token = () =>
   process.env.RS_API_TOKEN !== undefined && process.env.RS_API_TOKEN.length > 0
@@ -72,5 +76,47 @@ describe_token()("With Token API Client", () => {
       read: [],
       write: [],
     });
+  });
+
+  it_api("1.19")("should create token with ttl and ip allowlist", async () => {
+    const now = Date.now();
+    const request: TokenCreateRequest = {
+      permissions: {
+        fullAccess: false,
+        read: ["bucket_1"],
+        write: ["bucket_2"],
+      },
+      ttl: 120000,
+      expiresAt: now + 120000,
+      ipAllowlist: ["127.0.0.1", "10.0.0.0/8"],
+    };
+
+    const token = await client.createToken("token-ttl", request);
+    expect(token).toContain("token-ttl-");
+
+    const tokenInfo = await client.getToken("token-ttl");
+    expect(tokenInfo.permissions).toEqual(request.permissions);
+    expect(tokenInfo.ttl).toEqual(120000);
+    expect(tokenInfo.expiresAt).toBeDefined();
+    expect(tokenInfo.ipAllowlist).toEqual(["127.0.0.1", "10.0.0.0/8"]);
+    expect(tokenInfo.isExpired).toBe(false);
+  });
+
+  it_api("1.19")("should rotate token", async () => {
+    const original = await client.createToken("token-rot", {
+      fullAccess: true,
+    });
+
+    const rotated = await client.rotateToken("token-rot");
+    expect(rotated).toContain("token-rot-");
+    expect(rotated).not.toEqual(original);
+
+    const rotatedClient = new Client("http://127.0.0.1:8383", {
+      apiToken: rotated,
+      timeout: 10000,
+    });
+
+    const me = await rotatedClient.me();
+    expect(me.name).toEqual("token-rot");
   });
 });
