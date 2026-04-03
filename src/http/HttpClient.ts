@@ -10,14 +10,21 @@ const bigJson = JSONbig({ alwaysParseAsBig: false, useNativeBigInt: true });
 let undiciAgent: any = null;
 
 if (!isBrowser) {
-  import(/* webpackIgnore: true */ "undici").then((undici) => {
-    const { Agent } = undici;
-    undiciAgent = new Agent({
-      connect: {
-        rejectUnauthorized: false,
-      },
+  try {
+    // Use Function constructor to hide the import from static analysis by bundlers.
+    // "undici" is a Node.js-only dependency that is not available in browser environments.
+    const dynamicImport = new Function("m", "return import(m)");
+    dynamicImport("undici").then((undici: any) => {
+      const { Agent } = undici;
+      undiciAgent = new Agent({
+        connect: {
+          rejectUnauthorized: false,
+        },
+      });
     });
-  });
+  } catch {
+    // undici not available (browser build or missing dep) — fall back to native fetch
+  }
 }
 
 export type ValidResponse = object | string | ReadableStream<Uint8Array>;
