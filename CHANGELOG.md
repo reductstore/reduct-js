@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix `Bucket.removeAttachments` for numeric attachment keys by casting `&key` to string in the filter condition, [PR-145](https://github.com/reductstore/reduct-js/pull/145)
 - Fix `Bucket.removeAttachments` for attachment keys prefixed with `$` by escaping them in queries, [PR-147](https://github.com/reductstore/reduct-js/pull/147)
 - Keep BatchV2 query loop running on empty batch responses, [PR-148](https://github.com/reductstore/reduct-js/pull/148)
+- Enable sticky sessions by default in Node.js while keeping explicit opt-out support, [PR-151](https://github.com/reductstore/reduct-js/pull/151)
 
 ## 1.18.1 - 2026-02-05
 

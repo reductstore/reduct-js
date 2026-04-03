@@ -82,6 +82,82 @@ test("HTTP client should persist cookies when stickySessions is enabled", async 
   }
 });
 
+test("HTTP client should enable sticky sessions by default in Node.js", async () => {
+  const fetchMock = jest
+    .spyOn(globalThis, "fetch")
+    .mockResolvedValueOnce(
+      new Response("{}", {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "x-reduct-api": "1.19",
+          "set-cookie": "AWSALB=abc; Path=/; HttpOnly",
+        },
+      }) as unknown as globalThis.Response,
+    )
+    .mockResolvedValueOnce(
+      new Response("{}", {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "x-reduct-api": "1.19",
+        },
+      }) as unknown as globalThis.Response,
+    );
+
+  try {
+    const client = new HttpClient("http://localhost:8383");
+
+    await client.get("/info");
+    await client.get("/info");
+
+    const secondCallInit = fetchMock.mock.calls[1][1] as RequestInit;
+    const headers = secondCallInit.headers as Record<string, string>;
+    expect(headers.Cookie).toBe("AWSALB=abc");
+  } finally {
+    fetchMock.mockRestore();
+  }
+});
+
+test("HTTP client should allow disabling sticky sessions explicitly", async () => {
+  const fetchMock = jest
+    .spyOn(globalThis, "fetch")
+    .mockResolvedValueOnce(
+      new Response("{}", {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "x-reduct-api": "1.19",
+          "set-cookie": "AWSALB=abc; Path=/; HttpOnly",
+        },
+      }) as unknown as globalThis.Response,
+    )
+    .mockResolvedValueOnce(
+      new Response("{}", {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "x-reduct-api": "1.19",
+        },
+      }) as unknown as globalThis.Response,
+    );
+
+  try {
+    const client = new HttpClient("http://localhost:8383", {
+      stickySessions: false,
+    });
+
+    await client.get("/info");
+    await client.get("/info");
+
+    const secondCallInit = fetchMock.mock.calls[1][1] as RequestInit;
+    const headers = secondCallInit.headers as Record<string, string>;
+    expect(headers.Cookie).toBeUndefined();
+  } finally {
+    fetchMock.mockRestore();
+  }
+});
+
 test("HTTP client should use custom cookie jar when provided", async () => {
   const jar = {
     getCookieHeader: jest.fn().mockReturnValue("AWSALB=from-jar"),

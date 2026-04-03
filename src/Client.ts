@@ -31,7 +31,7 @@ export type ClientOptions = {
   timeout?: number; // communication timeout
   verifySSL?: boolean; // verify SSL certificate
   keepAlive?: boolean; // keep HTTP connections alive (Node.js)
-  stickySessions?: boolean; // persist/replay cookies for sticky sessions
+  stickySessions?: boolean; // persist/replay cookies for sticky sessions (enabled by default in Node.js)
   cookieJar?: CookieJar; // optional custom cookie jar for sticky sessions
 };
 

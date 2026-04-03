@@ -97,7 +97,7 @@ export class HttpClient {
     this.baseURL = `${url}/api/v1`;
     this.timeout = options.timeout;
     this.keepAlive = options.keepAlive ?? false;
-    this.stickySessions = options.stickySessions ?? false;
+    this.stickySessions = options.stickySessions ?? !isBrowser;
     this.cookieJar = this.stickySessions
       ? (options.cookieJar ?? new InMemoryCookieJar())
       : undefined;
