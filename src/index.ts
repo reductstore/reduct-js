@@ -1,5 +1,6 @@
 import { Client } from "./Client";
-import { Bucket, WriteOptions } from "./Bucket";
+import { Bucket } from "./Bucket";
+import type { WriteOptions } from "./Bucket";
 import { APIError } from "./APIError";
 import { ServerInfo, LicenseInfo } from "./messages/ServerInfo";
 import { BucketSettings, QuotaType } from "./messages/BucketSettings";
@@ -9,7 +10,7 @@ import { Status } from "./messages/Status";
 import { Token, TokenPermissions, TokenCreateRequest } from "./messages/Token";
 import { ReplicationInfo } from "./messages/ReplicationInfo";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
-import { ReplicationMode } from "./messages/ReplicationMode";
+import type { ReplicationMode } from "./messages/ReplicationMode";
 import { FullReplicationInfo } from "./messages/ReplicationInfo";
 import { Batch } from "./Batch";
 import { RecordBatch, RecordBatchType } from "./RecordBatch";
@@ -19,7 +20,6 @@ export {
   Client,
   Bucket,
   QueryOptions,
-  WriteOptions,
   APIError,
   LicenseInfo,
   ServerInfo,
@@ -33,9 +33,10 @@ export {
   TokenCreateRequest,
   ReplicationInfo,
   ReplicationSettings,
-  ReplicationMode,
   FullReplicationInfo,
   Batch,
   RecordBatch,
   RecordBatchType,
 };
+
+export type { WriteOptions, ReplicationMode };

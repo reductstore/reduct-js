@@ -4,6 +4,19 @@ import { HttpClient } from "./http/HttpClient";
 
 export type LabelMap = Record<string, string | number | boolean | bigint>;
 
+type NodeReadableLike = { readable: boolean; read: () => any };
+
+const isNodeReadableLike = (value: unknown): value is NodeReadableLike => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const stream = value as NodeReadableLike;
+  return (
+    typeof stream.readable === "boolean" && typeof stream.read === "function"
+  );
+};
+
 /**
  * Represents a record in an entry for reading
  */
@@ -103,25 +116,21 @@ export class WritableRecord {
    * @param size size of data in bytes (only for streams)
    */
   public async write(
-    data:
-      | Buffer
-      | string
-      | ReadableStream<Uint8Array>
-      | { readable: boolean; read: () => any },
+    data: Buffer | string | ReadableStream<Uint8Array> | NodeReadableLike,
     size?: bigint | number,
   ): Promise<void> {
     let contentLength = BigInt(size ?? 0);
     let dataToSend = data;
 
-    if (data instanceof ReadableStream<Uint8Array>) {
+    if (data instanceof ReadableStream) {
       if (size === undefined) {
         throw new Error("Size must be set for stream");
       }
     } else if (data instanceof Buffer || typeof data === "string") {
       contentLength = BigInt(data.length);
-    } else if (data["readable"] !== undefined) {
+    } else if (isNodeReadableLike(data)) {
       // a hack for Node.js streams
-      const stream = data as { readable: boolean; read: () => any };
+      const stream = data;
       if (stream.readable) {
         dataToSend = new ReadableStream<Uint8Array>({
           async pull(controller) {

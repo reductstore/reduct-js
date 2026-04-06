@@ -13,7 +13,6 @@ if (!isBrowser) {
   try {
     // Use require to load undici at runtime, avoiding static analysis by bundlers.
     // "undici" is a Node.js-only dependency that is not available in browser environments.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { Agent } = require("undici");
     undiciAgent = new Agent({
       connect: {
