@@ -8,12 +8,14 @@ import { PACKAGE_VERSION } from "../version";
 const bigJson = JSONbig({ alwaysParseAsBig: false, useNativeBigInt: true });
 
 let undiciAgent: any = null;
+let undiciFetchImpl: typeof fetch | undefined;
 
 if (!isBrowser) {
   try {
     // Use require to load undici at runtime, avoiding static analysis by bundlers.
     // "undici" is a Node.js-only dependency that is not available in browser environments.
-    const { Agent } = require("undici");
+    const { Agent, fetch } = require("undici");
+    undiciFetchImpl = fetch as typeof globalThis.fetch;
     undiciAgent = new Agent({
       connect: {
         rejectUnauthorized: false,
@@ -92,6 +94,7 @@ export class HttpClient {
   private readonly timeout?: number;
   private readonly headers: HeadersInit;
   private readonly dispatcher?: any;
+  private readonly fetchImpl: typeof fetch;
   public apiVersion?: [number, number];
   private readonly keepAlive: boolean;
   private readonly stickySessions: boolean;
@@ -113,6 +116,9 @@ export class HttpClient {
     if (!isBrowser && options.verifySSL === false) {
       this.dispatcher = undiciAgent;
     }
+
+    this.fetchImpl =
+      this.dispatcher && undiciFetchImpl ? undiciFetchImpl : globalThis.fetch;
   }
 
   async close(): Promise<void> {
@@ -216,16 +222,19 @@ export class HttpClient {
       init.duplex = "half";
     }
 
-    const response = await fetch(`${this.baseURL}${url}`, init).catch((err) => {
-      if (abortedByTimeout)
-        throw new APIError(
-          `timeout of ${this.timeout}ms exceeded`,
-          undefined,
-          err,
-        );
-      if (signal.aborted) throw new APIError("Request aborted", undefined, err);
-      throw new APIError(err.message, undefined, err);
-    });
+    const response = await this.fetchImpl(`${this.baseURL}${url}`, init).catch(
+      (err) => {
+        if (abortedByTimeout)
+          throw new APIError(
+            `timeout of ${this.timeout}ms exceeded`,
+            undefined,
+            err,
+          );
+        if (signal.aborted)
+          throw new APIError("Request aborted", undefined, err);
+        throw new APIError(err.message, undefined, err);
+      },
+    );
 
     if (this.stickySessions) {
       const setCookieHeaders = getSetCookieHeaders(response.headers);
