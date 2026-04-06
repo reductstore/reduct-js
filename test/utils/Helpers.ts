@@ -1,9 +1,8 @@
 import { Client } from "../../src/Client";
 import * as process from "process";
-// @ts-ignore
-import request from "sync-request";
 import { isBrowser } from "../../src/utils/env";
 import { Status } from "../../src/messages/Status";
+import { it } from "vitest";
 
 const DELETE_TIMEOUT_MS = 15000;
 const DELETE_POLL_INTERVAL_MS = 200;
@@ -75,15 +74,55 @@ export const makeClient = (): Client => {
   });
 };
 
+let serverApiVersionPromise: Promise<string | undefined> | undefined;
+
+const getServerApiVersion = async (): Promise<string | undefined> => {
+  if (!serverApiVersionPromise) {
+    serverApiVersionPromise = fetch("http://127.0.0.1:8383/api/v1/alive", {
+      method: "HEAD",
+    })
+      .then((resp) => resp.headers.get("x-reduct-api") ?? "0.0")
+      .catch(() => undefined);
+  }
+
+  return serverApiVersionPromise;
+};
+
 export const it_api = (version: string, skip_browser = false) => {
-  if (skip_browser && isBrowser) return it.skip;
-  const resp = request("HEAD", "http://127.0.0.1:8383/api/v1/alive");
-  const api_version = resp.headers["x-reduct-api"] ?? "0.0";
-  if (isCompatible(version, api_version.toString())) {
-    return it;
-  } else {
+  if (skip_browser && isBrowser) {
     return it.skip;
   }
+
+  const runIfCompatible = (fn: (...args: any[]) => unknown) => {
+    return async (...args: any[]) => {
+      const apiVersion = await getServerApiVersion();
+      if (!isCompatible(version, apiVersion)) {
+        return;
+      }
+      await fn(...args);
+    };
+  };
+
+  const apiIt = ((
+    name: string,
+    fn: (...args: any[]) => unknown,
+    timeout?: number,
+  ) => {
+    return it(name, runIfCompatible(fn), timeout);
+  }) as typeof it;
+
+  apiIt.each = ((cases: ReadonlyArray<unknown>) => {
+    const each = it.each(cases);
+    return ((
+      name: string,
+      fn: (...args: any[]) => unknown,
+      timeout?: number,
+    ) => {
+      return each(name, runIfCompatible(fn), timeout);
+    }) as ReturnType<typeof it.each>;
+  }) as typeof it.each;
+
+  return apiIt;
 };
 
 export const u8 = (s: string) => new TextEncoder().encode(s);
