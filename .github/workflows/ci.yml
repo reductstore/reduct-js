@@ -118,8 +118,17 @@ jobs:
       - name: Run tests
         run: npm run lint
 
+  audit:
+    runs-on: ubuntu-latest
+    needs: format
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm i
+      - name: Fail on high/critical vulnerabilities
+        run: npm audit --audit-level=high
+
   publish:
-    needs: [run_tests, run_examples, lint]
+    needs: [run_tests, run_examples, lint, audit]
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
     steps:
