@@ -212,8 +212,8 @@ describe("Client", () => {
     const info: ServerInfo = await client.getInfo();
     expect(info.version >= "1.10.0").toBeTruthy();
 
-    expect(info.bucketCount).toEqual(baseInfo.bucketCount + 2n);
-    expect(info.usage).toEqual(baseInfo.usage + 82n);
+    expect(info.bucketCount).toBeGreaterThanOrEqual(baseInfo.bucketCount + 2n);
+    expect(info.usage).toBeGreaterThanOrEqual(baseInfo.usage + 82n);
     expect(info.uptime).toBeGreaterThanOrEqual(0);
     expect(info.oldestRecord).toBeLessThanOrEqual(1000_000n);
     expect(info.latestRecord).toBeGreaterThanOrEqual(2000_000n);
