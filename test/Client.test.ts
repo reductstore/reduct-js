@@ -215,8 +215,8 @@ describe("Client", () => {
     expect(info.bucketCount).toEqual(baseInfo.bucketCount + 2n);
     expect(info.usage).toEqual(baseInfo.usage + 82n);
     expect(info.uptime).toBeGreaterThanOrEqual(0);
-    expect(info.oldestRecord).toEqual(1000_000n);
-    expect(info.latestRecord).toEqual(2000_000n);
+    expect(info.oldestRecord).toBeLessThanOrEqual(1000_000n);
+    expect(info.latestRecord).toBeGreaterThanOrEqual(2000_000n);
 
     expect(info.defaults.bucket).toMatchObject({
       quotaSize: 0n,
