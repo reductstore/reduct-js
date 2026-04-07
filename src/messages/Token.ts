@@ -32,7 +32,7 @@ export class TokenCreateRequest {
   readonly expiresAt?: number;
 
   /**
-   * Time to live in milliseconds
+   * Time to live in seconds
    */
   readonly ttl?: number;
 
@@ -128,7 +128,7 @@ export class Token {
   readonly lastAccess?: number;
 
   /**
-   * Time to live in milliseconds
+   * Time to live in seconds
    */
   readonly ttl?: number;
 
