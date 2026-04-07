@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add entry attachments API in `Bucket` (`writeAttachments`, `readAttachments`, `removeAttachments`) with integration tests for API v1.19, [PR-142](https://github.com/reductstore/reduct-js/pull/142)
 - Add token API v1.19 support: token TTL/expiry/IP allowlist metadata, create-token options, and `Client.rotateToken` (issue #130)
 
+### Changed
+
+- Migrate build/test tooling from Jest to Vite/Vitest, upgrade Vite/Vitest/Undici/it-all/ESLint to current major versions, and switch linting to ESLint flat config (`eslint.config.mjs`), [PR-157](https://github.com/reductstore/reduct-js/pull/157)
+
 ### Fixed
 
 - Fix `Bucket.removeAttachments` for numeric attachment keys by casting `&key` to string in the filter condition, [PR-145](https://github.com/reductstore/reduct-js/pull/145)

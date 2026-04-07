@@ -9,7 +9,7 @@ import { Response } from "undici";
 
 test("Client should raise network error", async () => {
   const client: Client = new Client("http://127.0.0.1:9999");
-  console.error = jest.fn();
+  console.error = vi.fn();
 
   await expect(client.getInfo()).rejects.toMatchObject({
     message: "fetch failed",
@@ -44,7 +44,7 @@ test("HTTP client should NOT set dispatcher when verifySSL is true", () => {
 });
 
 test("HTTP client should persist cookies when stickySessions is enabled", async () => {
-  const fetchMock = jest
+  const fetchMock = vi
     .spyOn(globalThis, "fetch")
     .mockResolvedValueOnce(
       new Response("{}", {
@@ -83,7 +83,7 @@ test("HTTP client should persist cookies when stickySessions is enabled", async 
 });
 
 test("HTTP client should enable sticky sessions by default in Node.js", async () => {
-  const fetchMock = jest
+  const fetchMock = vi
     .spyOn(globalThis, "fetch")
     .mockResolvedValueOnce(
       new Response("{}", {
@@ -120,7 +120,7 @@ test("HTTP client should enable sticky sessions by default in Node.js", async ()
 });
 
 test("HTTP client should allow disabling sticky sessions explicitly", async () => {
-  const fetchMock = jest
+  const fetchMock = vi
     .spyOn(globalThis, "fetch")
     .mockResolvedValueOnce(
       new Response("{}", {
@@ -160,11 +160,11 @@ test("HTTP client should allow disabling sticky sessions explicitly", async () =
 
 test("HTTP client should use custom cookie jar when provided", async () => {
   const jar = {
-    getCookieHeader: jest.fn().mockReturnValue("AWSALB=from-jar"),
-    setCookies: jest.fn(),
+    getCookieHeader: vi.fn().mockReturnValue("AWSALB=from-jar"),
+    setCookies: vi.fn(),
   };
 
-  const fetchMock = jest.spyOn(globalThis, "fetch").mockResolvedValue(
+  const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
     new Response("{}", {
       status: 200,
       headers: {

@@ -34,7 +34,7 @@ describe("BatchV2", () => {
       const batchWithDataHeaders = buildSingleRecordBatchHeaders();
 
       const mockHttpClient = {
-        get: jest
+        get: vi
           .fn()
           .mockResolvedValueOnce({
             status: 200,
@@ -76,7 +76,7 @@ describe("BatchV2", () => {
       const batchWithDataHeaders = buildSingleRecordBatchHeaders();
 
       const mockHttpClient = {
-        head: jest
+        head: vi
           .fn()
           .mockResolvedValueOnce({
             status: 200,
@@ -115,7 +115,7 @@ describe("BatchV2", () => {
     it("should handle 204 No Content response in continuous query", async () => {
       let callCount = 0;
       const mockHttpClient = {
-        get: jest.fn().mockImplementation(() => {
+        get: vi.fn().mockImplementation(() => {
           callCount++;
           if (callCount === 1) {
             // First call returns 204
