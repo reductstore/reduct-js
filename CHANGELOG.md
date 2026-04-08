@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 1.19.1 - 2026-04-08
+
+### Fixed
+
+- Bind `globalThis` to `fetch` when storing it as `fetchImpl` to prevent "Illegal invocation" in browsers, [PR-162](https://github.com/reductstore/reduct-js/pull/162)
+
 ## 1.19.0 - 2026-04-08
 
 ### Added

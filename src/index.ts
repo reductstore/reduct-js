@@ -10,6 +10,7 @@ import { Status } from "./messages/Status";
 import { Token, TokenPermissions, TokenCreateRequest } from "./messages/Token";
 import { ReplicationInfo } from "./messages/ReplicationInfo";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
+import { ReplicationMode } from "./messages/ReplicationMode";
 import { FullReplicationInfo } from "./messages/ReplicationInfo";
 import { Batch } from "./Batch";
 import { RecordBatch, RecordBatchType } from "./RecordBatch";
@@ -36,7 +37,7 @@ export {
   Batch,
   RecordBatch,
   RecordBatchType,
+  ReplicationMode,
 };
 
-export { ReplicationMode } from "./messages/ReplicationMode";
 export type { WriteOptions };
