@@ -118,7 +118,9 @@ export class HttpClient {
     }
 
     this.fetchImpl =
-      this.dispatcher && undiciFetchImpl ? undiciFetchImpl : globalThis.fetch;
+      this.dispatcher && undiciFetchImpl
+        ? undiciFetchImpl
+        : globalThis.fetch.bind(globalThis);
   }
 
   async close(): Promise<void> {
