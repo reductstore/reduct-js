@@ -1,9 +1,48 @@
 import { fetchAndParseBatchV2 } from "../src/batch/BatchV2";
 import { HttpClient } from "../src/http/HttpClient";
 import { ReadableRecord } from "../src/Record";
+import { RecordBatch, RecordBatchType } from "../src/RecordBatch";
 import { Headers } from "undici";
 
 describe("BatchV2", () => {
+  describe("RecordBatch", () => {
+    it("should send multi-entry write batches in timestamp order", async () => {
+      let requestBody = "";
+      let requestHeaders: Record<string, string> | undefined;
+
+      const mockHttpClient = {
+        apiVersion: [1, 18],
+        post: vi.fn().mockImplementation(async (_url, body, headers) => {
+          requestBody = await new Response(body as BodyInit).text();
+          requestHeaders = headers;
+          return {
+            status: 200,
+            headers: new Headers(),
+            data: "",
+          };
+        }),
+      } as unknown as HttpClient;
+
+      const batch = new RecordBatch(
+        "bucket",
+        mockHttpClient,
+        RecordBatchType.WRITE,
+      );
+      batch.add("entry-first", 3_000n, "b", "text/plain");
+      batch.add("entry-second", 1_000n, "a", "text/plain");
+
+      await batch.send();
+
+      expect(requestBody).toBe("ab");
+      expect(requestHeaders).toMatchObject({
+        "x-reduct-entries": "entry-second,entry-first",
+        "x-reduct-start-ts": "1000",
+        "x-reduct-0-0": "1,text/plain",
+        "x-reduct-1-2000": "1,text/plain",
+      });
+    });
+  });
+
   describe("fetchAndParseBatchV2", () => {
     const buildEmptyBatchHeaders = () => {
       const headers = new Headers();
@@ -110,6 +149,44 @@ describe("BatchV2", () => {
         "x-reduct-query-id": "query-id-123",
       });
       expect(mockHttpClient.head).toHaveBeenCalledTimes(2);
+    });
+
+    it("should parse multi-entry batch records in timestamp order", async () => {
+      const headers = new Headers();
+      headers.set("x-reduct-entries", "entry-first,entry-second");
+      headers.set("x-reduct-start-ts", "1000");
+      headers.set("x-reduct-0-2000", "1,text/plain,");
+      headers.set("x-reduct-1-0", "1,text/plain,");
+      headers.set("x-reduct-last", "true");
+
+      const mockHttpClient = {
+        get: vi.fn().mockResolvedValue({
+          status: 200,
+          headers,
+          data: buildDataStream("ab"),
+        }),
+      } as unknown as HttpClient;
+
+      const records: ReadableRecord[] = [];
+      for await (const record of fetchAndParseBatchV2(
+        "test-bucket",
+        "entry-first",
+        "query-id-123",
+        false,
+        1,
+        false,
+        mockHttpClient,
+      )) {
+        records.push(record);
+      }
+
+      expect(records).toHaveLength(2);
+      expect(records.map((record) => [record.entry, record.time])).toEqual([
+        ["entry-second", 1000n],
+        ["entry-first", 3000n],
+      ]);
+      await expect(records[0].readAsString()).resolves.toBe("a");
+      await expect(records[1].readAsString()).resolves.toBe("b");
     });
 
     it("should handle 204 No Content response in continuous query", async () => {

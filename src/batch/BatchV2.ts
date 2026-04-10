@@ -185,10 +185,13 @@ function sortHeadersByEntryAndTime(headers: Headers): {
   }
 
   parsed.sort((a, b) => {
+    if (a.delta !== b.delta) {
+      return a.delta < b.delta ? -1 : 1;
+    }
     if (a.entryIndex !== b.entryIndex) {
       return a.entryIndex - b.entryIndex;
     }
-    return a.delta < b.delta ? -1 : a.delta > b.delta ? 1 : 0;
+    return 0;
   });
 
   return parsed;

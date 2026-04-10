@@ -316,6 +316,32 @@ describe("Bucket", () => {
       expect(records.some((record) => record.time === 1500_000n)).toEqual(true);
     });
 
+    it_api("1.18", true)(
+      "should return record batch items in numeric timestamp order across entries",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const batch = bucket.beginWriteRecordBatch();
+
+        batch.add("entry-first", 10n, "data10");
+        batch.add("entry-second", 1n, "data1");
+        batch.add("entry-first", 11n, "data11");
+        batch.add("entry-second", 2n, "data2");
+        batch.add("entry-third", 3n, "data3");
+
+        const items = [...batch.items()].map(([[entry, ts]]) => ({
+          entry,
+          ts,
+        }));
+        expect(items).toEqual([
+          { entry: "entry-second", ts: 1n },
+          { entry: "entry-second", ts: 2n },
+          { entry: "entry-third", ts: 3n },
+          { entry: "entry-first", ts: 10n },
+          { entry: "entry-first", ts: 11n },
+        ]);
+      },
+    );
+
     it("should return batch items in numeric timestamp order", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const batch = await bucket.beginWriteBatch("entry-order");
@@ -441,6 +467,40 @@ describe("Bucket", () => {
           { entry: "entry-2", time: 2_000_000n },
           { entry: "entry-2", time: 3_000_000n },
           { entry: "entry-2", time: 4_000_000n },
+        ]);
+      },
+    );
+
+    it_api("1.18", true)(
+      "should query records across multiple entries in numeric timestamp order",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+
+        let record = await bucket.beginWrite("entry-query-first", 3_000_000n);
+        await record.write("late");
+
+        record = await bucket.beginWrite("entry-query-second", 1_000_000n);
+        await record.write("early");
+
+        record = await bucket.beginWrite("entry-query-first", 4_000_000n);
+        await record.write("later");
+
+        record = await bucket.beginWrite("entry-query-second", 2_000_000n);
+        await record.write("earlier");
+
+        const records: ReadableRecord[] = await all(
+          bucket.query(["entry-query-first", "entry-query-second"]),
+        );
+
+        const entryTimePairs = records.map((currentRecord) => ({
+          entry: currentRecord.entry,
+          time: currentRecord.time,
+        }));
+        expect(entryTimePairs).toEqual([
+          { entry: "entry-query-second", time: 1_000_000n },
+          { entry: "entry-query-second", time: 2_000_000n },
+          { entry: "entry-query-first", time: 3_000_000n },
+          { entry: "entry-query-first", time: 4_000_000n },
         ]);
       },
     );
