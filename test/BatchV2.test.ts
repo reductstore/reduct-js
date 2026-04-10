@@ -112,6 +112,44 @@ describe("BatchV2", () => {
       expect(mockHttpClient.head).toHaveBeenCalledTimes(2);
     });
 
+    it("should parse multi-entry batch records in timestamp order", async () => {
+      const headers = new Headers();
+      headers.set("x-reduct-entries", "entry-first,entry-second");
+      headers.set("x-reduct-start-ts", "1000");
+      headers.set("x-reduct-0-2000", "1,text/plain,");
+      headers.set("x-reduct-1-0", "1,text/plain,");
+      headers.set("x-reduct-last", "true");
+
+      const mockHttpClient = {
+        get: vi.fn().mockResolvedValue({
+          status: 200,
+          headers,
+          data: buildDataStream("ab"),
+        }),
+      } as unknown as HttpClient;
+
+      const records: ReadableRecord[] = [];
+      for await (const record of fetchAndParseBatchV2(
+        "test-bucket",
+        "entry-first",
+        "query-id-123",
+        false,
+        1,
+        false,
+        mockHttpClient,
+      )) {
+        records.push(record);
+      }
+
+      expect(records).toHaveLength(2);
+      expect(records.map((record) => [record.entry, record.time])).toEqual([
+        ["entry-second", 1000n],
+        ["entry-first", 3000n],
+      ]);
+      await expect(records[0].readAsString()).resolves.toBe("a");
+      await expect(records[1].readAsString()).resolves.toBe("b");
+    });
+
     it("should handle 204 No Content response in continuous query", async () => {
       let callCount = 0;
       const mockHttpClient = {

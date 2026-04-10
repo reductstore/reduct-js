@@ -207,7 +207,7 @@ export class RecordBatch {
   }
 
   /**
-   * Get records in batch sorted by entry name and timestamp.
+   * Get records in batch sorted by timestamp and entry name.
    */
   public items(): Array<[[string, bigint], RecordBatchItem]> {
     const items: Array<[[string, bigint], RecordBatchItem]> = [
@@ -220,10 +220,13 @@ export class RecordBatch {
     items.sort((a, b) => {
       const [[entryA, tsA]] = a;
       const [[entryB, tsB]] = b;
+      if (tsA !== tsB) {
+        return tsA < tsB ? -1 : 1;
+      }
       if (entryA !== entryB) {
         return entryA < entryB ? -1 : 1;
       }
-      return tsA < tsB ? -1 : tsA > tsB ? 1 : 0;
+      return 0;
     });
 
     return items;
@@ -451,10 +454,13 @@ function prepareRecordsV2(
   }
 
   indexedRecords.sort((a, b) => {
+    if (a[1] !== b[1]) {
+      return a[1] < b[1] ? -1 : 1;
+    }
     if (a[0] !== b[0]) {
       return a[0] - b[0];
     }
-    return a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0;
+    return 0;
   });
 
   return { entries, startTs, indexedRecords };
