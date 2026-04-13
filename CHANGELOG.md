@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 1.19.2 - 2026-04-13
+
 ### Fixed
 
 - Fix multi-entry batch ordering to return and stream records by timestamp instead of grouping by entry, [PR-163](https://github.com/reductstore/reduct-js/pull/163)
