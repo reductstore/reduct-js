@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix multi-entry batch ordering to return and stream records by timestamp instead of grouping by entry, [PR-163](https://github.com/reductstore/reduct-js/pull/163)
+- Fix `verifySSL=false` being silently ignored by moving `undici` from devDependencies to dependencies, [PR-165](https://github.com/reductstore/reduct-js/pull/165)
 
 ## 1.19.1 - 2026-04-08
 
