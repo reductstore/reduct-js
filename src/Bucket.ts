@@ -487,8 +487,8 @@ export class Bucket {
    * @param stop stop point of the time period for the query
    * @param query options for the query
    * @param record selector for the record to download (required):
-   * - `number`: legacy record index (works only before ReductStore v1.19.2; removed in SDK v1.21)
-   * - `{ entry, timestamp }`: explicit record identity for ReductStore v1.19.2+
+   * - `number`: legacy record index (works only before ReductStore v1.19; removed from v1.19 API because broken, removed in SDK v1.21)
+   * - `{ entry, timestamp }`: explicit record identity for ReductStore v1.19+
    * @param expireAt expiration time of the link. Default is 24 hours from now
    * @param fileName name of the file to download. Default is `${entry}_<selector>.bin` or `${bucket}_<selector>.bin` for multi-entry
    * @param baseUrl base url for link generation. If not set, the server's base url will be used
@@ -512,6 +512,12 @@ export class Bucket {
         "record selector must be provided (legacy index or { entry, timestamp })",
       );
     } else if (typeof record === "number") {
+      if (this.httpClient.apiVersion && this.httpClient.apiVersion[1] >= 19) {
+        throw new Error(
+          "Numeric record index selector was removed from ReductStore v1.19 API because it is broken. Use { entry, timestamp }.",
+        );
+      }
+
       if (!Number.isInteger(record) || record < 0) {
         throw new Error("record index must be a non-negative integer");
       }

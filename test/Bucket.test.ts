@@ -895,6 +895,33 @@ describe("Bucket", () => {
   });
 
   describe("queryLink", () => {
+    const getApiMinorVersion = async (): Promise<number> => {
+      const resp = await fetch("http://127.0.0.1:8383/api/v1/alive", {
+        method: "HEAD",
+      });
+      const version = resp.headers.get("x-reduct-api") ?? "0.0";
+      return Number.parseInt(version.split(".")[1] ?? "0", 10);
+    };
+
+    it_api("1.17")(
+      "should fail to create a query link when record selector misses timestamp",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+
+        await expect(
+          bucket.createQueryLink(
+            "entry-1",
+            undefined,
+            undefined,
+            { when: { $limit: 1 } },
+            { entry: "entry-1" } as any,
+          ),
+        ).rejects.toMatchObject({
+          message: "record timestamp must be provided",
+        });
+      },
+    );
+
     it_api("1.17")("should create and use a query link", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const link = await bucket.createQueryLink(
@@ -930,9 +957,31 @@ describe("Bucket", () => {
       },
     );
 
-    it_api("1.17")("should create a query link with record index", async () => {
-      const bucket: Bucket = await client.getBucket("bucket");
-      try {
+    it_api("1.19")(
+      "should create and use a query link with record entry and timestamp",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const link = await bucket.createQueryLink(
+          "entry-2",
+          undefined,
+          undefined,
+          {},
+          { entry: "entry-2", timestamp: 3000_000n },
+        );
+
+        const resp = await fetch(link);
+        expect(await resp.text()).toEqual("somedata3");
+      },
+    );
+
+    it_api("1.17")(
+      "should create a query link with record index for legacy API",
+      async () => {
+        if ((await getApiMinorVersion()) >= 19) {
+          return;
+        }
+
+        const bucket: Bucket = await client.getBucket("bucket");
         const link = await bucket.createQueryLink(
           "entry-2",
           undefined,
@@ -945,15 +994,33 @@ describe("Bucket", () => {
 
         const resp = await fetch(link);
         expect(await resp.text()).toEqual("somedata3");
-      } catch (err) {
-        // ReductStore v1.19.2+ requires record identity fields.
-        expect(err).toMatchObject({
-          status: 422,
+      },
+    );
+
+    it_api("1.19")(
+      "should reject record index selector for v1.19+ API",
+      async () => {
+        if ((await getApiMinorVersion()) < 19) {
+          return;
+        }
+
+        const bucket: Bucket = await client.getBucket("bucket");
+        await expect(
+          bucket.createQueryLink(
+            "entry-2",
+            undefined,
+            undefined,
+            {
+              when: { $limit: 2 },
+            },
+            1,
+          ),
+        ).rejects.toMatchObject({
           message:
-            "Both 'record_entry' and 'record_timestamp' must be provided in payload",
+            "Numeric record index selector was removed from ReductStore v1.19 API because it is broken. Use { entry, timestamp }.",
         });
-      }
-    });
+      },
+    );
 
     it_api("1.17")("should create a query link with expire date", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
@@ -1010,6 +1077,46 @@ describe("Bucket", () => {
         const parts = link.split("custom-name.txt");
         expect(parts.length).toEqual(2);
         expect(parts[1].startsWith("?")).toBeTruthy();
+      },
+    );
+
+    it_api("1.19")(
+      "should fail to create a query link without record selector",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+
+        await expect(
+          // runtime validation for selector style
+          bucket.createQueryLink(
+            "entry-1",
+            undefined,
+            undefined,
+            { when: { $limit: 1 } },
+            undefined,
+          ),
+        ).rejects.toMatchObject({
+          message:
+            "record selector must be provided (legacy index or { entry, timestamp })",
+        });
+      },
+    );
+
+    it_api("1.19")(
+      "should fail to create a query link when record selector misses entry",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+
+        await expect(
+          bucket.createQueryLink(
+            "entry-1",
+            undefined,
+            undefined,
+            { when: { $limit: 1 } },
+            { timestamp: 1000_000n } as any,
+          ),
+        ).rejects.toMatchObject({
+          message: "record entry must be provided",
+        });
       },
     );
   });

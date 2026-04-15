@@ -13,7 +13,7 @@ export class QueryLinkOptions {
   /** selected record timestamp */
   recordTimestamp?: bigint;
   /**
-   * @deprecated Legacy `index` is only honored by ReductStore versions before v1.19.2.
+   * @deprecated Legacy `index` is only honored by ReductStore versions before v1.19.
    * Use `recordEntry` and `recordTimestamp` instead. Will be removed in SDK v1.21.
    */
   index?: number;
@@ -55,7 +55,7 @@ export type OriginalCreateQueryLink = {
   record_entry?: string;
   record_timestamp?: bigint | number;
   /**
-   * @deprecated Legacy `index` is only honored by ReductStore versions before v1.19.2.
+   * @deprecated Legacy `index` is only honored by ReductStore versions before v1.19.
    * Will be removed in SDK v1.21.
    */
   index?: number;
