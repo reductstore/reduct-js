@@ -501,6 +501,11 @@ export class Bucket {
     fileName?: string,
     baseUrl?: string,
   ): Promise<string> {
+    const selectedRecordIndex = recordIndex ?? 0;
+    if (!Number.isInteger(selectedRecordIndex) || selectedRecordIndex < 0) {
+      throw new Error("recordIndex must be a non-negative integer");
+    }
+
     const entries = Array.isArray(entry) ? entry : [entry];
     const entryName = entries[0] ?? "";
     if (Array.isArray(entry)) {
@@ -514,11 +519,21 @@ export class Bucket {
       }
     }
 
+    const identity = await this.resolveRecordIdentityForQueryLink(
+      entry,
+      start,
+      stop,
+      query,
+      selectedRecordIndex,
+    );
+
     const queryLinkOptions = {
       bucket: this.name,
       entry: entryName,
+      recordEntry: identity.entry,
+      recordTimestamp: identity.timestamp,
       query: query ?? {},
-      index: recordIndex ?? 0,
+      index: selectedRecordIndex,
       expireAt: expireAt ?? new Date(Date.now() + 24 * 3600 * 1000),
       baseUrl,
     } as QueryLinkOptions;
@@ -527,7 +542,7 @@ export class Bucket {
 
     const file =
       fileName ??
-      `${entryName.length == 0 ? this.name : entryName}_${recordIndex ?? 0}.bin`;
+      `${entryName.length == 0 ? this.name : entryName}_${selectedRecordIndex}.bin`;
     const { data } = await this.httpClient.post<{ link: string }>(
       `/links/${file}`,
       QueryLinkOptions.serialize(
@@ -539,6 +554,41 @@ export class Bucket {
     );
 
     return data.link;
+  }
+
+  private async resolveRecordIdentityForQueryLink(
+    entry: string | string[],
+    start: bigint | undefined,
+    stop: bigint | undefined,
+    query: QueryOptions | undefined,
+    recordIndex: number,
+  ): Promise<{ entry: string; timestamp: bigint }> {
+    const queryForIdentity = {
+      ...(query ?? {}),
+      continuous: false,
+      head: true,
+    } as QueryOptions;
+
+    let currentIndex = 0;
+    for await (const record of this.query(
+      entry,
+      start,
+      stop,
+      queryForIdentity,
+    )) {
+      if (currentIndex === recordIndex) {
+        return {
+          entry: record.entry,
+          timestamp: record.time,
+        };
+      }
+
+      currentIndex += 1;
+    }
+
+    throw new Error(
+      `Record index ${recordIndex} is out of range for the query result`,
+    );
   }
 
   /**

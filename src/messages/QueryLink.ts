@@ -8,6 +8,10 @@ export class QueryLinkOptions {
   bucket = "";
   /** entry name (or bucket name for multi-entry queries) */
   entry = "";
+  /** selected record entry name */
+  recordEntry = "";
+  /** selected record timestamp */
+  recordTimestamp = 0n;
   /** record index */
   index = 0;
   /** query */
@@ -26,6 +30,8 @@ export class QueryLinkOptions {
     return {
       bucket: options.bucket,
       entry: options.entry,
+      record_entry: options.recordEntry,
+      record_timestamp: options.recordTimestamp,
       index: options.index,
       query: QueryOptions.serialize(
         QueryType.QUERY,
@@ -43,6 +49,8 @@ export class QueryLinkOptions {
 export type OriginalCreateQueryLink = {
   bucket: string;
   entry: string;
+  record_entry?: string;
+  record_timestamp?: bigint | number;
   index?: number;
   query: any;
   expire_at: number;
