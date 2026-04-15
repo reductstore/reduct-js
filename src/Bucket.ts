@@ -486,9 +486,11 @@ export class Bucket {
    * @param start start point of the time period for the query
    * @param stop stop point of the time period for the query
    * @param query options for the query
-   * @param recordIndex index of the record to download (0 for the first record, 1 for the second, etc.)
+   * @param record selector for the record to download (required):
+   * - `number`: legacy record index (works only before ReductStore v1.19.2; removed in SDK v1.21)
+   * - `{ entry, timestamp }`: explicit record identity for ReductStore v1.19.2+
    * @param expireAt expiration time of the link. Default is 24 hours from now
-   * @param fileName name of the file to download. Default is `${entry}_${recordIndex}.bin` or `${bucket}_${recordIndex}.bin` for multi-entry
+   * @param fileName name of the file to download. Default is `${entry}_<selector>.bin` or `${bucket}_<selector>.bin` for multi-entry
    * @param baseUrl base url for link generation. If not set, the server's base url will be used
    */
   async createQueryLink(
@@ -496,14 +498,35 @@ export class Bucket {
     start?: bigint,
     stop?: bigint,
     query?: QueryOptions,
-    recordIndex?: number,
+    record?: number | { entry: string; timestamp: bigint },
     expireAt?: Date,
     fileName?: string,
     baseUrl?: string,
   ): Promise<string> {
-    const selectedRecordIndex = recordIndex ?? 0;
-    if (!Number.isInteger(selectedRecordIndex) || selectedRecordIndex < 0) {
-      throw new Error("recordIndex must be a non-negative integer");
+    let selectedRecordIndex: number | undefined;
+    let selectedRecordEntry: string | undefined;
+    let selectedRecordTimestamp: bigint | undefined;
+
+    if (record === undefined) {
+      throw new Error(
+        "record selector must be provided (legacy index or { entry, timestamp })",
+      );
+    } else if (typeof record === "number") {
+      if (!Number.isInteger(record) || record < 0) {
+        throw new Error("record index must be a non-negative integer");
+      }
+      selectedRecordIndex = record;
+    } else {
+      if (!record.entry) {
+        throw new Error("record entry must be provided");
+      }
+
+      if (record.timestamp === undefined) {
+        throw new Error("record timestamp must be provided");
+      }
+
+      selectedRecordEntry = record.entry;
+      selectedRecordTimestamp = record.timestamp;
     }
 
     const entries = Array.isArray(entry) ? entry : [entry];
@@ -519,19 +542,11 @@ export class Bucket {
       }
     }
 
-    const identity = await this.resolveRecordIdentityForQueryLink(
-      entry,
-      start,
-      stop,
-      query,
-      selectedRecordIndex,
-    );
-
     const queryLinkOptions = {
       bucket: this.name,
       entry: entryName,
-      recordEntry: identity.entry,
-      recordTimestamp: identity.timestamp,
+      recordEntry: selectedRecordEntry,
+      recordTimestamp: selectedRecordTimestamp,
       query: query ?? {},
       index: selectedRecordIndex,
       expireAt: expireAt ?? new Date(Date.now() + 24 * 3600 * 1000),
@@ -542,7 +557,7 @@ export class Bucket {
 
     const file =
       fileName ??
-      `${entryName.length == 0 ? this.name : entryName}_${selectedRecordIndex}.bin`;
+      `${entryName.length == 0 ? this.name : entryName}_${selectedRecordIndex ?? selectedRecordTimestamp ?? 0}.bin`;
     const { data } = await this.httpClient.post<{ link: string }>(
       `/links/${file}`,
       QueryLinkOptions.serialize(
@@ -554,41 +569,6 @@ export class Bucket {
     );
 
     return data.link;
-  }
-
-  private async resolveRecordIdentityForQueryLink(
-    entry: string | string[],
-    start: bigint | undefined,
-    stop: bigint | undefined,
-    query: QueryOptions | undefined,
-    recordIndex: number,
-  ): Promise<{ entry: string; timestamp: bigint }> {
-    const queryForIdentity = {
-      ...(query ?? {}),
-      continuous: false,
-      head: true,
-    } as QueryOptions;
-
-    let currentIndex = 0;
-    for await (const record of this.query(
-      entry,
-      start,
-      stop,
-      queryForIdentity,
-    )) {
-      if (currentIndex === recordIndex) {
-        return {
-          entry: record.entry,
-          timestamp: record.time,
-        };
-      }
-
-      currentIndex += 1;
-    }
-
-    throw new Error(
-      `Record index ${recordIndex} is out of range for the query result`,
-    );
   }
 
   /**

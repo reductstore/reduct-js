@@ -904,6 +904,7 @@ describe("Bucket", () => {
         {
           when: { $limit: 1 },
         },
+        { entry: "entry-1", timestamp: 1000_000n },
       );
 
       const resp = await fetch(link);
@@ -921,6 +922,7 @@ describe("Bucket", () => {
           {
             when: { $limit: 1 },
           },
+          { entry: "entry-1", timestamp: 1000_000n },
         );
 
         const resp = await fetch(link);
@@ -930,18 +932,27 @@ describe("Bucket", () => {
 
     it_api("1.17")("should create a query link with record index", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
-      const link = await bucket.createQueryLink(
-        "entry-2",
-        undefined,
-        undefined,
-        {
-          when: { $limit: 2 },
-        },
-        1,
-      );
+      try {
+        const link = await bucket.createQueryLink(
+          "entry-2",
+          undefined,
+          undefined,
+          {
+            when: { $limit: 2 },
+          },
+          1,
+        );
 
-      const resp = await fetch(link);
-      expect(await resp.text()).toEqual("somedata3");
+        const resp = await fetch(link);
+        expect(await resp.text()).toEqual("somedata3");
+      } catch (err) {
+        // ReductStore v1.19.2+ requires record identity fields.
+        expect(err).toMatchObject({
+          status: 422,
+          message:
+            "Both 'record_entry' and 'record_timestamp' must be provided in payload",
+        });
+      }
     });
 
     it_api("1.17")("should create a query link with expire date", async () => {
@@ -953,7 +964,7 @@ describe("Bucket", () => {
         {
           when: { $limit: 2 },
         },
-        undefined,
+        { entry: "entry-2", timestamp: 2000_000n },
         new Date(Date.now() - 60000), // link already expired
       );
 
@@ -972,7 +983,7 @@ describe("Bucket", () => {
           {
             when: { $limit: 2 },
           },
-          undefined,
+          { entry: "entry-2", timestamp: 2000_000n },
           undefined,
           "custom-name.txt",
         );
@@ -991,7 +1002,7 @@ describe("Bucket", () => {
           {
             when: { $limit: 2 },
           },
-          undefined,
+          { entry: "entry-2", timestamp: 2000_000n },
           undefined,
           "custom-name.txt",
         );
