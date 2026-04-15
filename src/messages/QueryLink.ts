@@ -8,8 +8,15 @@ export class QueryLinkOptions {
   bucket = "";
   /** entry name (or bucket name for multi-entry queries) */
   entry = "";
-  /** record index */
-  index = 0;
+  /** selected record entry name */
+  recordEntry?: string;
+  /** selected record timestamp */
+  recordTimestamp?: bigint;
+  /**
+   * @deprecated Legacy `index` is only honored by ReductStore versions before v1.19.
+   * Use `recordEntry` and `recordTimestamp` instead. Will be removed in SDK v1.21.
+   */
+  index?: number;
   /** query */
   query: QueryOptions = {};
   /** expiration time as UNIX timestamp in seconds */
@@ -26,6 +33,8 @@ export class QueryLinkOptions {
     return {
       bucket: options.bucket,
       entry: options.entry,
+      record_entry: options.recordEntry,
+      record_timestamp: options.recordTimestamp,
       index: options.index,
       query: QueryOptions.serialize(
         QueryType.QUERY,
@@ -43,6 +52,12 @@ export class QueryLinkOptions {
 export type OriginalCreateQueryLink = {
   bucket: string;
   entry: string;
+  record_entry?: string;
+  record_timestamp?: bigint | number;
+  /**
+   * @deprecated Legacy `index` is only honored by ReductStore versions before v1.19.
+   * Will be removed in SDK v1.21.
+   */
   index?: number;
   query: any;
   expire_at: number;

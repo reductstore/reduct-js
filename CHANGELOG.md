@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 1.19.3 - 2026-06-10
+
+### Fixed
+
+- Adapt query link creation to ReductStore API v1.19 by resolving `recordIndex` to `record_entry`/`record_timestamp` while preserving legacy `index` in payloads for compatibility, [PR-167](https://github.com/reductstore/reduct-js/pull/167)
+
 ## 1.19.2 - 2026-04-13
 
 ### Fixed
