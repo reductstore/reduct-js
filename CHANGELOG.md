@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Security
+
+- Restrict GitHub Actions `GITHUB_TOKEN` default permissions to `contents: read` in CI workflow and remove unnecessary OIDC write access.
+
 ## 1.19.3 - 2026-06-10
 
 ### Fixed
