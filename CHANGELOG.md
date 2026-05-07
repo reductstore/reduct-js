@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Support non-JSON content types in `writeAttachments` and `readAttachments`, [PR-172](https://github.com/reductstore/reduct-js/pull/172)
+
 ### Security
 
 - Restrict GitHub Actions `GITHUB_TOKEN` default permissions to `contents: read` in CI workflow and remove unnecessary OIDC write access.

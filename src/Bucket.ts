@@ -1,4 +1,5 @@
 // @ts-ignore`
+import { Buffer } from "buffer";
 import { BucketSettings } from "./messages/BucketSettings";
 import { BucketInfo } from "./messages/BucketInfo";
 import { EntryInfo } from "./messages/EntryInfo";
@@ -588,20 +589,20 @@ export class Bucket {
   async writeAttachments(
     entry: string,
     attachments: Record<string, unknown>,
+    contentType?: string,
   ): Promise<void> {
+    const ct = contentType ?? "application/json";
+    const isJson = isJsonContentType(ct);
     const batch = this.beginWriteRecordBatch();
     const entryName = `${entry}/$meta`;
     const baseTs = BigInt(Date.now()) * 1000n;
     let offset = 0n;
 
     for (const [key, content] of Object.entries(attachments)) {
-      batch.add(
-        entryName,
-        baseTs + offset,
-        JSON.stringify(content),
-        "application/json",
-        { key },
-      );
+      const data = isJson
+        ? JSON.stringify(content)
+        : Buffer.from(content as string, "base64");
+      batch.add(entryName, baseTs + offset, data, ct, { key });
       offset += 1n;
     }
 
@@ -624,7 +625,12 @@ export class Bucket {
       }
 
       const key = record.labels["key"].toString();
-      attachments[key] = JSON.parse(await record.readAsString());
+      if (isJsonContentType(record.contentType ?? "")) {
+        attachments[key] = JSON.parse(await record.readAsString());
+      } else {
+        const buf = await record.read();
+        attachments[key] = buf.toString("base64");
+      }
     }
 
     return attachments;
@@ -667,4 +673,11 @@ export class Bucket {
 
     await batch.send();
   }
+}
+
+function isJsonContentType(contentType: string): boolean {
+  const ct = contentType.split(";")[0].trim().toLowerCase();
+  return (
+    ct === "application/json" || ct === "text/json" || ct.endsWith("+json")
+  );
 }

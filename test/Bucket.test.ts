@@ -864,6 +864,40 @@ describe("Bucket", () => {
         });
       },
     );
+
+    it_api("1.19", true)(
+      "should write and read non-JSON attachments",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const rawBytes = Buffer.from([0xde, 0xad, 0xbe, 0xef]);
+        const encoded = rawBytes.toString("base64");
+
+        await bucket.writeAttachments(
+          "entry-1",
+          { "binary-data": encoded },
+          "application/octet-stream",
+        );
+
+        const attachments = await bucket.readAttachments("entry-1");
+        expect(attachments["binary-data"]).toEqual(encoded);
+      },
+    );
+
+    it_api("1.19", true)(
+      "should write and read JSON attachments with default content type",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        await bucket.writeAttachments("entry-1", {
+          "meta-1": { enabled: true, values: [1, 2, 3] },
+          "meta-2": { name: "test" },
+        });
+
+        await expect(bucket.readAttachments("entry-1")).resolves.toEqual({
+          "meta-1": { enabled: true, values: [1, 2, 3] },
+          "meta-2": { name: "test" },
+        });
+      },
+    );
   });
 
   describe("rename", () => {
