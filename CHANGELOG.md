@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add lifecycle policy API support, [PR-175](https://github.com/reductstore/reduct-js/pull/175)
+
 ### Security
 
 - Restrict GitHub Actions `GITHUB_TOKEN` default permissions to `contents: read` in CI workflow and remove unnecessary OIDC write access.
