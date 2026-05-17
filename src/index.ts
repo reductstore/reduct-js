@@ -12,6 +12,10 @@ import { ReplicationInfo } from "./messages/ReplicationInfo";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
 import { ReplicationMode } from "./messages/ReplicationMode";
 import { FullReplicationInfo } from "./messages/ReplicationInfo";
+import { LifecycleInfo, FullLifecycleInfo } from "./messages/LifecycleInfo";
+import { LifecycleMode } from "./messages/LifecycleMode";
+import { LifecycleSettings } from "./messages/LifecycleSettings";
+import { LifecycleType } from "./messages/LifecycleType";
 import { Batch } from "./Batch";
 import { RecordBatch, RecordBatchType } from "./RecordBatch";
 import { QueryOptions } from "./messages/QueryEntry";
@@ -34,10 +38,15 @@ export {
   ReplicationInfo,
   ReplicationSettings,
   FullReplicationInfo,
+  LifecycleInfo,
+  LifecycleSettings,
+  FullLifecycleInfo,
   Batch,
   RecordBatch,
   RecordBatchType,
   ReplicationMode,
+  LifecycleMode,
+  LifecycleType,
 };
 
 export type { WriteOptions };
