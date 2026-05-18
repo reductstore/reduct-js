@@ -125,6 +125,11 @@ export const it_api = (version: string, skip_browser = false) => {
   return apiIt;
 };
 
+export const supports_api = async (version: string): Promise<boolean> => {
+  const apiVersion = await getServerApiVersion();
+  return isCompatible(version, apiVersion);
+};
+
 export const u8 = (s: string) => new TextEncoder().encode(s);
 
 const isCompatible = (

@@ -1,5 +1,5 @@
 import { Client } from "../src/Client";
-import { cleanStorage, it_api, makeClient } from "./utils/Helpers";
+import { cleanStorage, it_api, makeClient, supports_api } from "./utils/Helpers";
 
 describe("Lifecycle", () => {
   const client: Client = makeClient();
@@ -15,6 +15,11 @@ describe("Lifecycle", () => {
 
   beforeEach(async () => {
     await cleanStorage(client);
+
+    if (!(await supports_api("1.20"))) {
+      return;
+    }
+
     const lifecycles = await client.getLifecycleList();
     await Promise.all(
       lifecycles.map((lifecycle) => client.deleteLifecycle(lifecycle.name)),
