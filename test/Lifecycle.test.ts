@@ -1,5 +1,10 @@
 import { Client } from "../src/Client";
-import { cleanStorage, it_api, makeClient, supports_api } from "./utils/Helpers";
+import {
+  cleanStorage,
+  it_api,
+  makeClient,
+  supports_api,
+} from "./utils/Helpers";
 
 describe("Lifecycle", () => {
   const client: Client = makeClient();
