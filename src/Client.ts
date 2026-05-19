@@ -21,6 +21,14 @@ import {
 } from "./messages/ReplicationInfo";
 import { ReplicationMode } from "./messages/ReplicationMode";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
+import {
+  FullLifecycleInfo,
+  FullLifecycleInfoResponse,
+  LifecycleInfo,
+  OriginalLifecycleInfo,
+} from "./messages/LifecycleInfo";
+import { LifecycleMode } from "./messages/LifecycleMode";
+import { LifecycleSettings } from "./messages/LifecycleSettings";
 import { HttpClient } from "./http/HttpClient";
 
 /**
@@ -286,5 +294,79 @@ export class Client {
    */
   async deleteReplication(name: string): Promise<void> {
     await this.httpClient.delete(`/replications/${name}`);
+  }
+
+  /**
+   * Get the list of lifecycle policies
+   * @return {Promise<LifecycleInfo[]>} the list of lifecycle policies
+   */
+  async getLifecycleList(): Promise<LifecycleInfo[]> {
+    const { data } = await this.httpClient.get<{
+      lifecycles: OriginalLifecycleInfo[];
+    }>("/lifecycles");
+    return data.lifecycles.map((lifecycle) => LifecycleInfo.parse(lifecycle));
+  }
+
+  /**
+   * Get full information about a lifecycle policy
+   * @param name name of the lifecycle policy
+   * @return {Promise<FullLifecycleInfo>} the lifecycle policy
+   */
+  async getLifecycle(name: string): Promise<FullLifecycleInfo> {
+    const { data } = await this.httpClient.get<FullLifecycleInfoResponse>(
+      `/lifecycles/${name}`,
+    );
+    return FullLifecycleInfo.parse(data);
+  }
+
+  /**
+   * Create a new lifecycle policy
+   * @param name name of the lifecycle policy
+   * @param settings settings of the lifecycle policy
+   * @return {Promise<void>}
+   */
+  async createLifecycle(
+    name: string,
+    settings: LifecycleSettings,
+  ): Promise<void> {
+    await this.httpClient.post(
+      `/lifecycles/${name}`,
+      LifecycleSettings.serialize(settings),
+    );
+  }
+
+  /**
+   * Update a lifecycle policy
+   * @param name name of the lifecycle policy
+   * @param settings settings of the lifecycle policy
+   * @return {Promise<void>}
+   */
+  async updateLifecycle(
+    name: string,
+    settings: LifecycleSettings,
+  ): Promise<void> {
+    await this.httpClient.put(
+      `/lifecycles/${name}`,
+      LifecycleSettings.serialize(settings),
+    );
+  }
+
+  /**
+   * Update lifecycle mode without changing settings
+   * @param name name of the lifecycle policy
+   * @param mode new mode: enabled, disabled, or dry_run
+   * @return {Promise<void>}
+   */
+  async setLifecycleMode(name: string, mode: LifecycleMode): Promise<void> {
+    await this.httpClient.patch(`/lifecycles/${name}/mode`, { mode });
+  }
+
+  /**
+   * Delete a lifecycle policy
+   * @param name name of the lifecycle policy
+   * @return {Promise<void>}
+   */
+  async deleteLifecycle(name: string): Promise<void> {
+    await this.httpClient.delete(`/lifecycles/${name}`);
   }
 }
