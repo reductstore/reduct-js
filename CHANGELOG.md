@@ -7,18 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## 1.20.0-beta.1 - 2026-05-18
-
 ### Added
 
 - Add lifecycle policy API support, [PR-175](https://github.com/reductstore/reduct-js/pull/175)
 
 ### Security
 
+- Restore OIDC token write permission for the publish job while keeping default workflow permissions restricted, [PR-176](https://github.com/reductstore/reduct-js/pull/176)
 - Restrict GitHub Actions `GITHUB_TOKEN` default permissions to `contents: read` in CI workflow and remove unnecessary OIDC write access.
 - Pin `docker/login-action` in CI workflow to an immutable commit SHA (updated to v4.1.0), issue #170
 
-## 1.19.3 - 2026-06-10
+## 1.19.3 - 2026-04-15
 
 ### Fixed
 
