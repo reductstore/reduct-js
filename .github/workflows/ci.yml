@@ -131,6 +131,10 @@ jobs:
   publish:
     needs: [run_tests, run_examples, lint, audit]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
     if: ${{ startsWith(github.event.ref, 'refs/tags/v') }}
     steps:
       - uses: actions/checkout@v5
