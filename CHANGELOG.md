@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Use `x-reduct-content-length` instead of `Content-Length` for browser compatibility with undici
+- Use `x-reduct-content-length` instead of `Content-Length` for browser compatibility with undici, [PR-179](https://github.com/reductstore/reduct-js/pull/179)
 
 ### Security
 
