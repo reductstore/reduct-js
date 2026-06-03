@@ -162,7 +162,7 @@ export class RecordBatch {
           },
         });
 
-        headers["Content-Length"] = contentLength.toString();
+        headers["x-reduct-content-length"] = contentLength.toString();
 
         const response = await this.httpClient.post(
           `/io/${this.bucketName}/write`,

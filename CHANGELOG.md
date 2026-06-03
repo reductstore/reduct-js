@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add lifecycle policy API support, [PR-175](https://github.com/reductstore/reduct-js/pull/175)
 
+### Fixed
+
+- Use `x-reduct-content-length` instead of `Content-Length` for browser compatibility with undici
+
 ### Security
 
 - Restore OIDC token write permission for the publish job while keeping default workflow permissions restricted, [PR-176](https://github.com/reductstore/reduct-js/pull/176)

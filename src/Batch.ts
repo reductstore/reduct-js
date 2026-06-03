@@ -142,7 +142,7 @@ export class Batch {
         });
 
         headers["Content-Type"] = "application/octet-stream";
-        headers["Content-Length"] = contentLength.toString();
+        headers["x-reduct-content-length"] = contentLength.toString();
 
         response = await this.httpClient.post(
           `/b/${this.bucketName}/${this.entryName}/batch`,
