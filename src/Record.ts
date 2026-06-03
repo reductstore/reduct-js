@@ -154,6 +154,10 @@ export class WritableRecord {
     const headers: Record<string, string> = {
       "Content-Type": options.contentType ?? "application/octet-stream",
       "x-reduct-content-length": contentLength.toString(),
+      // Send Content-Length for compatibility (server <1.20)
+      ...(dataToSend instanceof ReadableStream
+        ? { "Content-Length": contentLength.toString() }
+        : {}),
     };
 
     for (const [key, value] of Object.entries(options.labels ?? {})) {
