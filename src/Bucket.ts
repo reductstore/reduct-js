@@ -444,7 +444,7 @@ export class Bucket {
   /**
    * Create a new batch for writing records to multiple entries.
    * @example
-   * const batch = await bucket.beginWriteRecordBatch();
+   * const batch = bucket.beginWriteRecordBatch();
    * batch.add("entry-1", 1000n, "data");
    * batch.add("entry-2", 2000n, "data");
    * await batch.send();
