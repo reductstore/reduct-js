@@ -258,20 +258,18 @@ type PreparedRecords = {
 };
 
 function makeHeadersV2(batch: RecordBatch): {
-  contentLength: bigint;
   headers: Record<string, string>;
   entries: string[];
   startTs: bigint;
 } {
   const recordHeaders: Record<string, string> = {};
-  let contentLength = 0n;
   const records = batch.items();
 
   if (records.length === 0) {
     recordHeaders[ENTRIES_HEADER] = "";
     recordHeaders[START_TS_HEADER] = "0";
     recordHeaders["Content-Type"] = "application/octet-stream";
-    return { contentLength, headers: recordHeaders, entries: [], startTs: 0n };
+    return { headers: recordHeaders, entries: [], startTs: 0n };
   }
 
   const { entries, startTs, indexedRecords } = prepareRecordsV2(records);
@@ -285,7 +283,6 @@ function makeHeadersV2(batch: RecordBatch): {
   recordHeaders[START_TS_HEADER] = startTs.toString();
 
   for (const [entryIndex, timestamp, record] of indexedRecords) {
-    contentLength += BigInt(record.data.length);
     const delta = timestamp - startTs;
     const contentType = record.contentType || "application/octet-stream";
     const previous = lastMeta.get(entryIndex);
@@ -321,12 +318,7 @@ function makeHeadersV2(batch: RecordBatch): {
   }
 
   recordHeaders["Content-Type"] = "application/octet-stream";
-  return {
-    contentLength,
-    headers: recordHeaders,
-    entries,
-    startTs,
-  };
+  return { headers: recordHeaders, entries, startTs };
 }
 
 function makeUpdateHeadersV2(batch: RecordBatch): {
