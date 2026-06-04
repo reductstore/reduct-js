@@ -1,7 +1,6 @@
 import { LabelMap } from "./Record";
 import { APIError } from "./APIError";
 import { HttpClient } from "./http/HttpClient";
-import { isBrowser } from "./utils/env";
 
 /**
  * Represents a batch of records for writing
@@ -108,9 +107,7 @@ export class Batch {
   public async write(): Promise<Map<bigint, APIError>> {
     const headers: Record<string, string> = {};
     const chunks: Buffer[] = [];
-    let contentLength = 0;
     for (const [ts, { data, contentType, labels }] of this.items()) {
-      contentLength += data.length;
       chunks.push(data);
       const headerName = `x-reduct-time-${ts}`;
 
@@ -133,25 +130,11 @@ export class Batch {
     let response;
     switch (this.type) {
       case BatchType.WRITE: {
-        const stream = new ReadableStream<Uint8Array>({
-          start(ctrl) {
-            for (const chunk of chunks) {
-              ctrl.enqueue(chunk);
-            }
-            ctrl.close();
-          },
-        });
-
         headers["Content-Type"] = "application/octet-stream";
-        if (isBrowser) {
-          headers["x-reduct-content-length"] = contentLength.toString();
-        } else {
-          headers["Content-Length"] = contentLength.toString();
-        }
 
         response = await this.httpClient.post(
           `/b/${this.bucketName}/${this.entryName}/batch`,
-          stream,
+          Buffer.concat(chunks),
           headers,
         );
         break;

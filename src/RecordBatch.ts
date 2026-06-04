@@ -2,7 +2,6 @@ import { Buffer } from "buffer";
 import { APIError } from "./APIError";
 import { HttpClient } from "./http/HttpClient";
 import { LabelMap } from "./Record";
-import { isBrowser } from "./utils/env";
 
 const HEADER_PREFIX = "x-reduct-";
 const ERROR_HEADER_PREFIX = "x-reduct-error-";
@@ -147,31 +146,15 @@ export class RecordBatch {
 
     switch (this.type) {
       case RecordBatchType.WRITE: {
-        const { contentLength, headers, entries, startTs } =
-          makeHeadersV2(this);
+        const { headers, entries, startTs } = makeHeadersV2(this);
         const chunks: Buffer[] = [];
         for (const [, record] of this.items()) {
           chunks.push(record.data);
         }
 
-        const stream = new ReadableStream<Uint8Array>({
-          start(ctrl) {
-            for (const chunk of chunks) {
-              ctrl.enqueue(chunk);
-            }
-            ctrl.close();
-          },
-        });
-
-        if (isBrowser) {
-          headers["x-reduct-content-length"] = contentLength.toString();
-        } else {
-          headers["Content-Length"] = contentLength.toString();
-        }
-
         const response = await this.httpClient.post(
           `/io/${this.bucketName}/write`,
-          stream,
+          Buffer.concat(chunks),
           headers,
         );
 

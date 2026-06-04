@@ -184,6 +184,37 @@ describe("Bucket", () => {
       expect(md5(actual)).toEqual(md5(bigBlob));
     });
 
+    it("should set x-reduct-content-length only for stream writes", async () => {
+      const { WritableRecord } = await import("../src/Record");
+      let lastHeaders: Record<string, string> = {};
+      const mock = {
+        post: async (_u: string, _d: unknown, h: Record<string, string>) => {
+          lastHeaders = h;
+          return { data: {}, headers: new Headers(), status: 200 };
+        },
+      };
+      const rec = (
+        data: Parameters<InstanceType<typeof WritableRecord>["write"]>[0],
+        size?: bigint,
+      ) =>
+        new WritableRecord("b", "e", { ts: 1n }, mock as any).write(data, size);
+
+      await rec("hello");
+      expect(lastHeaders["x-reduct-content-length"]).toBeUndefined();
+
+      await rec(Buffer.from("hello"));
+      expect(lastHeaders["x-reduct-content-length"]).toBeUndefined();
+
+      const stream = new ReadableStream<Uint8Array>({
+        start(c) {
+          c.enqueue(new Uint8Array([1]));
+          c.close();
+        },
+      });
+      await rec(stream, 1n);
+      expect(lastHeaders["x-reduct-content-length"]).toBe("1");
+    });
+
     it("should read write and read labels along with records", async () => {
       const bucket: Bucket = await client.getBucket("bucket");
       const record = await bucket.beginWrite("entry-1", {
