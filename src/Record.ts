@@ -1,6 +1,7 @@
 import { Buffer } from "buffer";
 import { WriteOptions } from "./Bucket";
 import { HttpClient } from "./http/HttpClient";
+import { isBrowser } from "./utils/env";
 
 export type LabelMap = Record<string, string | number | boolean | bigint>;
 
@@ -153,10 +154,10 @@ export class WritableRecord {
 
     const headers: Record<string, string> = {
       "Content-Type": options.contentType ?? "application/octet-stream",
-      "x-reduct-content-length": contentLength.toString(),
-      // Send Content-Length for compatibility (server <1.20)
       ...(dataToSend instanceof ReadableStream
-        ? { "Content-Length": contentLength.toString() }
+        ? isBrowser
+          ? { "x-reduct-content-length": contentLength.toString() }
+          : { "Content-Length": contentLength.toString() }
         : {}),
     };
 

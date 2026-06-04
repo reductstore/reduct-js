@@ -1,6 +1,7 @@
 import { LabelMap } from "./Record";
 import { APIError } from "./APIError";
 import { HttpClient } from "./http/HttpClient";
+import { isBrowser } from "./utils/env";
 
 /**
  * Represents a batch of records for writing
@@ -142,9 +143,11 @@ export class Batch {
         });
 
         headers["Content-Type"] = "application/octet-stream";
-        headers["x-reduct-content-length"] = contentLength.toString();
-        // Send Content-Length for compatibility (server <1.20)
-        headers["Content-Length"] = contentLength.toString();
+        if (isBrowser) {
+          headers["x-reduct-content-length"] = contentLength.toString();
+        } else {
+          headers["Content-Length"] = contentLength.toString();
+        }
 
         response = await this.httpClient.post(
           `/b/${this.bucketName}/${this.entryName}/batch`,

@@ -2,6 +2,7 @@ import { Buffer } from "buffer";
 import { APIError } from "./APIError";
 import { HttpClient } from "./http/HttpClient";
 import { LabelMap } from "./Record";
+import { isBrowser } from "./utils/env";
 
 const HEADER_PREFIX = "x-reduct-";
 const ERROR_HEADER_PREFIX = "x-reduct-error-";
@@ -162,9 +163,11 @@ export class RecordBatch {
           },
         });
 
-        headers["x-reduct-content-length"] = contentLength.toString();
-        // Send Content-Length for compatibility (server <1.20)
-        headers["Content-Length"] = contentLength.toString();
+        if (isBrowser) {
+          headers["x-reduct-content-length"] = contentLength.toString();
+        } else {
+          headers["Content-Length"] = contentLength.toString();
+        }
 
         const response = await this.httpClient.post(
           `/io/${this.bucketName}/write`,
