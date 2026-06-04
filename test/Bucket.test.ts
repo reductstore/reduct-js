@@ -135,51 +135,38 @@ describe("Bucket", () => {
       ).rejects.toMatchObject({ status: 404 });
     });
 
-    it("should write and read a big blob as streams", async () => {
+    it_api("1.20")("should write a big blob as stream", async () => {
       const bigBlob = crypto.randomBytes(2 ** 20);
-
       const bucket: Bucket = await client.getBucket("bucket");
-      const record = await bucket.beginWrite("big-blob");
+      await (
+        await bucket.beginWrite("big-blob")
+      ).write(
+        new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(bigBlob);
+            controller.close();
+          },
+        }),
+        bigBlob.length,
+      );
+      const record = await bucket.beginRead("big-blob");
+      expect(record.size).toEqual(BigInt(bigBlob.length));
+    });
 
-      const stream = new ReadableStream<Uint8Array>({
-        start(controller) {
-          controller.enqueue(bigBlob);
-          controller.close();
-        },
-      });
+    it("should read a big blob as stream", async () => {
+      const bigBlob = crypto.randomBytes(2 ** 20);
+      const bucket: Bucket = await client.getBucket("bucket");
+      await (await bucket.beginWrite("big-blob")).write(bigBlob);
 
-      await record.write(stream, bigBlob.length);
-
-      const readStream = (await bucket.beginRead("big-blob")).stream;
-
-      // Read the stream
-      const reader = readStream.getReader();
+      const reader = (await bucket.beginRead("big-blob")).stream.getReader();
       const chunks: Uint8Array[] = [];
       let done = false;
       while (!done) {
         const { value, done: isDone } = await reader.read();
         done = isDone;
-        if (value) {
-          chunks.push(value);
-        }
+        if (value) chunks.push(value);
       }
-
-      const actualBuffer = Buffer.concat(chunks);
-
-      expect(actualBuffer.length).toEqual(bigBlob.length);
-      expect(md5(actualBuffer)).toEqual(md5(bigBlob));
-    });
-
-    it("should write and read a big blob as buffers", async () => {
-      const bigBlob = crypto.randomBytes(2 ** 20);
-
-      const bucket: Bucket = await client.getBucket("bucket");
-      const record = await bucket.beginWrite("big-blob");
-      await record.write(bigBlob);
-
-      const reader = await bucket.beginRead("big-blob");
-
-      const actual = await reader.read();
+      const actual = Buffer.concat(chunks);
       expect(actual.length).toEqual(bigBlob.length);
       expect(md5(actual)).toEqual(md5(bigBlob));
     });
@@ -293,7 +280,7 @@ describe("Bucket", () => {
       "should write a record batch to multiple entries",
       async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        const batch = await bucket.beginWriteRecordBatch();
+        const batch = bucket.beginWriteRecordBatch();
         batch.add("entry-batch-1", 1000n, "alpha", "text/plain", {
           label: "a",
         });
