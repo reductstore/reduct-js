@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add lifecycle policy API support, [PR-175](https://github.com/reductstore/reduct-js/pull/175)
 
+### Fixed
+
+- Fix duplicate `Content-Length` for buffer/string writes and use `x-reduct-content-length` for stream writes to support browser streaming (requires server ≥1.20), [PR-179](https://github.com/reductstore/reduct-js/pull/179)
+
 ### Security
 
 - Restore OIDC token write permission for the publish job while keeping default workflow permissions restricted, [PR-176](https://github.com/reductstore/reduct-js/pull/176)

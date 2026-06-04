@@ -135,53 +135,71 @@ describe("Bucket", () => {
       ).rejects.toMatchObject({ status: 404 });
     });
 
-    it("should write and read a big blob as streams", async () => {
+    it_api("1.20")("should write a big blob as stream", async () => {
       const bigBlob = crypto.randomBytes(2 ** 20);
-
       const bucket: Bucket = await client.getBucket("bucket");
-      const record = await bucket.beginWrite("big-blob");
+      await (
+        await bucket.beginWrite("big-blob")
+      ).write(
+        new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(bigBlob);
+            controller.close();
+          },
+        }),
+        bigBlob.length,
+      );
+      const record = await bucket.beginRead("big-blob");
+      expect(record.size).toEqual(BigInt(bigBlob.length));
+    });
 
-      const stream = new ReadableStream<Uint8Array>({
-        start(controller) {
-          controller.enqueue(bigBlob);
-          controller.close();
-        },
-      });
+    it("should read a big blob as stream", async () => {
+      const bigBlob = crypto.randomBytes(2 ** 20);
+      const bucket: Bucket = await client.getBucket("bucket");
+      await (await bucket.beginWrite("big-blob")).write(bigBlob);
 
-      await record.write(stream, bigBlob.length);
-
-      const readStream = (await bucket.beginRead("big-blob")).stream;
-
-      // Read the stream
-      const reader = readStream.getReader();
+      const reader = (await bucket.beginRead("big-blob")).stream.getReader();
       const chunks: Uint8Array[] = [];
       let done = false;
       while (!done) {
         const { value, done: isDone } = await reader.read();
         done = isDone;
-        if (value) {
-          chunks.push(value);
-        }
+        if (value) chunks.push(value);
       }
-
-      const actualBuffer = Buffer.concat(chunks);
-
-      expect(actualBuffer.length).toEqual(bigBlob.length);
-      expect(md5(actualBuffer)).toEqual(md5(bigBlob));
-    });
-
-    it("should write and read a big blob as buffers", async () => {
-      const bigBlob = crypto.randomBytes(2 ** 20);
-
-      const bucket: Bucket = await client.getBucket("bucket");
-      const record = await bucket.beginWrite("big-blob");
-      await record.write(bigBlob);
-
-      const reader = await bucket.beginRead("big-blob");
-
-      const actual = await reader.read();
+      const actual = Buffer.concat(chunks);
       expect(actual.length).toEqual(bigBlob.length);
       expect(md5(actual)).toEqual(md5(bigBlob));
+    });
+
+    it("should set x-reduct-content-length only for stream writes", async () => {
+      const { WritableRecord } = await import("../src/Record");
+      let lastHeaders: Record<string, string> = {};
+      const mock = {
+        post: async (_u: string, _d: unknown, h: Record<string, string>) => {
+          lastHeaders = h;
+          return { data: {}, headers: new Headers(), status: 200 };
+        },
+      };
+      const rec = (
+        data: Parameters<InstanceType<typeof WritableRecord>["write"]>[0],
+        size?: bigint,
+      ) =>
+        new WritableRecord("b", "e", { ts: 1n }, mock as any).write(data, size);
+
+      await rec("hello");
+      expect(lastHeaders["x-reduct-content-length"]).toBeUndefined();
+
+      await rec(Buffer.from("hello"));
+      expect(lastHeaders["x-reduct-content-length"]).toBeUndefined();
+
+      const stream = new ReadableStream<Uint8Array>({
+        start(c) {
+          c.enqueue(new Uint8Array([1]));
+          c.close();
+        },
+      });
+      await rec(stream, 1n);
+      expect(lastHeaders["x-reduct-content-length"]).toBe("1");
     });
 
     it("should read write and read labels along with records", async () => {
@@ -262,7 +280,7 @@ describe("Bucket", () => {
       "should write a record batch to multiple entries",
       async () => {
         const bucket: Bucket = await client.getBucket("bucket");
-        const batch = await bucket.beginWriteRecordBatch();
+        const batch = bucket.beginWriteRecordBatch();
         batch.add("entry-batch-1", 1000n, "alpha", "text/plain", {
           label: "a",
         });
