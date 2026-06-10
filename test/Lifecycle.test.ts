@@ -38,7 +38,10 @@ describe("Lifecycle", () => {
   });
 
   it_api("1.20")("should create a lifecycle policy", async () => {
-    await client.createLifecycle("test-lifecycle", { ...settings, lifecycleType: "compress" as const });
+    await client.createLifecycle("test-lifecycle", {
+      ...settings,
+      lifecycleType: "compress" as const,
+    });
 
     const lifecycles = await client.getLifecycleList();
     expect(lifecycles).toHaveLength(1);
