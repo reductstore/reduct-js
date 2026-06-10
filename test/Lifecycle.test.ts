@@ -38,10 +38,12 @@ describe("Lifecycle", () => {
   });
 
   it_api("1.20")("should create a lifecycle policy", async () => {
-    await client.createLifecycle("test-lifecycle", {
+    const createSettings = {
       ...settings,
       lifecycleType: "compress" as const,
-    });
+    };
+
+    await client.createLifecycle("test-lifecycle", createSettings);
 
     const lifecycles = await client.getLifecycleList();
     expect(lifecycles).toHaveLength(1);
@@ -54,7 +56,7 @@ describe("Lifecycle", () => {
       isProvisioned: false,
     });
 
-    expect(lifecycle.settings).toMatchObject(settings);
+    expect(lifecycle.settings).toMatchObject(createSettings);
   });
 
   it_api("1.20")("should delete a lifecycle policy", async () => {
