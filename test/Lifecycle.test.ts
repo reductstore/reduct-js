@@ -10,10 +10,10 @@ describe("Lifecycle", () => {
   const client: Client = makeClient();
 
   const settings = {
-    lifecycleType: "delete" as const,
+    lifecycleType: "compress" as const,
     bucket: "test-bucket-1",
     entries: [],
-    maxAge: "1h",
+    olderThan: "1h",
     interval: "10m",
     mode: "enabled" as const,
   };
@@ -67,10 +67,10 @@ describe("Lifecycle", () => {
     await client.createLifecycle("test-lifecycle", settings);
 
     const newSettings = {
-      lifecycleType: "delete" as const,
+      lifecycleType: "compress" as const,
       bucket: "test-bucket-1",
       entries: ["entry-1", "entry-2"],
-      maxAge: "2h",
+      olderThan: "2h",
       interval: "20m",
       when: { "&label": { $eq: "value" } },
       mode: "enabled" as const,
@@ -91,7 +91,7 @@ describe("Lifecycle", () => {
     expect(lifecycle.settings.mode).toBe("dry_run");
     expect(lifecycle.settings).toMatchObject({
       bucket: settings.bucket,
-      maxAge: settings.maxAge,
+      olderThan: settings.olderThan,
       interval: settings.interval,
     });
   });

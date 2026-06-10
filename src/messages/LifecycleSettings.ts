@@ -13,7 +13,7 @@ export class OriginalLifecycleSettings {
   type?: LifecycleType;
   bucket = "";
   entries: string[] = [];
-  max_age = "";
+  older_than = "";
   interval?: string;
   when?: any;
   mode?: LifecycleMode;
@@ -41,7 +41,7 @@ export class LifecycleSettings {
   /**
    * Maximum record age, e.g. "30d", "24h", or "3600s".
    */
-  readonly maxAge: string = "";
+  readonly olderThan: string = "";
 
   /**
    * Interval between lifecycle runs, e.g. "10m", "1h", or "3600s".
@@ -63,7 +63,7 @@ export class LifecycleSettings {
       lifecycleType: parseLifecycleType(data.type),
       bucket: data.bucket,
       entries: data.entries,
-      maxAge: data.max_age,
+      olderThan: data.older_than,
       interval: data.interval,
       when: data.when,
       mode: parseLifecycleMode(data.mode),
@@ -75,7 +75,7 @@ export class LifecycleSettings {
       type: data.lifecycleType ?? DEFAULT_LIFECYCLE_TYPE,
       bucket: data.bucket,
       entries: data.entries,
-      max_age: data.maxAge,
+      older_than: data.olderThan,
       interval: data.interval,
       when: data.when,
       mode: data.mode ?? DEFAULT_LIFECYCLE_MODE,
