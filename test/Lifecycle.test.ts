@@ -13,7 +13,7 @@ describe("Lifecycle", () => {
     lifecycleType: "delete" as const,
     bucket: "test-bucket-1",
     entries: [],
-    maxAge: "1h",
+    olderThan: "1h",
     interval: "10m",
     mode: "enabled" as const,
   };
@@ -38,7 +38,12 @@ describe("Lifecycle", () => {
   });
 
   it_api("1.20")("should create a lifecycle policy", async () => {
-    await client.createLifecycle("test-lifecycle", settings);
+    const createSettings = {
+      ...settings,
+      lifecycleType: "compress" as const,
+    };
+
+    await client.createLifecycle("test-lifecycle", createSettings);
 
     const lifecycles = await client.getLifecycleList();
     expect(lifecycles).toHaveLength(1);
@@ -51,7 +56,7 @@ describe("Lifecycle", () => {
       isProvisioned: false,
     });
 
-    expect(lifecycle.settings).toMatchObject(settings);
+    expect(lifecycle.settings).toMatchObject(createSettings);
   });
 
   it_api("1.20")("should delete a lifecycle policy", async () => {
@@ -70,7 +75,7 @@ describe("Lifecycle", () => {
       lifecycleType: "delete" as const,
       bucket: "test-bucket-1",
       entries: ["entry-1", "entry-2"],
-      maxAge: "2h",
+      olderThan: "2h",
       interval: "20m",
       when: { "&label": { $eq: "value" } },
       mode: "enabled" as const,
@@ -91,7 +96,7 @@ describe("Lifecycle", () => {
     expect(lifecycle.settings.mode).toBe("dry_run");
     expect(lifecycle.settings).toMatchObject({
       bucket: settings.bucket,
-      maxAge: settings.maxAge,
+      olderThan: settings.olderThan,
       interval: settings.interval,
     });
   });
