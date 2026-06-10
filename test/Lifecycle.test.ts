@@ -10,7 +10,7 @@ describe("Lifecycle", () => {
   const client: Client = makeClient();
 
   const settings = {
-    lifecycleType: "compress" as const,
+    lifecycleType: "delete" as const,
     bucket: "test-bucket-1",
     entries: [],
     olderThan: "1h",
@@ -38,7 +38,7 @@ describe("Lifecycle", () => {
   });
 
   it_api("1.20")("should create a lifecycle policy", async () => {
-    await client.createLifecycle("test-lifecycle", settings);
+    await client.createLifecycle("test-lifecycle", { ...settings, lifecycleType: "compress" as const });
 
     const lifecycles = await client.getLifecycleList();
     expect(lifecycles).toHaveLength(1);
@@ -67,7 +67,7 @@ describe("Lifecycle", () => {
     await client.createLifecycle("test-lifecycle", settings);
 
     const newSettings = {
-      lifecycleType: "compress" as const,
+      lifecycleType: "delete" as const,
       bucket: "test-bucket-1",
       entries: ["entry-1", "entry-2"],
       olderThan: "2h",
