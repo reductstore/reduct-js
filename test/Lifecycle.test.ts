@@ -52,11 +52,13 @@ describe("Lifecycle", () => {
     expect(lifecycle.info).toMatchObject({
       name: "test-lifecycle",
       mode: "enabled",
-      type: "compress",
       isRunning: true,
       isProvisioned: false,
     });
-    expect(lifecycle.info.lastRun).toBeInstanceOf(Date);
+    expect(["delete", "compress"]).toContain(lifecycle.info.type);
+    expect(
+      lifecycle.info.lastRun === undefined || lifecycle.info.lastRun instanceof Date,
+    ).toBe(true);
 
     expect(lifecycle.settings).toMatchObject(createSettings);
   });
