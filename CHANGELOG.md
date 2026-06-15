@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add lifecycle `compress` action support and rename lifecycle age field from `maxAge`/`max_age` to `olderThan`/`older_than` to match the ReductStore API, [PR-180](https://github.com/reductstore/reduct-js/pull/180)
 - Add lifecycle policy API support, [PR-175](https://github.com/reductstore/reduct-js/pull/175)
 
+### Changed
+
+- Extend `LifecycleInfo` with lifecycle `type` and `lastRun` datetime support for the server `last_run` field, [PR-181](https://github.com/reductstore/reduct-js/pull/181)
+
 ### Fixed
 
 - Fix duplicate `Content-Length` for buffer/string writes and use `x-reduct-content-length` for stream writes to support browser streaming (requires server ≥1.20), [PR-179](https://github.com/reductstore/reduct-js/pull/179)

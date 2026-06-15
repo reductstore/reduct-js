@@ -4,6 +4,11 @@ import {
   parseLifecycleMode,
 } from "./LifecycleMode";
 import {
+  LifecycleType,
+  DEFAULT_LIFECYCLE_TYPE,
+  parseLifecycleType,
+} from "./LifecycleType";
+import {
   LifecycleSettings,
   OriginalLifecycleSettings,
 } from "./LifecycleSettings";
@@ -16,6 +21,8 @@ export class OriginalLifecycleInfo {
   mode: LifecycleMode = DEFAULT_LIFECYCLE_MODE;
   is_provisioned = false;
   is_running = false;
+  type: LifecycleType = DEFAULT_LIFECYCLE_TYPE;
+  last_run?: string;
 }
 
 /**
@@ -33,6 +40,16 @@ export class LifecycleInfo {
   readonly mode: LifecycleMode = DEFAULT_LIFECYCLE_MODE;
 
   /**
+   * Lifecycle action type.
+   */
+  readonly type: LifecycleType = DEFAULT_LIFECYCLE_TYPE;
+
+  /**
+   * Last lifecycle run time.
+   */
+  readonly lastRun?: Date;
+
+  /**
    * Lifecycle policy is provisioned.
    */
   readonly isProvisioned: boolean = false;
@@ -46,6 +63,8 @@ export class LifecycleInfo {
     return {
       name: data.name,
       mode: parseLifecycleMode(data.mode),
+      type: parseLifecycleType(data.type),
+      lastRun: data.last_run ? new Date(data.last_run) : undefined,
       isProvisioned: data.is_provisioned,
       isRunning: data.is_running,
     };
