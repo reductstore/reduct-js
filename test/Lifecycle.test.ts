@@ -57,7 +57,8 @@ describe("Lifecycle", () => {
     });
     expect(["delete", "compress"]).toContain(lifecycle.info.type);
     expect(
-      lifecycle.info.lastRun === undefined || lifecycle.info.lastRun instanceof Date,
+      lifecycle.info.lastRun === undefined ||
+        lifecycle.info.lastRun instanceof Date,
     ).toBe(true);
 
     expect(lifecycle.settings).toMatchObject(createSettings);
