@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 1.20.0 - 2026-06-16
+
 ### Added
 
 - Add lifecycle `compress` action support and rename lifecycle age field from `maxAge`/`max_age` to `olderThan`/`older_than` to match the ReductStore API, [PR-180](https://github.com/reductstore/reduct-js/pull/180)
@@ -435,7 +437,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/reduct-storage/reduct-js/compare/v1.16.0...HEAD
+[Unreleased]: https://github.com/reductstore/reduct-js/compare/v1.20.0...HEAD
+[1.20.0]: https://github.com/reductstore/reduct-js/compare/v1.19.3...v1.20.0
 [1.16.0]: https://github.com/reduct-storage/reduct-js/compare/v1.15.0...v1.16.0
 [1.15.0]: https://github.com/reduct-storage/reduct-js/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/reduct-storage/reduct-js/compare/v1.13.0...v1.14.0
