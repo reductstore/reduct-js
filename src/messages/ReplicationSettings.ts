@@ -14,6 +14,7 @@ export class OriginalReplicationSettings {
   dst_host = "";
   dst_token?: string;
   entries: string[] = [];
+  dst_prefix?: string;
   when?: any;
   mode?: ReplicationMode;
 }
@@ -48,6 +49,11 @@ export class ReplicationSettings {
   readonly entries: string[] = [];
 
   /**
+   * Prefix to add to destination entry names.
+   */
+  readonly dstPrefix?: string;
+
+  /**
    * Conditional query
    */
   readonly when?: any;
@@ -64,6 +70,7 @@ export class ReplicationSettings {
       dstHost: data.dst_host,
       dstToken: data.dst_token,
       entries: data.entries,
+      dstPrefix: data.dst_prefix ?? "",
       when: data.when,
       mode: parseReplicationMode(data.mode),
     };
@@ -76,6 +83,7 @@ export class ReplicationSettings {
       dst_host: data.dstHost,
       dst_token: data.dstToken,
       entries: data.entries,
+      ...(data.dstPrefix ? { dst_prefix: data.dstPrefix } : {}),
       when: data.when,
       mode: data.mode ?? DEFAULT_REPLICATION_MODE,
     };
