@@ -44,6 +44,10 @@ export const cleanStorage = async (client: Client): Promise<void> => {
   // Delete buckets sequentially to avoid race conditions
   const buckets = await client.getBucketList();
   for (const info of buckets) {
+    if (info.name.startsWith("$")) {
+      continue;
+    }
+
     try {
       const bucket = await client.getBucket(info.name);
       await bucket.remove();

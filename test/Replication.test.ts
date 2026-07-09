@@ -78,6 +78,27 @@ describe("Replication", () => {
     expect(replication.settings).toMatchObject(newSettings);
   });
 
+  it_api("1.21")(
+    "should create and update a replication with prefix",
+    async () => {
+      await client.createReplication("test-replication-prefix", {
+        ...settings,
+        dstPrefix: "robot-1",
+      });
+
+      let replication = await client.getReplication("test-replication-prefix");
+      expect(replication.settings.dstPrefix).toBe("robot-1");
+
+      await client.updateReplication("test-replication-prefix", {
+        ...settings,
+        dstPrefix: "line-a",
+      });
+
+      replication = await client.getReplication("test-replication-prefix");
+      expect(replication.settings.dstPrefix).toBe("line-a");
+    },
+  );
+
   it_api("1.18")("should set replication mode", async () => {
     await client.createReplication("test-replication", settings);
 
