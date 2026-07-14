@@ -1,6 +1,60 @@
 import { Client } from "../src/Client";
+import { ReplicationCompression } from "../src/messages/ReplicationCompression";
+import { ReplicationSettings } from "../src/messages/ReplicationSettings";
 import { cleanStorage, it_api, makeClient } from "./utils/Helpers";
 import { DiagnosticsItem } from "../src/messages/Diagnostics";
+
+describe("ReplicationSettings", () => {
+  it("should default omitted compression to none", () => {
+    const settings = ReplicationSettings.parse({
+      src_bucket: "src",
+      dst_bucket: "dst",
+      dst_host: "http://localhost:8383",
+      entries: [],
+    });
+
+    expect(settings.compression).toBe(ReplicationCompression.NONE);
+    expect(ReplicationSettings.serialize(settings).compression).toBe(
+      ReplicationCompression.NONE,
+    );
+  });
+
+  it("should serialize replication compression", () => {
+    const payload = ReplicationSettings.serialize({
+      srcBucket: "src",
+      dstBucket: "dst",
+      dstHost: "http://localhost:8383",
+      entries: [],
+      compression: ReplicationCompression.ZSTD,
+    });
+
+    expect(payload.compression).toBe("zstd");
+  });
+
+  it("should parse replication compression", () => {
+    const settings = ReplicationSettings.parse({
+      src_bucket: "src",
+      dst_bucket: "dst",
+      dst_host: "http://localhost:8383",
+      entries: [],
+      compression: "gzip",
+    });
+
+    expect(settings.compression).toBe(ReplicationCompression.GZIP);
+  });
+
+  it("should reject unknown replication compression values", () => {
+    expect(() =>
+      ReplicationSettings.parse({
+        src_bucket: "src",
+        dst_bucket: "dst",
+        dst_host: "http://localhost:8383",
+        entries: [],
+        compression: "brotli",
+      }),
+    ).toThrow("Unknown replication compression: brotli");
+  });
+});
 
 describe("Replication", () => {
   const client: Client = makeClient();
@@ -96,6 +150,33 @@ describe("Replication", () => {
 
       replication = await client.getReplication("test-replication-prefix");
       expect(replication.settings.dstPrefix).toBe("line-a");
+    },
+  );
+
+  it_api("1.21")(
+    "should create and update a replication with compression",
+    async () => {
+      await client.createReplication("test-replication-compression", {
+        ...settings,
+        compression: ReplicationCompression.ZSTD,
+      });
+
+      let replication = await client.getReplication(
+        "test-replication-compression",
+      );
+      expect(replication.settings.compression).toBe(
+        ReplicationCompression.ZSTD,
+      );
+
+      await client.updateReplication("test-replication-compression", {
+        ...settings,
+        compression: ReplicationCompression.GZIP,
+      });
+
+      replication = await client.getReplication("test-replication-compression");
+      expect(replication.settings.compression).toBe(
+        ReplicationCompression.GZIP,
+      );
     },
   );
 

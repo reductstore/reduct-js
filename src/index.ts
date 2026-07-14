@@ -11,6 +11,7 @@ import { Token, TokenPermissions, TokenCreateRequest } from "./messages/Token";
 import { ReplicationInfo } from "./messages/ReplicationInfo";
 import { ReplicationSettings } from "./messages/ReplicationSettings";
 import { ReplicationMode } from "./messages/ReplicationMode";
+import { ReplicationCompression } from "./messages/ReplicationCompression";
 import { FullReplicationInfo } from "./messages/ReplicationInfo";
 import { LifecycleInfo, FullLifecycleInfo } from "./messages/LifecycleInfo";
 import { LifecycleMode } from "./messages/LifecycleMode";
@@ -38,6 +39,7 @@ export {
   ReplicationInfo,
   ReplicationSettings,
   FullReplicationInfo,
+  ReplicationCompression,
   LifecycleInfo,
   LifecycleSettings,
   FullLifecycleInfo,
