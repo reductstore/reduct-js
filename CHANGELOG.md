@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 1.21.0-beta.0 - 2026-07-14
+
 ### Added
 
+- Add replication compression setting support, [PR-187](https://github.com/reductstore/reduct-js/pull/187)
 - Add replication destination prefix support, [PR-185](https://github.com/reductstore/reduct-js/pull/185)
 
 ## 1.20.0 - 2026-06-16
@@ -441,7 +444,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
-[Unreleased]: https://github.com/reductstore/reduct-js/compare/v1.20.0...HEAD
+[Unreleased]: https://github.com/reductstore/reduct-js/compare/v1.21.0-beta.0...HEAD
+[1.21.0-beta.0]: https://github.com/reductstore/reduct-js/compare/v1.20.0...v1.21.0-beta.0
 [1.20.0]: https://github.com/reductstore/reduct-js/compare/v1.19.3...v1.20.0
 [1.19.3]: https://github.com/reductstore/reduct-js/compare/v1.19.2...v1.19.3
 [1.19.2]: https://github.com/reductstore/reduct-js/compare/v1.19.1...v1.19.2

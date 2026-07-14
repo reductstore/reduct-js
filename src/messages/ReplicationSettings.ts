@@ -7,6 +7,11 @@ import {
   parseReplicationMode,
   ReplicationMode,
 } from "./ReplicationMode";
+import {
+  DEFAULT_REPLICATION_COMPRESSION,
+  parseReplicationCompression,
+  ReplicationCompression,
+} from "./ReplicationCompression";
 
 export class OriginalReplicationSettings {
   src_bucket = "";
@@ -17,6 +22,7 @@ export class OriginalReplicationSettings {
   dst_prefix?: string;
   when?: any;
   mode?: ReplicationMode;
+  compression?: string;
 }
 
 /**
@@ -63,6 +69,11 @@ export class ReplicationSettings {
    */
   readonly mode?: ReplicationMode;
 
+  /**
+   * Wire compression for replication batch payload transfer.
+   */
+  readonly compression?: ReplicationCompression;
+
   static parse(data: OriginalReplicationSettings): ReplicationSettings {
     return {
       srcBucket: data.src_bucket,
@@ -73,6 +84,7 @@ export class ReplicationSettings {
       dstPrefix: data.dst_prefix,
       when: data.when,
       mode: parseReplicationMode(data.mode),
+      compression: parseReplicationCompression(data.compression),
     };
   }
 
@@ -86,6 +98,7 @@ export class ReplicationSettings {
       dst_prefix: data.dstPrefix,
       when: data.when,
       mode: data.mode ?? DEFAULT_REPLICATION_MODE,
+      compression: data.compression ?? DEFAULT_REPLICATION_COMPRESSION,
     };
   }
 }
