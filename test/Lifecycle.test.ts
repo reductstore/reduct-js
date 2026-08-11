@@ -129,6 +129,30 @@ describe("Lifecycle", () => {
     expect(lifecycle.settings).toMatchObject(newSettings);
   });
 
+  it_api("1.21")(
+    "should create and update lifecycle processing interval",
+    async () => {
+      const createSettings = {
+        ...settings,
+        lifecycleType: "compress" as const,
+        processingInterval: "12h",
+      };
+      await client.createLifecycle("test-lifecycle", createSettings);
+
+      const createdLifecycle = await client.getLifecycle("test-lifecycle");
+      expect(createdLifecycle.settings).toMatchObject(createSettings);
+
+      const updateSettings = {
+        ...createSettings,
+        processingInterval: "6h",
+      };
+      await client.updateLifecycle("test-lifecycle", updateSettings);
+
+      const updatedLifecycle = await client.getLifecycle("test-lifecycle");
+      expect(updatedLifecycle.settings).toMatchObject(updateSettings);
+    },
+  );
+
   it_api("1.20")("should set lifecycle mode", async () => {
     await client.createLifecycle("test-lifecycle", settings);
 

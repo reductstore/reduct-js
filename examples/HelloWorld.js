@@ -1,6 +1,7 @@
 const { Client } = require("../lib/cjs/index.js");
 
 const client = new Client("http://127.0.0.1:8383", {
+  apiToken: process.env.RS_API_TOKEN,
   verifySSL: false,
 });
 
