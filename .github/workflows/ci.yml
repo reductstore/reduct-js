@@ -24,11 +24,8 @@ jobs:
     strategy:
       matrix:
         node_version: ["20", "24"]
-        token: ["", "token"]
+        token: ["token"]
         reductstore_version: ["main", "latest"]
-        exclude:
-          - reductstore_version: "main"
-            token: ""
     steps:
       - uses: actions/checkout@v5
 

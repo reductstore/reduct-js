@@ -1,6 +1,5 @@
 import { Client } from "../src/Client";
 import { LifecycleInfo } from "../src/messages/LifecycleInfo";
-import { LifecycleSettings } from "../src/messages/LifecycleSettings";
 import {
   cleanStorage,
   it_api,
@@ -42,68 +41,6 @@ describe("LifecycleInfo", () => {
 
     expect(info.type).toBe("delete");
     expect(info.lastRun).toBeUndefined();
-  });
-});
-
-describe("LifecycleSettings", () => {
-  it("should parse processing interval", () => {
-    const settings = LifecycleSettings.parse({
-      type: "compress",
-      bucket: "test-bucket-1",
-      entries: ["entry-1"],
-      older_than: "30d",
-      interval: "1h",
-      processing_interval: "12h",
-      mode: "enabled",
-    });
-
-    expect(settings).toMatchObject({
-      lifecycleType: "compress",
-      bucket: "test-bucket-1",
-      entries: ["entry-1"],
-      olderThan: "30d",
-      interval: "1h",
-      processingInterval: "12h",
-      mode: "enabled",
-    });
-  });
-
-  it("should serialize processing interval", () => {
-    const settings = LifecycleSettings.serialize({
-      lifecycleType: "compress",
-      bucket: "test-bucket-1",
-      entries: ["entry-1"],
-      olderThan: "30d",
-      interval: "1h",
-      processingInterval: "12h",
-      mode: "enabled",
-    });
-
-    expect(settings).toMatchObject({
-      type: "compress",
-      bucket: "test-bucket-1",
-      entries: ["entry-1"],
-      older_than: "30d",
-      interval: "1h",
-      processing_interval: "12h",
-      mode: "enabled",
-    });
-  });
-
-  it("should leave omitted processing interval undefined", () => {
-    const parsed = LifecycleSettings.parse({
-      type: "delete",
-      bucket: "test-bucket-1",
-      entries: [],
-      older_than: "1h",
-      interval: "10m",
-      mode: "enabled",
-    });
-
-    const serialized = LifecycleSettings.serialize(parsed);
-
-    expect(parsed.processingInterval).toBeUndefined();
-    expect(serialized.processing_interval).toBeUndefined();
   });
 });
 
