@@ -3,7 +3,7 @@ const { Client, QuotaType } = require("../lib/cjs/index.js");
 const main = async () => {
   // 1. Create a ReductStore client
   const client = new Client("http://127.0.0.1:8383", {
-    apiToken: "my-token",
+    apiToken: process.env.RS_API_TOKEN ?? "my-token",
   });
 
   // 2. Get or create a bucket with 1Gb quota

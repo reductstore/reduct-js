@@ -26,6 +26,9 @@ jobs:
         node_version: ["20", "24"]
         token: ["", "token"]
         reductstore_version: ["main", "latest"]
+        exclude:
+          - reductstore_version: "main"
+            token: ""
     steps:
       - uses: actions/checkout@v5
 
@@ -84,7 +87,9 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Run ReductStore
-        run: docker run -p 8383:8383 -d reduct/store:${{ matrix.reductstore_version }}
+        run: docker run -p 8383:8383
+          --env RS_API_TOKEN=${{ matrix.reductstore_version == 'main' && 'my-token' || '' }}
+          -d reduct/store:${{ matrix.reductstore_version }}
 
       - name: Wait for ReductStore
         run: |
@@ -101,6 +106,8 @@ jobs:
 
       - name: Run example
         run: npm run tsc && node examples/${{matrix.example}}
+        env:
+          RS_API_TOKEN: ${{ matrix.reductstore_version == 'main' && 'my-token' || '' }}
 
       - name: Print ReductStore logs
         if: always()
