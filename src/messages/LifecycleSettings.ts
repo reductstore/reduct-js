@@ -15,6 +15,7 @@ export class OriginalLifecycleSettings {
   entries: string[] = [];
   older_than = "";
   interval?: string;
+  processing_interval?: string;
   when?: any;
   mode?: LifecycleMode;
 }
@@ -49,6 +50,11 @@ export class LifecycleSettings {
   readonly interval?: string;
 
   /**
+   * Maximum data-time span processed by one lifecycle run, e.g. "6h", "12h", or "1d".
+   */
+  readonly processingInterval?: string;
+
+  /**
    * Conditional query.
    */
   readonly when?: any;
@@ -65,6 +71,7 @@ export class LifecycleSettings {
       entries: data.entries,
       olderThan: data.older_than,
       interval: data.interval,
+      processingInterval: data.processing_interval,
       when: data.when,
       mode: parseLifecycleMode(data.mode),
     };
@@ -77,6 +84,7 @@ export class LifecycleSettings {
       entries: data.entries,
       older_than: data.olderThan,
       interval: data.interval,
+      processing_interval: data.processingInterval,
       when: data.when,
       mode: data.mode ?? DEFAULT_LIFECYCLE_MODE,
     };
