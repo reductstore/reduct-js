@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add lifecycle `processingInterval` setting support for `processing_interval`.
+- Add lifecycle `processingInterval` setting support for `processing_interval`, [PR-189](https://github.com/reductstore/reduct-js/pull/189)
 
 ## 1.21.0-beta.0 - 2026-07-14
 
