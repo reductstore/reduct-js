@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "24"
       - run: npm i
       - run: npm run fmt:check
 
@@ -122,6 +122,9 @@ jobs:
     needs: format
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
       - run: npm i
       - name: Run tests
         run: npm run lint
@@ -131,6 +134,9 @@ jobs:
     needs: format
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
       - run: npm i
       - name: Fail on high/critical vulnerabilities
         run: npm audit --audit-level=high
