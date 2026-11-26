@@ -154,6 +154,9 @@ export class WritableRecord {
     const headers: Record<string, string> = {
       "Content-Type": options.contentType ?? "application/octet-stream",
     };
+    if (options.sync === true) {
+      headers["x-reduct-sync-write"] = "true";
+    }
     if (dataToSend instanceof ReadableStream) {
       headers["x-reduct-content-length"] = contentLength.toString();
     }

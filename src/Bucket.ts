@@ -19,6 +19,14 @@ export interface WriteOptions {
   ts?: bigint; // timestamp of the record
   labels?: LabelMap; // labels of the record
   contentType?: string; // content types of the record
+  sync?: boolean; // wait until the record is synchronized
+}
+
+/**
+ * Options for writing record batches
+ */
+export interface BatchWriteOptions {
+  sync?: boolean; // wait until the batch is synchronized
 }
 
 /**
@@ -436,21 +444,37 @@ export class Bucket {
   /**
    * Create a new batch for writing records to the database.
    * @param entry
+   * @param options batch write options
    */
-  async beginWriteBatch(entry: string): Promise<Batch> {
-    return new Batch(this.name, entry, this.httpClient, BatchType.WRITE);
+  async beginWriteBatch(
+    entry: string,
+    options?: BatchWriteOptions,
+  ): Promise<Batch> {
+    return new Batch(
+      this.name,
+      entry,
+      this.httpClient,
+      BatchType.WRITE,
+      options,
+    );
   }
 
   /**
    * Create a new batch for writing records to multiple entries.
+   * @param options batch write options
    * @example
    * const batch = bucket.beginWriteRecordBatch();
    * batch.add("entry-1", 1000n, "data");
    * batch.add("entry-2", 2000n, "data");
    * await batch.send();
    */
-  beginWriteRecordBatch(): RecordBatch {
-    return new RecordBatch(this.name, this.httpClient, RecordBatchType.WRITE);
+  beginWriteRecordBatch(options?: BatchWriteOptions): RecordBatch {
+    return new RecordBatch(
+      this.name,
+      this.httpClient,
+      RecordBatchType.WRITE,
+      options,
+    );
   }
 
   /**

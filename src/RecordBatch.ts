@@ -2,6 +2,7 @@ import { Buffer } from "buffer";
 import { APIError } from "./APIError";
 import { HttpClient } from "./http/HttpClient";
 import { LabelMap } from "./Record";
+import type { BatchWriteOptions } from "./Bucket";
 
 const HEADER_PREFIX = "x-reduct-";
 const ERROR_HEADER_PREFIX = "x-reduct-error-";
@@ -35,6 +36,7 @@ export class RecordBatch {
   private readonly bucketName: string;
   private readonly httpClient: HttpClient;
   private readonly type: RecordBatchType;
+  private readonly options: BatchWriteOptions;
   private readonly records: Map<string, RecordBatchItem>;
   private totalSize: bigint;
   private lastAccess: number;
@@ -43,10 +45,12 @@ export class RecordBatch {
     bucketName: string,
     httpClient: HttpClient,
     type: RecordBatchType,
+    options: BatchWriteOptions = {},
   ) {
     this.bucketName = bucketName;
     this.httpClient = httpClient;
     this.type = type;
+    this.options = options;
     this.records = new Map();
     this.totalSize = 0n;
     this.lastAccess = 0;
@@ -147,6 +151,9 @@ export class RecordBatch {
     switch (this.type) {
       case RecordBatchType.WRITE: {
         const { headers, entries, startTs } = makeHeadersV2(this);
+        if (this.options.sync === true) {
+          headers["x-reduct-sync-write"] = "true";
+        }
         const chunks: Buffer[] = [];
         for (const [, record] of this.items()) {
           chunks.push(record.data);

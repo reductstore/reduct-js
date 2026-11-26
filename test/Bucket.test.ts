@@ -276,6 +276,34 @@ describe("Bucket", () => {
       expect(batch.lastAccessTime()).toEqual(0);
     });
 
+    it_api("1.22")("should synchronously write a record", async () => {
+      const bucket: Bucket = await client.getBucket("bucket");
+      await (
+        await bucket.beginWrite("sync-record", {
+          ts: 5_000_000n,
+          sync: true,
+        })
+      ).write("synchronized");
+
+      const record = await bucket.beginRead("sync-record", 5_000_000n);
+      await expect(record.readAsString()).resolves.toBe("synchronized");
+    });
+
+    it_api("1.22")(
+      "should synchronously write a legacy record batch",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const batch = await bucket.beginWriteBatch("sync-legacy-batch", {
+          sync: true,
+        });
+        batch.add(5_000_000n, "synchronized");
+
+        await expect(batch.write()).resolves.toEqual(new Map());
+        const record = await bucket.beginRead("sync-legacy-batch", 5_000_000n);
+        await expect(record.readAsString()).resolves.toBe("synchronized");
+      },
+    );
+
     it_api("1.18", true)(
       "should write a record batch to multiple entries",
       async () => {
@@ -312,6 +340,19 @@ describe("Bucket", () => {
           labels: {},
         });
         expect(await recordsEntry2[0].read()).toEqual(Buffer.from("beta"));
+      },
+    );
+
+    it_api("1.22", true)(
+      "should synchronously write a multi-entry record batch",
+      async () => {
+        const bucket: Bucket = await client.getBucket("bucket");
+        const batch = bucket.beginWriteRecordBatch({ sync: true });
+        batch.add("sync-record-batch", 5_000_000n, "synchronized");
+
+        await expect(batch.send()).resolves.toEqual(new Map());
+        const record = await bucket.beginRead("sync-record-batch", 5_000_000n);
+        await expect(record.readAsString()).resolves.toBe("synchronized");
       },
     );
 

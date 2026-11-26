@@ -1,6 +1,6 @@
 import { Client } from "./Client";
 import { Bucket } from "./Bucket";
-import type { WriteOptions } from "./Bucket";
+import type { BatchWriteOptions, WriteOptions } from "./Bucket";
 import { APIError } from "./APIError";
 import { ServerInfo, LicenseInfo } from "./messages/ServerInfo";
 import { BucketSettings, QuotaType } from "./messages/BucketSettings";
@@ -51,4 +51,4 @@ export {
   LifecycleType,
 };
 
-export type { WriteOptions };
+export type { BatchWriteOptions, WriteOptions };
