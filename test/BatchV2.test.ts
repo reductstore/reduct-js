@@ -2,6 +2,7 @@ import { fetchAndParseBatchV2 } from "../src/batch/BatchV2";
 import { HttpClient } from "../src/http/HttpClient";
 import { ReadableRecord } from "../src/Record";
 import { RecordBatch, RecordBatchType } from "../src/RecordBatch";
+import { Bucket } from "../src/Bucket";
 import { Headers } from "undici";
 
 describe("BatchV2", () => {
@@ -41,6 +42,35 @@ describe("BatchV2", () => {
         "x-reduct-1-2000": "1,text/plain",
       });
     });
+
+    it.each([
+      ["default", undefined, undefined],
+      ["false", false, undefined],
+      ["true", true, "true"],
+    ])(
+      "should set x-reduct-sync-write only for sync multi-entry batch writes (%s)",
+      async (
+        _description,
+        sync: boolean | undefined,
+        expected: string | undefined,
+      ) => {
+        let requestHeaders: Record<string, string> | undefined;
+        const mockHttpClient = {
+          apiVersion: [1, 22],
+          post: vi.fn().mockImplementation(async (_url, _body, headers) => {
+            requestHeaders = headers;
+            return { status: 200, headers: new Headers(), data: "" };
+          }),
+        } as unknown as HttpClient;
+        const bucket = new Bucket("bucket", mockHttpClient);
+        const batch = bucket.beginWriteRecordBatch({ sync });
+        batch.add("entry", 1_000n, "data");
+
+        await batch.send();
+
+        expect(requestHeaders?.["x-reduct-sync-write"]).toBe(expected);
+      },
+    );
   });
 
   describe("fetchAndParseBatchV2", () => {

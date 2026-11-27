@@ -88,7 +88,7 @@ jobs:
 
       - name: Run ReductStore
         run: docker run -p 8383:8383
-          --env RS_API_TOKEN=${{ matrix.reductstore_version == 'main' && 'my-token' || '' }}
+          --env RS_API_TOKEN=my-token
           -d reduct/store:${{ matrix.reductstore_version }}
 
       - name: Wait for ReductStore
@@ -107,7 +107,7 @@ jobs:
       - name: Run example
         run: npm run tsc && node examples/${{matrix.example}}
         env:
-          RS_API_TOKEN: ${{ matrix.reductstore_version == 'main' && 'my-token' || '' }}
+          RS_API_TOKEN: my-token
 
       - name: Print ReductStore logs
         if: always()

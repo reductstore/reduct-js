@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add opt-in synchronous durability for single-record and batch writes with `sync: true` (requires ReductStore API v1.22), [PR-192](https://github.com/reductstore/reduct-js/pull/192)
+
 ## 1.21.0 - 2026-09-17
 
 ### Added

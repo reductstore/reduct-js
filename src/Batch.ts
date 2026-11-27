@@ -1,6 +1,7 @@
 import { LabelMap } from "./Record";
 import { APIError } from "./APIError";
 import { HttpClient } from "./http/HttpClient";
+import type { BatchWriteOptions } from "./Bucket";
 
 /**
  * Represents a batch of records for writing
@@ -17,6 +18,7 @@ export class Batch {
   private readonly entryName: string;
   private readonly httpClient: HttpClient;
   private readonly type: BatchType;
+  private readonly options: BatchWriteOptions;
 
   private readonly records: Map<
     bigint,
@@ -35,12 +37,14 @@ export class Batch {
     entryName: string,
     httpClient: HttpClient,
     type: BatchType,
+    options: BatchWriteOptions = {},
   ) {
     this.bucketName = bucketName;
     this.entryName = entryName;
     this.httpClient = httpClient;
     this.records = new Map();
     this.type = type;
+    this.options = options;
     this.totalSize = BigInt(0);
     this.lastAccess = 0;
   }
@@ -131,6 +135,9 @@ export class Batch {
     switch (this.type) {
       case BatchType.WRITE: {
         headers["Content-Type"] = "application/octet-stream";
+        if (this.options.sync === true) {
+          headers["x-reduct-sync-write"] = "true";
+        }
 
         response = await this.httpClient.post(
           `/b/${this.bucketName}/${this.entryName}/batch`,
